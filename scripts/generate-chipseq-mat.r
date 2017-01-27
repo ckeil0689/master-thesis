@@ -23,7 +23,7 @@ chipfiles <- list.files(getwd())
 all_genes_thx_wt <- c()
 tfs_thx <- c()
 
-#Iteration 1: create unique, maximal list of tested TFs and genes with MACS peaks
+# Iteration 1: create unique, maximal list of tested TFs and genes with MACS peaks
 for(i in chipfiles) {
   
   # skip non-ChIP-seq files
@@ -43,6 +43,7 @@ for(i in chipfiles) {
     
     # correct for hyphens and underscores in TF names
     tf_thx_wt <- gsub("(-|_)", "", tolower(tf_thx_wt))
+    tf_thx_wt <- paste0(tf_thx_wt, "-", libname)
     tfs_thx <- c(tfs_thx, tf_thx_wt)
     
     # create full gene list by adding all genes from this file
@@ -55,15 +56,17 @@ for(i in chipfiles) {
 }
 
 # generate the empty Th17 and Th0 matrices for ChIP-seq
-tfs_thx_unique <- sort(unique(tfs_thx))
+#tfs_thx_unique <- sort(unique(tfs_thx))
 all_genes_thx_unique <- sort(unique(all_genes_thx_wt))
 
 # 0-initialized matrix  
-thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
+#thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
+thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx))
 # unique gene list makes up rows
 rownames(thx_mat) <- all_genes_thx_unique
 # unique transcription factor list makes up columns
-colnames(thx_mat) <- tfs_thx_unique
+#colnames(thx_mat) <- tfs_thx_unique
+colnames(thx_mat) <- tfs_thx
 
 # iteration 2: extract and assign associated Poisson model p-values to the matrix
 for(i in chipfiles) {
@@ -83,6 +86,7 @@ for(i in chipfiles) {
     
     # fix hyphens and underscores in TF names
     tf_thx_wt <- gsub("(-|_)", "", tolower(tf_thx_wt))
+    tf_thx_wt <- paste0(tf_thx_wt, "-", libname)
     
     # order the genes, get index to also reorder Poisson model p-values
     genes_thx_wt <- cst$Gene_ID
@@ -98,6 +102,9 @@ for(i in chipfiles) {
     next
   }
 }
+
+# now matrix has a column for each library file - take the mean for each TF and write that in ONE column (result: one column per TF)
+#z$mean <- rowMeans(subset(z, select = c(x, y)), na.rm = TRUE)
 
 # write matrices to a tab-delimited file
 filename=paste("C_", thx, "_mat.txt")
