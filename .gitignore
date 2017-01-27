@@ -1,0 +1,13 @@
+/networks/
+/suppl/data/
+/papers/
+
+~*
+.*#
+*.ods
+*.xls*
+*.csv
+*.pdf
+*.txt.gz
+*genes.txt
+*expr.txt
