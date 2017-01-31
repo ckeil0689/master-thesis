@@ -129,11 +129,14 @@ for(i in tfs_thx_unique) {
     }
   }
   
-  paste("Combine column subset:", tf_colset)
-  
-  #thx_unique_mat$i <- rowMeans(subset(thx_mat, select = tf_colset), na.rm = TRUE)
+  print(paste("Combined column subset:", tf_colset))
+  print("Calculating mean column...")
+  tf_meancol <- rowMeans(subset(thx_mat, select = tf_colset), na.rm = TRUE)
+  print("Adding as new column to TF-unique matrix...")
+  cbind(thx_unique_mat, newColumn = tf_meancol)
 }
 
+print("Writing matrices to file...")
 # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (result: one column per unique TF)
 #z$mean <- rowMeans(subset(z, select = c(x, y)), na.rm = TRUE)
 
