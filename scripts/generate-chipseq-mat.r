@@ -6,6 +6,9 @@ args <- commandArgs(trailingOnly=TRUE)
 thx <- toupper(as.character(args[1]))
 thx <-'Th17'
 
+# fixed target transcription factors to use
+target_tfs <- c("batf", "irf4", "stat3", "hif1a", "cmaf", "fosl2", "rorc", "rorg")
+
 # ensure we have a usable argument to work with
 if(thx != 'Th17' && thx != 'Th0') {
   print("Incorrect or missing argument.")
@@ -40,13 +43,19 @@ for(i in chipfiles) {
   # use library name to get tf from reference for each condition
   row <- match(libname, ref_file$Library_ID)
   if(ref_file$Condition[row]==thx && ref_file$Genotype[row]=='wt') {
-    thx_rows <- c(thx_rows, row)
-    tf_thx_wt <- ref_file$Factor[row]
-    
+    tf <- ref_file$Factor[row]
     # correct for hyphens and underscores in TF names
-    tf_thx_wt <- gsub("(-|_)", "", tolower(tf_thx_wt))
-    tf_thx_wt <- paste0(tf_thx_wt, "-", libname)
-    tfs_thx <- c(tfs_thx, tf_thx_wt)
+    tf <- gsub("(-|_)", "", tolower(tf))
+    
+    # only use target TFs
+    if(!tf %in% target_tfs) {
+      next
+    }
+    
+    thx_rows <- c(thx_rows, row)
+
+    tf <- paste0(tf, "-", libname)
+    tfs_thx <- c(tfs_thx, tf)
     
     # create full gene list by adding all genes from this file
     genes_thx_wt <- as.character(cst$Gene_ID)
@@ -59,7 +68,6 @@ for(i in chipfiles) {
 
 print("Generate dummy matrix skeleton.")
 # generate the empty Th17 and Th0 matrices for ChIP-seq
-#tfs_thx_unique <- sort(unique(tfs_thx))
 all_genes_thx_unique <- sort(unique(all_genes_thx_wt))
 
 # 0-initialized matrix  
@@ -67,7 +75,6 @@ thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx)
 # unique gene list makes up rows
 rownames(thx_mat) <- all_genes_thx_unique
 # unique transcription factor list makes up columns
-#colnames(thx_mat) <- tfs_thx_unique
 colnames(thx_mat) <- tfs_thx
 
 print("Extract Poisson model p-values from ChIP files.")
@@ -85,11 +92,17 @@ for(i in chipfiles) {
   row <- match(libname, ref_file$Library_ID)
   if(ref_file$Condition[row]==thx && ref_file$Genotype[row]=='wt') {
     # get tf from reference for Thx/wt condition
-    tf_thx_wt <- ref_file$Factor[row]
+    tf <- ref_file$Factor[row]
     
     # fix hyphens and underscores in TF names
-    tf_thx_wt <- gsub("(-|_)", "", tolower(tf_thx_wt))
-    tf_thx_wt <- paste0(tf_thx_wt, "-", libname)
+    tf <- gsub("(-|_)", "", tolower(tf))
+    
+    # only use target TFs
+    if(!tf %in% target_tfs) {
+      next
+    }
+    
+    tf <- paste0(tf, "-", libname)
     
     # order the genes, get index to also reorder Poisson model p-values
     genes_thx_wt <- cst$Gene_ID
@@ -97,7 +110,7 @@ for(i in chipfiles) {
     # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
     idx <- 1
     for(j in genes_thx_wt) {
-      thx_mat[j, tf_thx_wt] <- cst$genewide_pois_model_pval[idx]
+      thx_mat[j, tf] <- cst$genewide_pois_model_pval[idx]
       idx <- idx + 1
     }
     
@@ -116,12 +129,9 @@ thx_unique_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(t
 rownames(thx_unique_mat) <- all_genes_thx_unique
 colnames(thx_unique_mat) <- tfs_thx_unique
 
-print("Skeleton unique matrix:")
-print(thx_unique_mat[1:20,])
-
 cols <- colnames(thx_mat)
 
-print("Iterate unique TFs.")
+print("Calculate mean p-values for unique TFs...")
 for(i in tfs_thx_unique) {
   
   # pattern to match
@@ -136,22 +146,16 @@ for(i in tfs_thx_unique) {
   }
   
   subsetCols <- subset(thx_mat, select = tf_colset)
-  print(subsetCols[1:5,])
   # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
-  print("Calculating mean column...")
   tf_meancol <- rowMeans(subset(thx_mat, select = tf_colset), na.rm = TRUE)
-  print(tf_meancol[])
-  print("Adding as new column to TF-unique matrix...")
   #cbind(thx_unique_mat, tf_meancol)
   thx_unique_mat[,i] <- tf_meancol
-  print("Current matrix:")
-  print(thx_unique_mat[1:10,])
 }
 
 print("Writing matrices to file...")
 # write matrices to a tab-delimited file
-filename=paste("C_", thx, "_mat.txt")
+filename=paste0("C_", thx, "_mat.txt")
 write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 
-filename=paste("C_", thx, "_unique_mat.txt")
+filename=paste0("C_", thx, "_unique_mat.txt")
 write.table(thx_unique_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
