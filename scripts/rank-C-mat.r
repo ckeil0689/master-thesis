@@ -4,7 +4,9 @@
 setwd("/home/chrisk/Documents/uni/thesis/suppl/data/chipseq")
 
 args <- commandArgs(trailingOnly=TRUE)
-matname <- as.character(args[1])
+matname <- as.character(basename(args[1]))
+
+print(matname)
 
 if(matname == "") {
   print("Incorrect or missing argument.")
@@ -23,5 +25,7 @@ colnames(ranked_mat) <- colnames(mat)
 print(mat[1:10,])
 print(ranked_mat[1:10,])
 
-filename=paste0(basename(matname), "_ranked.txt")
+filename=paste0(matname, "_ranked.txt")
 write.table(ranked_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+
+#TODO generate q-matrix and write that instead
