@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 # Read a ChIP-seq files from dir
 setwd("/home/chrisk/Documents/uni/thesis/suppl/data/chipseq")
 
@@ -23,6 +24,7 @@ chipfiles <- list.files(getwd())
 all_genes_thx_wt <- c()
 tfs_thx <- c()
 
+print("Reading ChIP files to create lists of TFs and genes.")
 # Iteration 1: create unique, maximal list of tested TFs and genes with MACS peaks
 for(i in chipfiles) {
   
@@ -55,12 +57,12 @@ for(i in chipfiles) {
   }
 }
 
+print("Generate dummy matrix skeleton.")
 # generate the empty Th17 and Th0 matrices for ChIP-seq
 #tfs_thx_unique <- sort(unique(tfs_thx))
 all_genes_thx_unique <- sort(unique(all_genes_thx_wt))
 
 # 0-initialized matrix  
-#thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
 thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx))
 # unique gene list makes up rows
 rownames(thx_mat) <- all_genes_thx_unique
@@ -68,6 +70,7 @@ rownames(thx_mat) <- all_genes_thx_unique
 #colnames(thx_mat) <- tfs_thx_unique
 colnames(thx_mat) <- tfs_thx
 
+print("Extract Poisson model p-values from ChIP files.")
 # iteration 2: extract and assign associated Poisson model p-values to the matrix
 for(i in chipfiles) {
   
@@ -103,9 +106,40 @@ for(i in chipfiles) {
   }
 }
 
-# now matrix has a column for each library file - take the mean for each TF and write that in ONE column (result: one column per TF)
+print("Created sorted, unique TF list.")
+# remove library suffix from transcription factor names and create a sorted, unique TF list
+tfs_thx_unique <- gsub("-(SL[0-9]{1,9})$", "", tfs_thx)
+tfs_thx_unique <- sort(unique(tfs_thx_unique))
+
+print("Generate sorted, unique matrix skeleton.")
+thx_unique_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
+cols <- colnames(thx_mat)
+
+print("Iterate unique TFs.")
+for(i in tfs_thx_unique) {
+  
+  # pattern to match
+  p <- paste0(i, "-(SL[0-9]{1,9})$")
+  tf_colset <- c()
+  
+  # extract all columns that match the current TF
+  for(j in cols) {
+    if(grepl(p, j)) {
+      tf_colset <- c(tf_colset, j)
+    }
+  }
+  
+  paste("Combine column subset:", tf_colset)
+  
+  #thx_unique_mat$i <- rowMeans(subset(thx_mat, select = tf_colset), na.rm = TRUE)
+}
+
+# now matrix has a column for each library file - take the mean for each TF and write that in ONE column (result: one column per unique TF)
 #z$mean <- rowMeans(subset(z, select = c(x, y)), na.rm = TRUE)
 
 # write matrices to a tab-delimited file
 filename=paste("C_", thx, "_mat.txt")
 write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+
+filename=paste("C_", thx, "_unique_mat.txt")
+write.table(thx_unique_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
