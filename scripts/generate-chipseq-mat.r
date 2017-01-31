@@ -113,6 +113,12 @@ tfs_thx_unique <- sort(unique(tfs_thx_unique))
 
 print("Generate sorted, unique matrix skeleton.")
 thx_unique_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
+rownames(thx_unique_mat) <- all_genes_thx_unique
+colnames(thx_unique_mat) <- tfs_thx_unique
+
+print("Skeleton unique matrix:")
+print(thx_unique_mat[1:20,])
+
 cols <- colnames(thx_mat)
 
 print("Iterate unique TFs.")
@@ -129,17 +135,20 @@ for(i in tfs_thx_unique) {
     }
   }
   
-  print(paste("Combined column subset:", tf_colset))
+  subsetCols <- subset(thx_mat, select = tf_colset)
+  print(subsetCols[1:5,])
+  # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
   print("Calculating mean column...")
   tf_meancol <- rowMeans(subset(thx_mat, select = tf_colset), na.rm = TRUE)
+  print(tf_meancol[])
   print("Adding as new column to TF-unique matrix...")
-  cbind(thx_unique_mat, newColumn = tf_meancol)
+  #cbind(thx_unique_mat, tf_meancol)
+  thx_unique_mat[,i] <- tf_meancol
+  print("Current matrix:")
+  print(thx_unique_mat[1:10,])
 }
 
 print("Writing matrices to file...")
-# now matrix has a column for each library file - take the mean for each TF and write that in ONE column (result: one column per unique TF)
-#z$mean <- rowMeans(subset(z, select = c(x, y)), na.rm = TRUE)
-
 # write matrices to a tab-delimited file
 filename=paste("C_", thx, "_mat.txt")
 write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
