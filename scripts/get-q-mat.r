@@ -28,9 +28,6 @@ convert_q <- function(orig_matpath, ranked_matpath) {
   print("Calculating sign matrix.")
   sign_mat <- sign(orig_mat)
   
-  # count non-zero elements in original matrix
-  #n_nonzero <- sum(orig_mat != 0)
-  
   print("Applying quantile score function over ranked matrix.")
   qmat <- mapply(qscore, ranked_mat, sign_mat, MoreArgs = list(n_nonzero = sum(orig_mat != 0)))
   rownames(qmat) <- rownames(orig_mat)
