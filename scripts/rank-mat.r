@@ -32,7 +32,8 @@ rank_mat <- function(matpath) {
   rownames(ranked_mat) <- rownames(mat)
   colnames(ranked_mat) <- colnames(mat)
   
-  filename=paste0(matpath, "_ranked.txt")
+  matname <- strsplit(basename(matpath), "[.]")
+  filename=paste0(dirname(matpath), "/", matname[[1]][1], "_ranked.txt")
   print(paste("Writing ranked matrix to file:", filename))
   write.table(ranked_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }

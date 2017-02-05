@@ -29,19 +29,20 @@ convert_q <- function(orig_matpath, ranked_matpath) {
   sign_mat <- sign(orig_mat)
   
   # count non-zero elements in original matrix
-  n_nonzero <- sum(orig_mat != 0)
+  #n_nonzero <- sum(orig_mat != 0)
   
   print("Applying quantile score function over ranked matrix.")
-  qmat <- apply(ranked_mat, 2, qscore, n_nonzero, sign_mat)
+  qmat <- mapply(qscore, ranked_mat, sign_mat, MoreArgs = list(n_nonzero = sum(orig_mat != 0)))
   
-  filename=paste0(ranked_matpath, "-q.txt")
+  matname <- strsplit(basename(ranked_matpath), "[.]")
+  filename=paste0(dirname(ranked_matpath), "/", matname[[1]][1], "_q.txt")
   print(paste("Writing Q-matrix to file:", filename))
   write.table(qmat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }
 
 # convert non-zero confidence score into quantile score that ranges 
 # from zero (lowest confidence) to 1 (highest confidence) 
-qscore <- function(rank, n_nonzero, signval) {
+qscore <- function(rank, signval, n_nonzero) {
   (1 - (rank/n_nonzero)) * signval
 }
 
