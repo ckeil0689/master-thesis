@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+# TODO: could be combined with generate-rnaseq-mat.r to reduce code
 # Read a ChIP-seq files from dir
 setwd("/home/chrisk/Documents/uni/thesis/suppl/data/chipseq")
 
@@ -7,7 +8,7 @@ thx <- toupper(as.character(args[1]))
 thx <-'Th17'
 
 # fixed target transcription factors to use
-target_tfs <- c("batf", "irf4", "stat3", "hif1a", "cmaf", "fosl2", "rorc", "rorg")
+target_tfs <- c("batf", "irf4", "stat3", "hif1a", "cmaf", "maf", "fosl2", "rorc", "rorg")
 
 # ensure we have a usable argument to work with
 if(thx != 'Th17' && thx != 'Th0') {
