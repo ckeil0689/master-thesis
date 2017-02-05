@@ -6,7 +6,7 @@ args <- commandArgs(trailingOnly=TRUE)
 matpath <- paste0(getwd(), "/", as.character(args[1])) # assumes Unix
 print(paste("Looking for matrix at:", matpath))
 
-# regex test for option which may only be a combination of the character set [k,c,r,i] 
+# check arguments for validity
 if(length(args) != 1 || !file.exists(matpath)) {
   print("Incorrect or missing argument. File may not exist.")
   print("Usage: rank-mat.R <relative matrix filepath>")
@@ -24,8 +24,8 @@ rank_mat <- function(matpath) {
   print("Ranking.")
   # replace all zeroes with NA to exclude them from ranking
   mat[mat == 0] <- NA
-  # apply rank
-  ranked_mat <- matrix(rank(mat, na.last = "keep"), ncol=ncol(mat))
+  # apply rank to absolute value of confidence scores
+  ranked_mat <- matrix(rank(abs(mat), na.last = "keep"), ncol=ncol(mat))
   # replace all NAs with zeroes again post-ranking
   ranked_mat[is.na(ranked_mat)] <- 0
   
