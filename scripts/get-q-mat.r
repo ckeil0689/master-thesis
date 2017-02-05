@@ -33,6 +33,7 @@ convert_q <- function(orig_matpath, ranked_matpath) {
   
   print("Applying quantile score function over ranked matrix.")
   qmat <- mapply(qscore, ranked_mat, sign_mat, MoreArgs = list(n_nonzero = sum(orig_mat != 0)))
+  rownames(qmat) <- rownames(orig_mat)
   
   matname <- strsplit(basename(ranked_matpath), "[.]")
   filename=paste0(dirname(ranked_matpath), "/", matname[[1]][1], "_q.txt")
