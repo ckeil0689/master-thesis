@@ -59,16 +59,18 @@ all_genes_thx_unique <- sort(unique(all_genes_thx_wt))
 tfs_thx_unique <- sort(unique(tfs_thx))
 
 # 0-initialized matrix  
-thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
+combined_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
 # unique gene list makes up rows
-rownames(thx_mat) <- all_genes_thx_unique
+rownames(combined_mat) <- all_genes_thx_unique
 # unique transcription factor list makes up columns
-colnames(thx_mat) <- tfs_thx_unique
+colnames(combined_mat) <- tfs_thx_unique
 
+# Iteration 2: filling data by adding values from each file at the 
+# matching index in the combined matrix
 
-
+#TODO add function --> mapply!
 
 print("Writing combined matrix to file.")
 # write matrices to a tab-delimited file
 filename=paste0(combo, ".txt")
-write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+write.table(combined_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
