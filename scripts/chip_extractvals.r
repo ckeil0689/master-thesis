@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # TODO: could be combined with generate-rnaseq-mat.r to reduce code
 # Read a ChIP-seq files from dir
-setwd("/home/chrisk/Documents/uni/thesis/suppl/data/chipseq")
+setwd(paste0(getwd(), "/../suppl/data/chipseq"))
 
 args <- commandArgs(trailingOnly=TRUE)
 thx <- toupper(as.character(args[1]))
@@ -153,10 +153,10 @@ for(i in tfs_thx_unique) {
   thx_unique_mat[,i] <- tf_meancol
 }
 
-print("Writing matrices to file...")
+print("Writing matrix to file...")
 # write matrices to a tab-delimited file
-filename=paste0("C_", thx, "_mat.txt")
-write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+#filename=paste0("C_", thx, "debug_mat.txt")
+#write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 
-filename=paste0("C_", thx, "_unique_mat.txt")
+filename=paste0("C_", thx, "_mat.txt")
 write.table(thx_unique_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)

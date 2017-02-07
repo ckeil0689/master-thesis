@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # Combine previously generated Q-matrices
-setwd("/home/chrisk/Documents/uni/thesis/suppl/data/")
+setwd(paste0(getwd(), "/../suppl/data/analysis/"))
 
 args <- commandArgs(trailingOnly=TRUE)
 combo <- casefold(as.character(args[1]), upper = FALSE)
@@ -14,4 +14,15 @@ if(length(args) != 1 || combo == "" || !combo %in% ALLOWED_COMBOS) {
   stop("invalid argument")
 }
 
-print(combo)
+opts = strsplit(combo, "")
+
+# generate zero initialized matrix
+tfs <- c()
+genes <- c()
+
+# figure out maximal, unique set of genes and TFs from q-matrix files
+for(opt in opts) {
+  if(opt == "k") {
+    
+  }
+}
