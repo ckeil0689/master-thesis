@@ -18,7 +18,8 @@ if(thx != 'Th17' && thx != 'Th0') {
 }
 
 # contains info about ChIP experiments
-ref_file <- read.table("/home/chrisk/Documents/uni/thesis/suppl/mmc4.csv", sep=",", header=TRUE)
+ref_filepath <- paste0(getwd(), "/../../mmc4.csv")
+ref_file <- read.table(ref_filepath, sep=",", header=TRUE)
 thx_rows <- c()
 
 # ChIP-seq results files
@@ -154,9 +155,10 @@ for(i in tfs_thx_unique) {
 }
 
 print("Writing matrix to file...")
-# write matrices to a tab-delimited file
+# debug
 #filename=paste0("C_", thx, "debug_mat.txt")
 #write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 
+# write matrices to a tab-delimited file
 filename=paste0("C_", thx, "_mat.txt")
 write.table(thx_unique_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)

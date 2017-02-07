@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # TODO: could be combined with generate-chipseq-mat.r to reduce code
 # Read a DeSeq files from dir
-setwd("/home/chrisk/Documents/uni/thesis/suppl/data/deseq")
+setwd(paste0(getwd(), "/../suppl/data/deseq"))
 
 args <- commandArgs(trailingOnly=TRUE)
 thx <- toupper(as.character(args[1]))
