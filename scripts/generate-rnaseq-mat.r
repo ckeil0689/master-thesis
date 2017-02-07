@@ -8,7 +8,7 @@ thx <- toupper(as.character(args[1]))
 thx <-'Th17'
 
 # fixed target transcription factors to use
-target_tfs <- c("batf", "irf4", "stat3", "hif1a", "cmaf", "maf", "fosl2", "rorc", "rorg")
+target_tfs <- c("batf", "irf4", "stat3", "hif1a", "ikzf3", "cmaf", "maf", "fosl2", "rorc", "rorg")
 
 # ensure we have a usable argument to work with
 if(thx != 'Th17' && thx != 'Th0') {
@@ -25,7 +25,7 @@ all_genes_thx_wt <- c()
 tfs_thx <- c()
 
 print("Reading DESeq files to create complete list of genes.")
-# Iteration 1: create unique, maximal list of tested TFs and genes with MACS peaks
+# Iteration 1: get list of all tested genes and TFs so a matrix can be set up
 for(i in deseqfiles) {
   
   # skip non-DEseq files, regex tests for format as found on GEO Series GSE40918
@@ -36,7 +36,7 @@ for(i in deseqfiles) {
   # read in the data and extract the library name
   cst <- read.table(i, sep="\t", header=TRUE)
   
-  # TODO get TF name and add it to list
+  # get TF name and add it to list
   tfcol <- colnames(cst)[3]
   tf <- strsplit(tfcol, "[.]")[[1]][2] # assumes convention column name (e.g. Th17.batf.wt -> batf)
   
@@ -46,12 +46,14 @@ for(i in deseqfiles) {
     next
   }
   
+  tfs_thx <- c(tfs_thx, tf)
+  
   # create full gene list by adding all genes from this file
   genes_thx_wt <- as.character(cst$id)
   all_genes_thx_wt <- append(all_genes_thx_wt, genes_thx_wt)
 }
 
-print("Generate dummy matrix skeleton.")
+print("Generate zero-filled matrix skeleton.")
 # generate the empty Th17 and Th0 matrices for ChIP-seq
 all_genes_thx_unique <- sort(unique(all_genes_thx_wt))
 
@@ -62,5 +64,27 @@ rownames(thx_mat) <- all_genes_thx_unique
 # unique transcription factor list makes up columns
 colnames(thx_mat) <- tfs_thx
 
-print("Extract DESeq p-values and log2 foldchange from files.")
-#TODO implement
+print("Extract DESeq p-values (adjusted) and log2 foldchange from files.")
+# iteration 2: extract p-values and log2 values from DESeq results files and 
+# fill confidence score matrix according to formula in Computational Methods
+for(i in deseqfiles) {
+  
+  # read in the data and extract the library name
+  cst <- read.table(i, sep="\t", header=TRUE)
+  
+  # get TF name and add it to list
+  tfcol <- colnames(cst)[3]
+  tf <- strsplit(tfcol, "[.]")[[1]][2] # assumes convention column name (e.g. Th17.batf.wt -> batf)
+  
+  # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
+  idx <- 1
+  for(j in cst$id) {
+    thx_mat[j, tf] <- -log10(cst$pval[idx] * sign(cst$log2FoldChange[idx]))
+    idx <- idx + 1
+  }
+}
+
+print("Writing K-matrix to file...")
+# write matrices to a tab-delimited file
+filename=paste0("K_", thx, "_mat.txt")
+write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
