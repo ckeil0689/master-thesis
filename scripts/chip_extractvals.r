@@ -8,7 +8,7 @@ thx <- toupper(as.character(args[1]))
 thx <-'Th17'
 
 # fixed target transcription factors to use
-target_tfs <- c("batf", "irf4", "stat3", "hif1a", "cmaf", "maf", "fosl2", "rorc", "rorg")
+target_tfs <- c("batf", "irf4", "stat3", "hif1a", "maf", "fosl2", "rorc")
 
 # ensure we have a usable argument to work with
 if(thx != 'Th17' && thx != 'Th0') {
@@ -48,7 +48,8 @@ for(i in chipfiles) {
     tf <- ref_file$Factor[row]
     # correct for hyphens and underscores in TF names
     tf <- gsub("(-|_)", "", tolower(tf))
-    tf <- gsub("cmaf", "maf", tf) # only this TF name is inconsistent all the time...
+    tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
+    tf <- gsub("rorg", "rorc", tf)
     
     # only use target TFs
     if(!tf %in% target_tfs) {
@@ -99,7 +100,8 @@ for(i in chipfiles) {
     
     # fix hyphens and underscores in TF names
     tf <- gsub("(-|_)", "", tolower(tf))
-    tf <- gsub("cmaf", "maf", tf) # only this TF name is inconsistent all the time...
+    tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
+    tf <- gsub("rorg", "rorc", tf)
     
     # only use target TFs
     if(!tf %in% target_tfs) {
