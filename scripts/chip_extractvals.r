@@ -72,14 +72,14 @@ for(i in chipfiles) {
 
 print("Generate dummy matrix skeleton.")
 # generate the empty Th17 and Th0 matrices for ChIP-seq
-all_genes_thx_unique <- sort(unique(all_genes_thx_wt))
+all_genes_thx_unique <- toupper(sort(unique(all_genes_thx_wt)))
 
 # 0-initialized matrix  
 thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx))
 # unique gene list makes up rows
 rownames(thx_mat) <- all_genes_thx_unique
 # unique transcription factor list makes up columns
-colnames(thx_mat) <- tfs_thx
+colnames(thx_mat) <- toupper(tfs_thx)
 
 print("Extract Poisson model p-values from ChIP files.")
 # iteration 2: extract and assign associated Poisson model p-values to the matrix
@@ -128,14 +128,14 @@ for(i in chipfiles) {
 print("Created sorted, unique TF list.")
 # remove library suffix from transcription factor names and create a sorted, unique TF list
 tfs_thx_unique <- gsub("-(SL[0-9]{1,9})$", "", tfs_thx)
-tfs_thx_unique <- sort(unique(tfs_thx_unique))
+tfs_thx_unique <- toupper(sort(unique(tfs_thx_unique)))
 
 print("Generate sorted, unique matrix skeleton.")
 thx_unique_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
 rownames(thx_unique_mat) <- all_genes_thx_unique
 colnames(thx_unique_mat) <- tfs_thx_unique
 
-cols <- colnames(thx_mat)
+cols <- toupper(colnames(thx_mat))
 
 print("Calculate mean p-values for unique TFs...")
 for(i in tfs_thx_unique) {
