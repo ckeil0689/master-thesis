@@ -64,7 +64,7 @@ rownames(thx_mat) <- all_genes_thx_unique
 # unique transcription factor list makes up columns
 colnames(thx_mat) <- tfs_thx
 
-print("Extract DESeq p-values (adjusted) and log2 foldchange from files.")
+print("Extract DESeq p-values (non-adjusted) and log2 foldchange from files.")
 # iteration 2: extract p-values and log2 values from DESeq results files and 
 # fill confidence score matrix according to formula in Computational Methods
 for(i in deseqfiles) {
@@ -76,7 +76,7 @@ for(i in deseqfiles) {
   tfcol <- colnames(cst)[3]
   tf <- strsplit(tfcol, "[.]")[[1]][2] # assumes convention column name (e.g. Th17.batf.wt -> batf)
   
-  # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
+  # get the DESeq p-values by iterating and accessing matrix via id and TF-name
   idx <- 1
   for(j in cst$id) {
     thx_mat[j, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])

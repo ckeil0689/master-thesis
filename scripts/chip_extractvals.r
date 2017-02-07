@@ -48,6 +48,7 @@ for(i in chipfiles) {
     tf <- ref_file$Factor[row]
     # correct for hyphens and underscores in TF names
     tf <- gsub("(-|_)", "", tolower(tf))
+    tf <- gsub("cmaf", "maf", tf) # only this TF name is inconsistent all the time...
     
     # only use target TFs
     if(!tf %in% target_tfs) {
@@ -98,6 +99,7 @@ for(i in chipfiles) {
     
     # fix hyphens and underscores in TF names
     tf <- gsub("(-|_)", "", tolower(tf))
+    tf <- gsub("cmaf", "maf", tf) # only this TF name is inconsistent all the time...
     
     # only use target TFs
     if(!tf %in% target_tfs) {
