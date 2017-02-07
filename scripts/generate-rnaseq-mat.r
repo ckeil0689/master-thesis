@@ -84,7 +84,11 @@ for(i in deseqfiles) {
   }
 }
 
-print("Writing K-matrix to file...")
+# replace NA and Inf values in matrix with 0s (for later ranking procedure)
+thx_mat[thx_mat == Inf] <- 0
+thx_mat[is.na(thx_mat)] <- 0
+
+print("Writing K-matrix to file.")
 # write matrices to a tab-delimited file
 filename=paste0("K_", thx, "_mat.txt")
 write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)

@@ -24,7 +24,6 @@ rank_mat <- function(matpath) {
   print("Ranking.")
   # replace all zeroes or infinities with NA to exclude them from ranking
   mat[mat == 0] <- NA
-  mat[mat == Inf] <- NA
   # apply rank to absolute value of confidence scores
   ranked_mat <- matrix(rank(abs(mat), na.last = "keep"), ncol=ncol(mat))
   # replace all NAs with zeroes again post-ranking
