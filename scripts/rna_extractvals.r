@@ -79,7 +79,7 @@ for(i in deseqfiles) {
   # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
   idx <- 1
   for(j in cst$id) {
-    thx_mat[j, tf] <- -log10(cst$pval[idx] * sign(cst$log2FoldChange[idx]))
+    thx_mat[j, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])
     idx <- idx + 1
   }
 }
