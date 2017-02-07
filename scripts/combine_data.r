@@ -31,7 +31,7 @@ for(opt in opts) {
     filename <- paste0(getwd(), "/", "C_Th17_mat_ranked_q.txt") # unix only!
     
   } else {
-    stop(paste("Option not recognized:", opts[[opt]]))
+    stop(paste("Option not recognized:", opt))
   }
   
   matfiles <- c(matfiles, filename)
