@@ -43,18 +43,20 @@ edge_num <- nrow(cst) * ncol(cst)
 print(paste("Edges to write:", edge_num))
 
 #pre-allocate data table since dimensions are known
-edges <- data.table("node1"=rep(NA,nrow(cst)), "node2"=rep(NA,nrow(cst)), "value"==rep(0,nrow(cst)))
-filename <- paste0(combo, "_edges.txt")
-write.table(edges, file = filename, row.names=FALSE, quote=FALSE, sep='\t')
-stop()
+edges <- data.table("node1"=as.character(rep(NA, edge_num)), "node2"=as.character(rep(NA,edge_num)), "value"=rep(0,edge_num))
 
+# Fill table with values from the combined matrix
 for (i in 1:nrow(cst)) {
   if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(cst)), digits = 0), "%"))
   for (j in 1:ncol(cst)) {
-    edges <- rbind(edges, c(rownames(cst)[i], colnames(cst)[j], cst[i,j]))
+    #edges <- rbind(edges, c(rownames(cst)[i], colnames(cst)[j], cst[i,j]))
+    set(edges, (i * j), "node1", rownames(cst)[i])
+    set(edges, (i * j), "node2", colnames(cst)[j])
+    set(edges, (i * j), "value", cst[i,j])
   }
 }
+
 print("Done. Writing file...")
-colnames(edges) <- c('node1', 'node2', 'value')
+#colnames(edges) <- c('node1', 'node2', 'value')
 filename <- paste0(combo, "_edges.txt")
 write.table(edges, file = filename, row.names=FALSE, quote=FALSE, sep='\t')
