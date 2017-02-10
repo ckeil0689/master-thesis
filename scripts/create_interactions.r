@@ -26,3 +26,13 @@ cst <- as.data.frame(read.table(matpath, sep="\t", header=TRUE))
 rownames(cst) <- cst[, 1]
 cst[, 1] <- NULL
 
+edges <- NULL
+for (i in 1:nrow(cst)) {
+  for (j in 1:ncol(cst)) {
+    edges <- rbind(edges, c(rownames(cst)[i], rownames(cst)[j], cst[i,j]))
+  }
+}
+
+colnames(edges) <- c('node1', 'node2', 'value')
+filename <- paste0(combo, "_edges.txt")
+write.table(edges, file = filename, row.names=FALSE, quote=FALSE, sep='\t')
