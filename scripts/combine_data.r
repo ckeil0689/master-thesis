@@ -3,7 +3,7 @@
 setwd(paste0(getwd(), "/../suppl/data/analysis/"))
 
 args <- commandArgs(trailingOnly=TRUE)
-combo <- casefold(as.character(args[1]), upper = FALSE)
+combo <- tolower(as.character(args[1]))
 
 ALLOWED_COMBOS <- c("ri", "kc", "kcr", "kcri")
 
@@ -29,6 +29,12 @@ for(opt in opts) {
     
   } else if(opt == "c") {
     filename <- paste0(getwd(), "/", "C_Th17_mat_ranked_q.txt") # unix only!
+    
+  } else if(opt == "r") {
+    filename <- paste0(getwd(), "/", "GSE40918_Inferelator_RNAseq_ranked_q.txt") # unix only!
+    
+  } else if(opt == "i") {
+    filename <- paste0(getwd(), "/", "GSE40918_Inferelator_Immgen_ranked_q.txt") # unix only!
     
   } else {
     stop(paste("Option not recognized:", opt))
@@ -65,8 +71,7 @@ rownames(combined_mat) <- all_genes_thx_unique
 # unique transcription factor list makes up columns
 colnames(combined_mat) <- tfs_thx_unique
 
-# Iteration 2: filling data by adding values from each file at the 
-# matching index in the combined matrix
+# Iteration 2: filling data by matrix addition
 for(i in matfiles) {
   cst <- as.data.frame(read.table(i, sep="\t", header=TRUE))
   rownames(cst) <- cst[, 1]
