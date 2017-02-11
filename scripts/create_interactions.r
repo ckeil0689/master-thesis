@@ -39,20 +39,35 @@ rownames(cst) <- cst[, 1]
 cst[, 1] <- NULL
 
 print("Transforming matrix to node-node-value list.")
+
+pos <- length(cst[cst > 1.5])
+neg <- length(cst[cst < -1.5])
+
+tot <- pos + neg
+
+print(paste("Total edges (pos):", pos))
+print(paste("Total edges (neg):", neg))
+
 edge_num <- nrow(cst) * ncol(cst)
 print(paste("Edges to write:", edge_num))
 
 #pre-allocate data table since dimensions are known
-edges <- data.table("node1"=as.character(rep(NA, edge_num)), "node2"=as.character(rep(NA,edge_num)), "value"=rep(0,edge_num))
+edges <- data.table("node1"=as.character(rep(NA, tot)), "node2"=as.character(rep(NA, tot)), "value"=rep(0, tot))
 
 # Fill table with values from the combined matrix
+listrow <- 1
 for (i in 1:nrow(cst)) {
   if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(cst)), digits = 0), "%"))
   for (j in 1:ncol(cst)) {
     #edges <- rbind(edges, c(rownames(cst)[i], colnames(cst)[j], cst[i,j]))
-    set(edges, (i * j), "node1", rownames(cst)[i])
-    set(edges, (i * j), "node2", colnames(cst)[j])
-    set(edges, (i * j), "value", cst[i,j])
+    val <- cst[i,j]
+    if(abs(val) >= 1.50) {
+      #listrow <- ((i-1) * ncol(cst) + j)
+      set(edges, listrow, "node1", rownames(cst)[i])
+      set(edges, listrow, "node2", colnames(cst)[j])
+      set(edges, listrow, "value", val)
+      listrow <- listrow + 1
+    }
   }
 }
 
