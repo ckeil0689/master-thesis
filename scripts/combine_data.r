@@ -1,6 +1,10 @@
 #!/usr/bin/env Rscript
 # Combine previously generated Q-matrices
-setwd(paste0(getwd(), "/../suppl/data/analysis/"))
+iopath <- paste0(getwd(), "/../suppl/data/analysis/")
+if(!dir.exists(iopath)) {
+  dir.create(iopath)
+}
+setwd(iopath)
 
 args <- commandArgs(trailingOnly=TRUE)
 combo <- tolower(as.character(args[1]))
@@ -25,16 +29,16 @@ matfiles <- c()
 for(opt in opts) {
   
   if(opt == "k") {
-    filename <- paste0(getwd(), "/", "K_Th17_mat_ranked_q.txt") # unix only!
+    filename <- paste0(getwd(), "K_Th17_mat_ranked_q.txt") # unix only!
     
   } else if(opt == "c") {
-    filename <- paste0(getwd(), "/", "C_Th17_mat_ranked_q.txt") # unix only!
+    filename <- paste0(getwd(), "C_Th17_mat_ranked_q.txt") # unix only!
     
   } else if(opt == "r") {
-    filename <- paste0(getwd(), "/", "GSE40918_Inferelator_RNAseq_ranked_q.txt") # unix only!
+    filename <- paste0(getwd(), "GSE40918_Inferelator_RNAseq_ranked_q.txt") # unix only!
     
   } else if(opt == "i") {
-    filename <- paste0(getwd(), "/", "GSE40918_Inferelator_Immgen_ranked_q.txt") # unix only!
+    filename <- paste0(getwd(), "GSE40918_Inferelator_Immgen_ranked_q.txt") # unix only!
     
   } else {
     stop(paste("Option not recognized:", opt))
@@ -93,5 +97,5 @@ for(i in matfiles) {
 
 print("Writing combined matrix to file.")
 # write matrices to a tab-delimited file
-filename=paste0(combo, ".txt")
+filename=paste0(getwd(), combo, ".txt")
 write.table(combined_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)

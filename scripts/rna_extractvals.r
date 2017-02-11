@@ -1,7 +1,12 @@
 #!/usr/bin/env Rscript
 # TODO: could be combined with generate-chipseq-mat.r to reduce code
 # Read a DeSeq files from dir
-setwd(paste0(getwd(), "/../suppl/data/deseq"))
+inpath <- paste0(getwd(), "/../suppl/data/deseq/")
+outpath <- paste0(getwd(), "/../suppl/data/analysis/")
+if(!dir.exists(outpath)) {
+  dir.create(outpath)
+}
+setwd(inpath)
 
 args <- commandArgs(trailingOnly=TRUE)
 thx <- toupper(as.character(args[1]))
@@ -90,5 +95,5 @@ thx_mat[is.na(thx_mat)] <- 0
 
 print("Writing K-matrix to file.")
 # write matrices to a tab-delimited file
-filename=paste0("K_", thx, "_mat.txt")
+filename=paste0(outpath, "K_", thx, "_mat.txt")
 write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)

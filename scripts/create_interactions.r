@@ -11,10 +11,13 @@ if(length(new.packages)) {
 
 library(data.table)
 
-setwd(paste0(getwd(), "/../suppl/data/analysis/"))
+iopath <- paste0(getwd(), "/../suppl/data/analysis/")
+if(!dir.exists(iopath)) {
+  dir.create(iopath)
+}
+setwd(iopath)
 
 args <- commandArgs(trailingOnly=TRUE)
-
 combo <- tolower(as.character(args[1]))
 
 ALLOWED_COMBOS <- c("ri", "kc", "kcr", "kcri")
@@ -26,7 +29,7 @@ if(length(args) != 1 || combo == "" || !combo %in% ALLOWED_COMBOS) {
   stop("invalid argument")
 }
 
-matpath <- paste0(getwd(), "/", combo, ".txt")
+matpath <- paste0(getwd(), combo, ".txt")
 
 if(!file.exists(matpath)) {
   stop(paste("File does not exist:", matpath))
@@ -73,5 +76,5 @@ for (i in 1:nrow(cst)) {
 
 print("Done. Writing file...")
 #colnames(edges) <- c('node1', 'node2', 'value')
-filename <- paste0(combo, "_edges.txt")
+filename <- paste0(getwd(), combo, "_edges.txt")
 write.table(edges, file = filename, row.names=FALSE, quote=FALSE, sep='\t')
