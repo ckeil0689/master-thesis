@@ -29,7 +29,8 @@ deseqfiles <- list.files(getwd())
 all_genes_thx_wt <- c()
 tfs_thx <- c()
 
-print("Reading DESeq files to create complete list of genes.")
+print(paste("Reading DESeq files to create complete list of genes.", length(deseqfiles)))
+      
 # Iteration 1: get list of all tested genes and TFs so a matrix can be set up
 for(i in deseqfiles) {
   
@@ -38,6 +39,7 @@ for(i in deseqfiles) {
     next
   }
   
+  file <- 
   # read in the data and extract the library name
   cst <- read.table(i, sep="\t", header=TRUE)
   
@@ -90,6 +92,7 @@ for(i in deseqfiles) {
 }
 
 # replace NA and Inf values in matrix with 0s (for later ranking procedure)
+print("Replacing Inf and NA values with 0.")
 thx_mat[thx_mat == Inf] <- 0
 thx_mat[is.na(thx_mat)] <- 0
 

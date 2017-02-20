@@ -26,10 +26,10 @@ if(!opt %in% ALLOWED_OPTS) {
 
 matpath <- getwd() # non-empty default
 if(opt == "chip") {
-  matpath <- paste0(getwd(), "C_Th17_mat.txt")
+  matpath <- paste0(getwd(), "/C_Th17_mat.txt")
   
 } else if(opt == "deseq") {
-  matpath <- paste0(getwd(), "K_Th17_mat.txt")
+  matpath <- paste0(getwd(), "/K_Th17_mat.txt")
   
 } else if(opt == "rna") {
   matpath <- paste0(getwd(), "/../inferelator/", "GSE40918_Inferelator_RNAseq.txt")
@@ -61,11 +61,11 @@ rank_mat <- function(matpath) {
   
   print("Ranking.")
   # replace all zeroes or infinities with NA to exclude them from ranking
-  mat[mat == 0] <- NA
+  #mat[mat == 0] <- NA
   # apply rank to absolute value of confidence scores
   ranked_mat <- matrix(rank(abs(mat), na.last = "keep"), ncol=ncol(mat))
   # replace all NAs with zeroes again post-ranking
-  ranked_mat[is.na(ranked_mat)] <- 0
+  #ranked_mat[is.na(ranked_mat)] <- 0
   
   rownames(ranked_mat) <- rownames(mat)
   colnames(ranked_mat) <- colnames(mat)

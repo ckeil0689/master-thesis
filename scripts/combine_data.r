@@ -97,5 +97,5 @@ for(i in matfiles) {
 
 print("Writing combined matrix to file.")
 # write matrices to a tab-delimited file
-filename=paste0(getwd(), combo, ".txt")
+filename=paste0(getwd(), "/", combo, ".txt")
 write.table(combined_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)

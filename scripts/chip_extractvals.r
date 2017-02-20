@@ -143,6 +143,7 @@ colnames(thx_unique_mat) <- tfs_thx_unique
 cols <- colnames(thx_mat)
 
 print("Calculate mean p-values for unique TFs...")
+# TODO check if 0s should be counted in mean
 for(i in tfs_thx_unique) {
   
   # pattern to match
@@ -157,11 +158,13 @@ for(i in tfs_thx_unique) {
   }
   
   subsetCols <- subset(thx_mat, select = tf_colset)
+  #subsetCols[subsetCols == 0] <- NA # exclude zeroes from mean (debug)
   # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
-  tf_meancol <- rowMeans(subset(thx_mat, select = tf_colset), na.rm = TRUE)
-  #cbind(thx_unique_mat, tf_meancol)
+  tf_meancol <- rowMeans(subsetCols, na.rm = TRUE)
   thx_unique_mat[,i] <- tf_meancol
 }
+
+#thx_unique_mat[is.na(thx_unique_mat)] <- 0 # exclude zeroes from mean (debug)
 
 print("Writing matrix to file...")
 # debug

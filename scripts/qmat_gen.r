@@ -27,20 +27,20 @@ if(!opt %in% ALLOWED_OPTS) {
 orig_matpath <- getwd() # non-empty default
 ranked_matpath <- getwd() # non-empty default
 if(opt == "chip") {
-  orig_matpath <- paste0(getwd(), "C_Th17_mat.txt")
-  ranked_matpath <- paste0(getwd(), "C_Th17_mat_ranked.txt")
+  orig_matpath <- paste0(getwd(), "/C_Th17_mat.txt")
+  ranked_matpath <- paste0(getwd(), "/C_Th17_mat_ranked.txt")
   
 } else if(opt == "deseq") {
-  orig_matpath <- paste0(getwd(), "K_Th17_mat.txt")
-  ranked_matpath <- paste0(getwd(), "K_Th17_mat_ranked.txt")
+  orig_matpath <- paste0(getwd(), "/K_Th17_mat.txt")
+  ranked_matpath <- paste0(getwd(), "/K_Th17_mat_ranked.txt")
   
 } else if(opt == "rna") {
   orig_matpath <- paste0(getwd(), "/../inferelator/", "GSE40918_Inferelator_RNAseq.txt")
-  ranked_matpath <- paste0(getwd(), "GSE40918_Inferelator_RNAseq_ranked.txt")
+  ranked_matpath <- paste0(getwd(), "/GSE40918_Inferelator_RNAseq_ranked.txt")
   
 } else if(opt == "immgen") {
   orig_matpath <- paste0(getwd(), "/../inferelator/", "GSE40918_Inferelator_Immgen.txt")
-  ranked_matpath <- paste0(getwd(), "GSE40918_Inferelator_Immgen_ranked.txt")
+  ranked_matpath <- paste0(getwd(), "/GSE40918_Inferelator_Immgen_ranked.txt")
   
 } else {
   print(paste("Some weird option slipped through the checks:", opt))
@@ -77,7 +77,7 @@ convert_q <- function(orig_matpath, ranked_matpath) {
   
   matname <- strsplit(basename(ranked_matpath), "[.]")
   
-  filename=paste0(getwd(), matname[[1]][1], "_q.txt")
+  filename=paste0(getwd(), "/", matname[[1]][1], "_q.txt")
   print(paste("Writing Q-matrix to file:", filename))
   write.table(qmat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }
