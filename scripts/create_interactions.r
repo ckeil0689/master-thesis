@@ -29,7 +29,7 @@ if(length(args) != 1 || combo == "" || !combo %in% ALLOWED_COMBOS) {
   stop("invalid argument")
 }
 
-matpath <- paste0(getwd(), combo, ".txt")
+matpath <- paste0(getwd(), "/", combo, ".txt")
 
 if(!file.exists(matpath)) {
   stop(paste("File does not exist:", matpath))
@@ -76,5 +76,5 @@ for (i in 1:nrow(cst)) {
 
 print("Done. Writing file...")
 #colnames(edges) <- c('node1', 'node2', 'value')
-filename <- paste0(getwd(), combo, "_edges.txt")
+filename <- paste0(getwd(), "/", combo, "_edges.txt")
 write.table(edges, file = filename, row.names=FALSE, quote=FALSE, sep='\t')

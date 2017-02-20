@@ -29,16 +29,16 @@ matfiles <- c()
 for(opt in opts) {
   
   if(opt == "k") {
-    filename <- paste0(getwd(), "K_Th17_mat_ranked_q.txt") # unix only!
+    filename <- paste0(getwd(), "/K_Th17_mat_ranked_q.txt") # unix only!
     
   } else if(opt == "c") {
-    filename <- paste0(getwd(), "C_Th17_mat_ranked_q.txt") # unix only!
+    filename <- paste0(getwd(), "/C_Th17_mat_ranked_q.txt") # unix only!
     
   } else if(opt == "r") {
-    filename <- paste0(getwd(), "GSE40918_Inferelator_RNAseq_ranked_q.txt") # unix only!
+    filename <- paste0(getwd(), "/GSE40918_Inferelator_RNAseq_ranked_q.txt") # unix only!
     
   } else if(opt == "i") {
-    filename <- paste0(getwd(), "GSE40918_Inferelator_Immgen_ranked_q.txt") # unix only!
+    filename <- paste0(getwd(), "/GSE40918_Inferelator_Immgen_ranked_q.txt") # unix only!
     
   } else {
     stop(paste("Option not recognized:", opt))
