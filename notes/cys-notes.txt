@@ -1,0 +1,1 @@
+﻿The Node Table in KC.cys corresponds to the K-matrix I have generated, but multiplied by -1.0
