@@ -71,6 +71,7 @@ i_mat <- NULL
 opts = unlist(strsplit(combo, ""))
 
 for(opt in opts) {
+  # reset because functions may globally change working directory and source() breaks
   setwd(scriptdir)
   
   if(opt == "k") {
@@ -98,4 +99,38 @@ for(opt in opts) {
   } else {
     stop(paste("Option not recognized:", opt))
   }
+}
+
+# Perform ranking on each confidence score matrix S
+# Laod confidence score matrices by option
+write.rankmat <- function(rankmat, prefix) {
+  filename=paste0(outpath, prefix, thx, "_ranked.txt")
+  print(paste("Writing ranked matrix to file:", filename))
+  write.table(rankmat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+}
+
+k_mat_ranked <- NULL
+c_mat_ranked <- NULL
+r_mat_ranked <- NULL
+i_mat_ranked <- NULL
+
+source(paste0(getwd(), "/" , "rankSmat-fun.R"))
+if(!is.null(k_mat)) {
+  k_mat_ranked <- rank.smat(k_mat)
+  write.rankmat(k_mat_ranked, "K_")
+}
+
+if(!is.null(c_mat)) {
+  c_mat_ranked <- rank.smat(c_mat)
+  write.rankmat(c_mat_ranked, "C_")
+}
+
+if(!is.null(r_mat)) {
+  r_mat_ranked <- rank.smat(r_mat)
+  write.rankmat(r_mat_ranked, "R_")
+}
+
+if(!is.null(i_mat)) {
+  i_mat_ranked <- rank.smat(i_mat)
+  write.rankmat(i_mat_ranked, "I_")
 }
