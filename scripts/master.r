@@ -114,7 +114,10 @@ c_mat_ranked <- NULL
 r_mat_ranked <- NULL
 i_mat_ranked <- NULL
 
+# reset because functions may globally change working directory and source() breaks
+setwd(scriptdir)
 source(paste0(getwd(), "/" , "rankSmat-fun.R"))
+
 if(!is.null(k_mat)) {
   k_mat_ranked <- rank.smat(k_mat)
   write.rankmat(k_mat_ranked, "K_")

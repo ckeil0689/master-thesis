@@ -4,8 +4,8 @@
 # applies rank function to matrix <matname> and writes it into the same directory as the source file
 # wrapped in function for possible reuse or automation 
 rank.smat <- function(smat) {
-  rownames(smat) <- smat[, 1]
-  smat[, 1] <- NULL
+  # rownames(smat) <- smat[, 1]
+  # smat[, 1] <- NULL
   
   print("Ranking.")
   # replace all zeroes or infinities with NA to exclude them from ranking
