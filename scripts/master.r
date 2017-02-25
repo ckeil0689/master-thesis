@@ -11,6 +11,8 @@
 # Input file directories
 chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
+rnaseqfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_RNAseq.txt")
+immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
 
 # Put all output into analysis folder
 outpath <- paste0(getwd(), "/../suppl/data/analysis/")
@@ -51,10 +53,39 @@ if(thx == "" || !thx %in% ALLOWED_CELLS) {
   stop("invalid argument")
 }
 
-# 
+# Split into separate characters
+opts = unlist(strsplit(combo, ""))
+
+# Generate zero initialized matrix
+tfs <- c()
+genes <- c()
+
+# Laod confidence score matrices by option
+k_mat <- NULL
+c_mat <- NULL
+r_mat <- NULL
+i_mat <- NULL
+
+for(opt in opts) {
+  if(opt == "k") {
+    k_mat <- 
+    
+  } else if(opt == "c") {
+    c_mat <- loadchip()
+    
+  } else if(opt == "r") {
+    r_mat <-
+    
+  } else if(opt == "i") {
+    i_mat <-
+    
+  } else {
+    stop(paste("Option not recognized:", opt))
+  }
+}
 
 
-# STEP 1: Read a ChIP-seq files from dir
-chip_inpath <- paste0(getwd(), "/../suppl/data/chipseq/")
-setwd(chip_inpath)
-
+# Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
+loadchip <- function() {
+  setwd(chipdir)
+}
