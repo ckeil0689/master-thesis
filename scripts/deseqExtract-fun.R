@@ -1,18 +1,9 @@
-#!/usr/bin/env Rscript
 # TODO: could be combined with generate-chipseq-mat.r to reduce code
 # Read a DeSeq files from dir
-
-load.deseq <- function(dir, thx) {
+load.deseq <- function(dir) {
   setwd(dir)
   # fixed target transcription factors to use
-  target_tfs <- c("batf", "irf4", "stat3", "hif1a", "ikzf3", "cmaf", "maf", "fosl2", "rorc", "rorg")
-  
-  # ensure we have a usable argument to work with
-  if(thx != 'Th17' && thx != 'Th0') {
-    print("Incorrect or missing argument.")
-    print("Usage: script.R <(Th17|Th0)>")
-    stop()
-  }
+  CORE_TFS <- c("batf", "irf4", "stat3", "hif1a", "ikzf3", "cmaf", "maf", "fosl2", "rorc", "rorg")
   
   # DEseq results files
   deseqfiles <- list.files(getwd())
@@ -39,7 +30,7 @@ load.deseq <- function(dir, thx) {
     tf <- strsplit(tfcol, "[.]")[[1]][2] # assumes convention column name (e.g. Th17.batf.wt -> batf)
     
     # only use target TFs
-    if(!tf %in% target_tfs) {
+    if(!tf %in% CORE_TFS) {
       print(paste("Transcription factor not in target group:", tf, "(skipped)"))
       next
     }

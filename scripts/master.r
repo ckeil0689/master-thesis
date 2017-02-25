@@ -9,6 +9,7 @@
 #       I = Inferelator matrix (Immgen microarray data)
 
 # Input file directories
+scriptdir <- getwd()
 deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
 chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 rnaseqfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_RNAseq.txt")
@@ -70,11 +71,18 @@ i_mat <- NULL
 opts = unlist(strsplit(combo, ""))
 
 for(opt in opts) {
+  setwd(scriptdir)
+  
   if(opt == "k") {
-    k_mat <- loaddeseq()
+    source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
+    k_mat <- load.deseq(dir = deseqdir)
+    # write matrices to a tab-delimited file
+    filename=paste0(outpath, "K_", thx, "_mat.txt")
+    write.table(c_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+    print(paste("Wrote:", filename))
     
   } else if(opt == "c") {
-    source("chipExtract-fun.R")
+    source(paste0(getwd(), "/" , "chipExtract-fun.R"))
     c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, thx = thx)
     # write matrices to a tab-delimited file
     filename=paste0(outpath, "C_", thx, "_mat.txt")
@@ -90,8 +98,4 @@ for(opt in opts) {
   } else {
     stop(paste("Option not recognized:", opt))
   }
-}
-
-loaddeseq <- function() {
-  setwd(deseqdir)
 }
