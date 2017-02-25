@@ -137,3 +137,39 @@ if(!is.null(i_mat)) {
   i_mat_ranked <- rank.smat(i_mat)
   write.rankmat(i_mat_ranked, "I_")
 }
+
+write.qmat <- function(qmat, prefix) {
+  filename=paste0(outpath, prefix, thx, "_qmat.txt")
+  print(paste("Writing Q-matrix to file:", filename))
+  write.table(qmat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+}
+
+# Use rank-matrices to generate quantile matrices (Q-matrix)
+k_qmat <- NULL
+c_qmat <- NULL
+r_qmat <- NULL
+i_qmat <- NULL
+
+# reset because functions may globally change working directory and source() breaks
+setwd(scriptdir)
+source(paste0(getwd(), "/" , "qmat-fun.R"))
+
+if(!is.null(k_mat_ranked)) {
+  k_qmat <- calc.qmat(k_mat, k_mat_ranked)
+  write.qmat(k_qmat, "K_")
+}
+
+if(!is.null(c_mat_ranked)) {
+  c_qmat <- calc.qmat(c_mat, c_mat_ranked)
+  write.qmat(c_qmat, "C_")
+}
+
+if(!is.null(r_mat_ranked)) {
+  r_qmat <- calc.qmat(r_mat, r_mat_ranked)
+  write.qmat(r_qmat, "R_")
+}
+
+if(!is.null(i_mat_ranked)) {
+  i_qmat <- calc.qmat(i_mat, i_mat_ranked)
+  write.qmat(i_qmat, "I_")
+}
