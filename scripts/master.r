@@ -13,7 +13,7 @@ deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
 chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 rnaseqfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_RNAseq.txt")
 immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
-ref_filepath <- paste0(getwd(), "/../../mmc4.csv")
+ref_filepath <- paste0(getwd(), "/../suppl/mmc4.csv")
 
 # Put all output into analysis folder
 outpath <- paste0(getwd(), "/../suppl/data/analysis/")
