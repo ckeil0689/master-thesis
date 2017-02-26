@@ -7,6 +7,15 @@
 #       K = dESeq files for core TFs (RNA-seq KO) 
 #       R = Inferelator matrix (RNA-seq compendium)
 #       I = Inferelator matrix (Immgen microarray data)
+list.of.packages <- c("data.table")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+# install if missing
+if(length(new.packages)) {
+  print("Installing data.table package...")
+  install.packages(new.packages, repos="http://cran.rstudio.com/")
+}
+
+library(data.table)
 
 DEBUG = TRUE
 
@@ -56,6 +65,13 @@ if(thx == "" || !thx %in% ALLOWED_CELLS) {
   stop("invalid argument")
 }
 
+# Laod confidence score matrices by option
+write.mat <- function(mat, prefix, suffix) {
+  filename = paste0(outpath, prefix, thx, suffix, ".txt")
+  print(paste("Writing matrix to file:", filename))
+  write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+}
+
 # Generate zero initialized matrix
 tfs <- c()
 genes <- c()
@@ -71,6 +87,11 @@ c_mat <- NULL
 r_mat <- NULL
 i_mat <- NULL
 
+# ChIP always has positive values
+k_sign_mat <- NULL
+r_sign_mat <- NULL
+i_sign_mat <- NULL
+
 # Split into separate characters
 opts = unlist(strsplit(combo, ""))
 
@@ -81,24 +102,21 @@ for(opt in opts) {
   if(opt == "k") {
     source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
     k_mat <- load.deseq(dir = deseqdir)
-    # write matrices to a tab-delimited file
-    filename=paste0(outpath, "K_", thx, "_mat.txt")
-    write.table(c_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
-    print(paste("Wrote:", filename))
+    k_sign_mat <- sign(as.data.frame(k_mat))
+    if(DEBUG) write.mat(k_mat, "K_", "_smat")
     
   } else if(opt == "c") {
     source(paste0(getwd(), "/" , "chipExtract-fun.R"))
     c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, thx = thx)
-    # write matrices to a tab-delimited file
-    filename=paste0(outpath, "C_", thx, "_mat.txt")
-    write.table(c_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
-    print(paste("Wrote:", filename))
+    if(DEBUG) write.mat(c_mat, "C_", "_smat")
     
   } else if(opt == "r") {
     r_mat <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
+    r_sign_mat <- sign(as.data.frame(r_mat))
     
   } else if(opt == "i") {
     i_mat <- as.data.frame(read.table(immgenfile, sep="\t", header=TRUE))
+    i_sign_mat <- sign(as.data.frame(i_mat))
     
   } else {
     stop(paste("Option not recognized:", opt))
@@ -111,13 +129,6 @@ for(opt in opts) {
 # Reset because previous functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "rankSmat-fun.R"))
-
-# Laod confidence score matrices by option
-write.mat <- function(mat, prefix, suffix) {
-  filename = paste0(outpath, prefix, thx, suffix, ".txt")
-  print(paste("Writing matrix to file:", filename))
-  write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
-}
 
 # Wrapper for performing ranking. Write ranked matrix if desired.
 do.rank <- function(mat, prefix, shouldWrite = FALSE) {
@@ -157,7 +168,7 @@ r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R_")
 i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I_")
 
 # --------------
-# 3) Combine data according to chosen data type combination
+# 4) Combine data according to chosen data type combination
 # --------------
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
@@ -165,3 +176,15 @@ source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 combined_mat <- combine.qmats(c(k_qmat, c_qmat, r_qmat, i_qmat))
 if(DEBUG) write.mat(combined_mat, combo, "")
+
+# --------------
+# 5) From combine data matrix, create a list of node-node-value interactions for Cytoscape
+# --------------
+# Reset because functions may globally change working directory and source() breaks
+setwd(scriptdir)
+source(paste0(getwd(), "/" , "createInteractions-fun.R"))
+
+edges <- create.interactions(combined_mat)
+write.mat(edges, combo, "_edges")
+
+print("Done.")
