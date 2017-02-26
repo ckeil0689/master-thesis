@@ -12,6 +12,5 @@ calc.qmat <- function(orig_mat, ranked_mat) {
   n_nonzero = sum(orig_mat != 0)
   qmat <- as.matrix(mapply(qscore, as.data.frame(ranked_mat), MoreArgs = list(n_nonzero)))
   rownames(qmat) <- rownames(orig_mat)
-  
   return(qmat)
 }

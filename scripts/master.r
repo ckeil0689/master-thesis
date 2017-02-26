@@ -131,10 +131,10 @@ setwd(scriptdir)
 source(paste0(getwd(), "/" , "rankSmat-fun.R"))
 
 # Wrapper for performing ranking. Write ranked matrix if desired.
-do.rank <- function(mat, prefix, shouldWrite = FALSE) {
+do.rank <- function(mat, prefix) {
   if(!is.null(mat)) {
     mat_ranked <- rank.smat(mat)
-    if(shouldWrite) write.mat(mat_ranked, prefix, "_ranked")
+    if(DEBUG) write.mat(mat_ranked, prefix, "_ranked")
     return(mat_ranked)
   }
   return(NULL)
@@ -153,11 +153,11 @@ setwd(scriptdir)
 source(paste0(getwd(), "/" , "qmat-fun.R"))
 
 # Wrapper for calculating quantile scores from ranked matrices.
-do.qcalc <- function(mat, mat_ranked, prefix, shouldWrite = FALSE) {
+do.qcalc <- function(mat, mat_ranked, prefix) {
   if(!is.null(mat_ranked)) {
-    qmat <- calc.qmat(k_mat, k_mat_ranked)
-    if(shouldWrite) write.mat(qmat, prefix, "_qmat")
-    return(qmat)
+    qmat <- calc.qmat(mat, mat_ranked)
+    if(DEBUG) write.mat(qmat, prefix, "_qmat")
+    return(as.matrix(qmat))
   }
   return(NULL)
 }
@@ -174,8 +174,8 @@ i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I_")
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
-combined_mat <- combine.qmats(c(k_qmat, c_qmat, r_qmat, i_qmat))
-if(DEBUG) write.mat(combined_mat, combo, "")
+combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat)
+if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "")
 
 # --------------
 # 5) From combine data matrix, create a list of node-node-value interactions for Cytoscape
