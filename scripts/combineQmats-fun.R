@@ -29,7 +29,7 @@ combine.qmats <- function(qmatfiles) {
   print("Filling combination matrix with summed values from Q-matrices.")
   # Iteration 2: filling data by matrix addition
   for(qmat in qmatfiles) {
-    if(is.null(i)) next
+    if(is.null(qmat)) next
     
     cAB <- union(colnames(combined_mat), colnames(qmat))
     rAB <- union(rownames(combined_mat), rownames(qmat))
