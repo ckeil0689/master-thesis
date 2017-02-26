@@ -63,7 +63,7 @@ load.chip <- function(dir, reflibfile, thx) {
   # generate the empty Th17 and Th0 matrices for ChIP-seq
   all_genes_thx_unique <- sort(unique(all_genes_thx_wt))
   
-  print(paste("Generate a zero-filled matrix skeleton.", "(genes =", length(all_genes_thx_unique), ", TF columns =", length(tfs_thx)))
+  print(paste("Generate a zero-filled matrix skeleton.", "(genes =", length(all_genes_thx_unique), ", TF columns =", length(tfs_thx), ")"))
   # 0-initialized matrix  
   thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx))
   # unique gene list makes up rows
@@ -120,7 +120,7 @@ load.chip <- function(dir, reflibfile, thx) {
   tfs_thx_unique <- gsub("-(SL[0-9]{1,9})$", "", tfs_thx)
   tfs_thx_unique <- sort(unique(tfs_thx_unique))
   
-  print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(all_genes_thx_unique), ", TFs (unique) =", length(tfs_thx_unique)))
+  print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(all_genes_thx_unique), ", TFs (unique) =", length(tfs_thx_unique), ")"))
   thx_unique_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
   rownames(thx_unique_mat) <- all_genes_thx_unique
   colnames(thx_unique_mat) <- tfs_thx_unique

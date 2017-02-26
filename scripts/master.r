@@ -8,6 +8,8 @@
 #       R = Inferelator matrix (RNA-seq compendium)
 #       I = Inferelator matrix (Immgen microarray data)
 
+DEBUG = TRUE
+
 # Input file directories
 scriptdir <- getwd()
 deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
@@ -61,7 +63,9 @@ genes <- c()
 # Core target transcription factors
 CORE_TFS <- c("batf", "irf4", "stat3", "hif1a", "maf", "fosl2", "rorc")
 
-# Laod confidence score matrices by option
+# --------------
+# 1) Load data from each selected data type to create confidence score matrix S
+# --------------
 k_mat <- NULL
 c_mat <- NULL
 r_mat <- NULL
@@ -101,75 +105,63 @@ for(opt in opts) {
   }
 }
 
-# Perform ranking on each confidence score matrix S
-# Laod confidence score matrices by option
-write.rankmat <- function(rankmat, prefix) {
-  filename=paste0(outpath, prefix, thx, "_ranked.txt")
-  print(paste("Writing ranked matrix to file:", filename))
-  write.table(rankmat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
-}
-
-k_mat_ranked <- NULL
-c_mat_ranked <- NULL
-r_mat_ranked <- NULL
-i_mat_ranked <- NULL
-
-# reset because functions may globally change working directory and source() breaks
+# --------------
+# 2) Perform ranking on each confidence score matrix S
+# --------------
+# Reset because previous functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "rankSmat-fun.R"))
 
-if(!is.null(k_mat)) {
-  k_mat_ranked <- rank.smat(k_mat)
-  write.rankmat(k_mat_ranked, "K_")
+# Laod confidence score matrices by option
+write.mat <- function(mat, prefix, suffix) {
+  filename = paste0(outpath, prefix, thx, suffix, ".txt")
+  print(paste("Writing matrix to file:", filename))
+  write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }
 
-if(!is.null(c_mat)) {
-  c_mat_ranked <- rank.smat(c_mat)
-  write.rankmat(c_mat_ranked, "C_")
+# Wrapper for performing ranking. Write ranked matrix if desired.
+do.rank <- function(mat, prefix, shouldWrite = FALSE) {
+  if(!is.null(mat)) {
+    mat_ranked <- rank.smat(mat)
+    if(shouldWrite) write.mat(mat_ranked, prefix, "_ranked")
+    return(mat_ranked)
+  }
+  return(NULL)
 }
 
-if(!is.null(r_mat)) {
-  r_mat_ranked <- rank.smat(r_mat)
-  write.rankmat(r_mat_ranked, "R_")
-}
+k_mat_ranked <- do.rank(k_mat, "K_")
+c_mat_ranked <- do.rank(c_mat, "C_")
+r_mat_ranked <- do.rank(r_mat, "R_")
+i_mat_ranked <- do.rank(i_mat, "I_")
 
-if(!is.null(i_mat)) {
-  i_mat_ranked <- rank.smat(i_mat)
-  write.rankmat(i_mat_ranked, "I_")
-}
-
-write.qmat <- function(qmat, prefix) {
-  filename=paste0(outpath, prefix, thx, "_qmat.txt")
-  print(paste("Writing Q-matrix to file:", filename))
-  write.table(qmat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
-}
-
-# Use rank-matrices to generate quantile matrices (Q-matrix)
-k_qmat <- NULL
-c_qmat <- NULL
-r_qmat <- NULL
-i_qmat <- NULL
-
-# reset because functions may globally change working directory and source() breaks
+# --------------
+# 3) Calculate quantiles for each ranked matrix to obtain the Q-matrix.
+# --------------
+# Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "qmat-fun.R"))
 
-if(!is.null(k_mat_ranked)) {
-  k_qmat <- calc.qmat(k_mat, k_mat_ranked)
-  write.qmat(k_qmat, "K_")
+# Wrapper for calculating quantile scores from ranked matrices.
+do.qcalc <- function(mat, mat_ranked, prefix, shouldWrite = FALSE) {
+  if(!is.null(mat_ranked)) {
+    qmat <- calc.qmat(k_mat, k_mat_ranked)
+    if(shouldWrite) write.mat(qmat, prefix, "_qmat")
+    return(qmat)
+  }
+  return(NULL)
 }
 
-if(!is.null(c_mat_ranked)) {
-  c_qmat <- calc.qmat(c_mat, c_mat_ranked)
-  write.qmat(c_qmat, "C_")
-}
+k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K_")
+c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C_")
+r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R_")
+i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I_")
 
-if(!is.null(r_mat_ranked)) {
-  r_qmat <- calc.qmat(r_mat, r_mat_ranked)
-  write.qmat(r_qmat, "R_")
-}
+# --------------
+# 3) Combine data according to chosen data type combination
+# --------------
+# Reset because functions may globally change working directory and source() breaks
+setwd(scriptdir)
+source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
-if(!is.null(i_mat_ranked)) {
-  i_qmat <- calc.qmat(i_mat, i_mat_ranked)
-  write.qmat(i_qmat, "I_")
-}
+combined_mat <- combine.qmats(c(k_qmat, c_qmat, r_qmat, i_qmat))
+if(DEBUG) write.mat(combined_mat, combo, "")
