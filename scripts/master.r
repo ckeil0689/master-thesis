@@ -185,6 +185,6 @@ setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 
 edges <- create.interactions(combined_mat)
-write.mat(edges, combo, "_edges")
+write.mat(edges, paste0(combo, "_"), "_edges")
 
 print("Done.")

@@ -21,10 +21,8 @@ create.interactions <- function(combomat) {
   for (i in 1:nrow(combomat)) {
     if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(combomat)), digits = 0), "%"))
     for (j in 1:ncol(combomat)) {
-      #edges <- rbind(edges, c(rownames(combomat)[i], colnames(combomat)[j], combomat[i,j]))
       val <- combomat[i,j]
-      if(abs(val) >= 1.50) {
-        #listrow <- ((i-1) * ncol(combomat) + j)
+      if(abs(val) > 1.50) {
         set(edges, listrow, "node1", rownames(combomat)[i])
         set(edges, listrow, "node2", colnames(combomat)[j])
         set(edges, listrow, "value", val)
