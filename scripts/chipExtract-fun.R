@@ -22,19 +22,16 @@ load.chip <- function(dir, reflibfile, thx) {
   # Iteration 1: create unique, maximal list of tested TFs and genes with MACS peaks
   print("Finding unique list of all genes tested in all ChIP files.")
   for(i in chipfiles) {
-    
     # skip non-ChIP-seq files
     if(!grepl('^GSM[0-9]*(_SL[0-9]{1,9}){2}_genes.txt$', i)) {
       next
     }
     
-    # read in the data and extract the library name
-    cst <- read.table(i, sep="\t", header=TRUE)
     libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
     
     # use library name to get tf from reference for each condition
     row <- match(libname, ref_file$Library_ID)
-    if(tolower(ref_file$Condition[row])==thx && ref_file$Genotype[row]=='wt') {
+    if(tolower(ref_file$Condition[row])==thx && ref_file$Genotype[row]=='wt' && ref_file$Time_Point[row]=='') {
       tf <- ref_file$Factor[row]
       # correct for hyphens and underscores in TF names
       tf <- gsub("(-|_)", "", tolower(tf))
@@ -51,6 +48,8 @@ load.chip <- function(dir, reflibfile, thx) {
       tf <- paste0(tf, "-", libname)
       tfs_thx <- c(tfs_thx, tf)
       
+      # read in the data and extract the library name
+      cst <- read.table(i, sep="\t", header=TRUE)
       # create full gene list by adding all genes from this file
       genes_thx_wt <- as.character(cst$Gene_ID)
       all_genes_thx_wt <- append(all_genes_thx_wt, genes_thx_wt)
@@ -80,11 +79,10 @@ load.chip <- function(dir, reflibfile, thx) {
       next
     }
     
-    cst <- read.table(i, sep="\t", header=TRUE)
     libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
     
     row <- match(libname, ref_file$Library_ID)
-    if(tolower(ref_file$Condition[row])==thx && ref_file$Genotype[row]=='wt') {
+    if(tolower(ref_file$Condition[row])==thx && ref_file$Genotype[row]=='wt' && ref_file$Time_Point[row]=='') {
       # get tf from reference for Thx/wt condition
       tf <- ref_file$Factor[row]
       
@@ -101,6 +99,7 @@ load.chip <- function(dir, reflibfile, thx) {
       tf <- paste0(tf, "-", libname)
       
       # order the genes, get index to also reorder Poisson model p-values
+      cst <- read.table(i, sep="\t", header=TRUE)
       genes_thx_wt <- cst$Gene_ID
       
       # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name

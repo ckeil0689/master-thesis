@@ -112,10 +112,16 @@ for(opt in opts) {
     
   } else if(opt == "r") {
     r_mat <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
+    # remove first column or sign()-function will explode
+    rownames(r_mat) <- r_mat[, 1]
+    r_mat[, 1] <- NULL
     r_sign_mat <- sign(as.data.frame(r_mat))
     
   } else if(opt == "i") {
     i_mat <- as.data.frame(read.table(immgenfile, sep="\t", header=TRUE))
+    # remove first column or sign()-function will explode
+    rownames(i_mat) <- i_mat[, 1]
+    i_mat[, 1] <- NULL
     i_sign_mat <- sign(as.data.frame(i_mat))
     
   } else {
@@ -153,6 +159,7 @@ setwd(scriptdir)
 source(paste0(getwd(), "/" , "qmat-fun.R"))
 
 # Wrapper for calculating quantile scores from ranked matrices.
+# @param mat - The original confidence score S-matrix for the data type
 do.qcalc <- function(mat, mat_ranked, prefix) {
   if(!is.null(mat_ranked)) {
     qmat <- calc.qmat(mat, mat_ranked)
@@ -178,7 +185,15 @@ combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat)
 if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "")
 
 # --------------
-# 5) From combine data matrix, create a list of node-node-value interactions for Cytoscape
+# 5) Apply sign matrix 
+# --------------
+sign_mat <- k_sign_mat
+print(combined_mat[1:5,])
+print(k_sign_mat[1:5,])
+combined_mat <- combined_mat * as.vector(k_sign_mat) # element-wise multiplication
+print(combined_mat[1:5,])
+# --------------
+# 6) From combine data matrix, create a list of node-node-value interactions for Cytoscape
 # --------------
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
