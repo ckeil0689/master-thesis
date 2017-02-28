@@ -144,6 +144,7 @@ do.rank <- function(mat, prefix) {
   return(NULL)
 }
 
+print("Creating rank matrices.")
 k_mat_ranked <- do.rank(k_mat, "K_")
 c_mat_ranked <- do.rank(c_mat, "C_")
 r_mat_ranked <- do.rank(r_mat, "R_")
@@ -167,6 +168,7 @@ do.qcalc <- function(mat, mat_ranked, prefix) {
   return(NULL)
 }
 
+print("Calculating Q-matrices.")
 k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K_")
 c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C_")
 r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R_")
@@ -179,6 +181,7 @@ i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I_")
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
+print("Combining Q-matrices to a single matrix.")
 combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat, CORE_TFS)
 if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "")
 
@@ -187,15 +190,15 @@ if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "")
 # --------------
 sign_mat <- k_sign_mat #temp
 sign_mat[sign_mat == 0] <- 1
-
 if(DEBUG) write.mat(sign_mat, paste0(combo, "_"), "_signmat")
 
-print(combined_mat[1:5,])
-print(sign_mat[1:5,])
+if(!identical(dim(sign_mat), dim(combined_mat))) {
+  stop("Sign matrix does not have the same dimension as Q-matrix. Stopping.")
+}
 combined_mat <- combined_mat * as.vector(sign_mat) # element-wise multiplication
-print(combined_mat[1:5,])
 
 if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "_signed")
+
 # --------------
 # 6) From combine data matrix, create a list of node-node-value interactions for Cytoscape
 # --------------

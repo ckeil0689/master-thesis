@@ -138,7 +138,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     }
     
     subsetCols <- subset(thx_mat, select = tf_colset)
-    #subsetCols[subsetCols == 0] <- NA # exclude zeroes from mean (debug)
+    subsetCols[subsetCols == 0] <- NA # exclude zeroes from mean (debug)
     # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
     tf_meancol <- rowMeans(subsetCols, na.rm = TRUE)
     thx_unique_mat[,i] <- tf_meancol
