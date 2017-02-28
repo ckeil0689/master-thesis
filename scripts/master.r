@@ -193,7 +193,7 @@ sign_mat[sign_mat == 0] <- 1
 if(DEBUG) write.mat(sign_mat, paste0(combo, "_"), "_signmat")
 
 if(!identical(dim(sign_mat), dim(combined_mat))) {
-  stop("Sign matrix does not have the same dimension as Q-matrix. Stopping.")
+  stop("Sign matrix does not have the same dimension as Q-matrix, things will break. Stopping.")
 }
 combined_mat <- combined_mat * as.vector(sign_mat) # element-wise multiplication
 

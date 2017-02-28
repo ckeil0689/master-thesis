@@ -69,7 +69,6 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   print("Extract Poisson model p-values from ChIP-seq files.")
   # iteration 2: extract and assign associated Poisson model p-values to the matrix
   for(i in chipfiles) {
-    
     # skip non-ChIP-seq files
     if(!grepl('^GSM[0-9]*(_SL[0-9]{1,9}){2}_genes.txt$', i)) {
       next
@@ -110,6 +109,10 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     }
   }
   
+  # debug only --- remove
+  filename <- paste0(getwd(), "/../analysis/non-compressed-chip.txt")
+  write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+  
   print("Create sorted, unique TF list from loaded files.")
   # remove library suffix from transcription factor names and create a sorted, unique TF list
   tfs_thx_unique <- gsub("-(SL[0-9]{1,9})$", "", tfs_thx)
@@ -141,6 +144,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     subsetCols[subsetCols == 0] <- NA # exclude zeroes from mean (debug)
     # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
     tf_meancol <- rowMeans(subsetCols, na.rm = TRUE)
+    tf_meancol[is.na(tf_meancol)] <- 0 # change excluded indices back to 0s or problems might occur later
     thx_unique_mat[,i] <- tf_meancol
   }
   
