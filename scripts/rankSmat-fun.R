@@ -6,7 +6,7 @@
 rank.smat <- function(smat) {
   # replace all zeroes or infinities with NA to exclude them from ranking
   smat[smat == 0] <- NA
-  # apply rank to absolute value of confidence scores (descending order --> negative sign)
+  # apply rank to absolute value of confidence scores (descending rank order --> negative sign before abs())
   ranked_mat <- matrix(rank(-abs(smat), na.last = "keep"), ncol=ncol(smat))
   # replace all NAs with zeroes again post-ranking
   # ranked_mat[is.na(ranked_mat)] <- 0

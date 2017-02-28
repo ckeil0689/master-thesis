@@ -1,5 +1,12 @@
+# Laod confidence score matrices by option
+write.mat <- function(mat, outpath, prefix, thx, ext) {
+  filename = paste0(outpath, prefix, thx, ext)
+  print(paste("Writing matrix to file:", filename))
+  write.table(mat, file = filename, sep = "\t", row.names = FALSE, col.names = TRUE)
+}
+
 # Takes a combined matrix file and transforms it to a list of node-node interactions that can be loaded into Cytoscape
-create.interactions <- function(combomat) {
+create.interactions <- function(combomat, outpath, combo, thx) {
   print("Transforming matrix to node-node-value list.")
   
   pos <- length(combomat[combomat > 1.5])
@@ -10,11 +17,11 @@ create.interactions <- function(combomat) {
   print(paste("Total edges (pos):", pos))
   print(paste("Total edges (neg):", neg))
   
-  edge_num <- nrow(combomat) * ncol(combomat)
-  print(paste("Edges to write:", edge_num))
+  print(paste("sif.table to write:", tot))
   
   #pre-allocate data table since dimensions are known
-  edges <- data.table("node1"=as.character(rep(NA, tot)), "node2"=as.character(rep(NA, tot)), "value"=rep(0, tot))
+  sif.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=rep("NA_kc", tot), "nodeB"=as.character(rep(NA, tot)))
+  eda.table <- data.table("Activity"=as.character(rep(NA, tot)))
   
   # Fill table with values from the combined matrix
   listrow <- 1
@@ -23,14 +30,30 @@ create.interactions <- function(combomat) {
     for (j in 1:ncol(combomat)) {
       val <- combomat[i,j]
       if(abs(val) > 1.50) {
-        set(edges, listrow, "node1", rownames(combomat)[i])
-        set(edges, listrow, "node2", colnames(combomat)[j])
-        set(edges, listrow, "value", val)
+        
+        signv <- sign(val)
+        if(signv == 1) {
+          ia <- "positive_kc"
+        } else if(signv) {
+          ia <- "negative_kc"
+        } else {
+          ia <- "NA_kc"
+        }
+        
+        set(sif.table, listrow, "nodeA", rownames(combomat)[i])
+        set(sif.table, listrow, "interaction", ia)
+        set(sif.table, listrow, "nodeB", colnames(combomat)[j])
+        # set(sif.table, listrow, "value", val)
+        
+        eda.entry <- paste0(rownames(combomat)[i], " (", ia, ") ", colnames(combomat)[j], " = ", val)
+        set(eda.table, listrow, "Activity", eda.entry)
         listrow <- listrow + 1
       }
     }
   }
   cat("\n")
-  print("Done creating interaction list for Cytoscape.")
-  return(edges)
+  write.mat(sif.table, outpath, paste0(combo, "_"), thx, ".sif")
+  write.mat(eda.table, outpath, paste0(combo, "_"), thx, ".eda")
+  print("Done creating .sif and .eda for Cytoscape.")
+  # return(sif.table)
 }

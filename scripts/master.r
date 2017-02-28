@@ -206,7 +206,7 @@ if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "_signed")
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 
-edges <- create.interactions(combined_mat)
-write.mat(edges, paste0(combo, "_"), "_edges")
-
+create.interactions(combined_mat, outpath, combo, thx)
+# edges <- create.interactions(combined_mat, outpath, combo, thx)
+# write.mat(edges, paste0(combo, "_"), "_edges")
 print("Done.")
