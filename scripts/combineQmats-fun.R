@@ -2,35 +2,45 @@
 combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
   
   print(paste("Dim K-qmat:", dim(kqmat)))
+  # Core target transcription factors
+  CORE_TFS <- c("batf", "irf4", "stat3", "hif1a", "maf", "fosl2", "rorc")
   
   qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
   
   print(paste("Qmatlist:", length(qmatlist)))
   # Vectors for row and column names of final Thx (x=0/=17) matrix
-  all_genes_thx_wt <- c()
-  tfs_thx <- c()
+  genes <- rownames(kqmat)
+  tfs_thx <- CORE_TFS
   
   print("Finding all genes and TFs to build a matrix.")
-  # Iteration 1: create unique, maximal list of TFs and genes
-  for(i in qmatlist) {
-    if(is.null(i)) next
-    tfs_thx <- c(tfs_thx, colnames(i))
-    all_genes_thx_wt <- append(all_genes_thx_wt, rownames(i))
-  }
+  # # Iteration 1: create unique, maximal list of TFs and genes
+  # for(i in qmatlist) {
+  #   if(is.null(i)) next
+  #   tfs_thx <- c(tfs_thx, colnames(i))
+  #   all_genes_thx_wt <- append(all_genes_thx_wt, rownames(i))
+  # }
+  # 
+  # print("Generate zero-filled matrix skeleton.")
+  # # generate the empty Th17 and Th0 matrices for ChIP-seq
+  # all_genes_thx_unique <- toupper(sort(unique(all_genes_thx_wt)))
+  # tfs_thx_unique <- toupper(sort(unique(tfs_thx)))
   
-  print("Generate zero-filled matrix skeleton.")
-  # generate the empty Th17 and Th0 matrices for ChIP-seq
-  all_genes_thx_unique <- toupper(sort(unique(all_genes_thx_wt)))
-  tfs_thx_unique <- toupper(sort(unique(tfs_thx)))
+  # print(paste("Unique genes (total):", length(all_genes_thx_unique)))
+  print(paste("Unique genes (total):", length(genes)))
   
-  print(paste("Unique genes (total):", length(all_genes_thx_unique)))
+  # # 0-initialized matrix  
+  # combined_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
+  # # unique gene list makes up rows
+  # rownames(combined_mat) <- all_genes_thx_unique
+  # # unique transcription factor list makes up columns
+  # colnames(combined_mat) <- tfs_thx_unique
   
   # 0-initialized matrix  
-  combined_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
+  combined_mat <- matrix(0, nrow = length(genes), ncol = length(CORE_TFS))
   # unique gene list makes up rows
-  rownames(combined_mat) <- all_genes_thx_unique
+  rownames(combined_mat) <- toupper(sort(genes))
   # unique transcription factor list makes up columns
-  colnames(combined_mat) <- tfs_thx_unique
+  colnames(combined_mat) <- toupper(sort(CORE_TFS))
   
   print("Filling combination matrix with summed values from Q-matrices.")
   # Iteration 2: filling data by matrix addition

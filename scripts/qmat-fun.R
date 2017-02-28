@@ -10,7 +10,10 @@ qscore <- function(rank, n_nonzero) {
 calc.qmat <- function(orig_mat, ranked_mat) {
   print("Applying quantile score function over ranked matrix.")
   n_nonzero = sum(orig_mat != 0)
-  qmat <- as.matrix(mapply(qscore, as.data.frame(ranked_mat), MoreArgs = list(n_nonzero)))
+  print(paste("Num Non-zero:", n_nonzero))
+  df <- as.data.frame(ranked_mat)
+  qmat <- as.matrix(mapply(qscore, df, MoreArgs = list(n_nonzero)))
+  qmat[is.na(qmat)] <- 0
   rownames(qmat) <- rownames(orig_mat)
   return(qmat)
 }

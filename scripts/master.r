@@ -187,11 +187,17 @@ if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "")
 # --------------
 # 5) Apply sign matrix 
 # --------------
-sign_mat <- k_sign_mat
+sign_mat <- k_sign_mat #temp
+sign_mat[sign_mat == 0] <- 1
+
+if(DEBUG) write.mat(sign_mat, paste0(combo, "_"), "_signmat")
+
 print(combined_mat[1:5,])
-print(k_sign_mat[1:5,])
-combined_mat <- combined_mat * as.vector(k_sign_mat) # element-wise multiplication
+print(sign_mat[1:5,])
+combined_mat <- combined_mat * as.vector(sign_mat) # element-wise multiplication
 print(combined_mat[1:5,])
+
+if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "_signed")
 # --------------
 # 6) From combine data matrix, create a list of node-node-value interactions for Cytoscape
 # --------------

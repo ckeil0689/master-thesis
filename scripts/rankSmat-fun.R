@@ -4,16 +4,13 @@
 # applies rank function to matrix <matname> and writes it into the same directory as the source file
 # wrapped in function for possible reuse or automation 
 rank.smat <- function(smat) {
-  # rownames(smat) <- smat[, 1]
-  # smat[, 1] <- NULL
-  
   print("Ranking.")
   # replace all zeroes or infinities with NA to exclude them from ranking
   smat[smat == 0] <- NA
   # apply rank to absolute value of confidence scores (descending order --> negative sign)
   ranked_mat <- matrix(rank(-abs(smat), na.last = "keep"), ncol=ncol(smat))
   # replace all NAs with zeroes again post-ranking
-  ranked_mat[is.na(ranked_mat)] <- 0
+  # ranked_mat[is.na(ranked_mat)] <- 0
   
   rownames(ranked_mat) <- rownames(smat)
   colnames(ranked_mat) <- colnames(smat)
