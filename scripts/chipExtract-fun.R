@@ -2,12 +2,8 @@
 # ----------------
 # Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
 # ----------------
-load.chip <- function(dir, reflibfile, thx) {
+load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   print("Reading ChIP files to create lists of TFs and genes.")
-  
-  # Core target transcription factors
-  CORE_TFS <- c("batf", "irf4", "stat3", "hif1a", "maf", "fosl2", "rorc")
-  
   setwd(dir)
   ref_file <- read.table(reflibfile, sep=",", header=TRUE)
   

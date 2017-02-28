@@ -1,10 +1,7 @@
 # TODO: could be combined with generate-chipseq-mat.r to reduce code
 # Read a DeSeq files from dir
-load.deseq <- function(dir) {
+load.deseq <- function(dir, CORE_TFS) {
   setwd(dir)
-  # fixed target transcription factors to use
-  CORE_TFS <- c("batf", "irf4", "stat3", "hif1a", "ikzf3", "cmaf", "maf", "fosl2", "rorc", "rorg")
-  
   # DEseq results files
   deseqfiles <- list.files(getwd())
   
@@ -64,6 +61,12 @@ load.deseq <- function(dir) {
     # get TF name and add it to list
     tfcol <- colnames(cst)[3]
     tf <- toupper(strsplit(tfcol, "[.]")[[1]][2]) # assumes convention column name (e.g. Th17.batf.wt -> batf)
+    
+    # only use target TFs
+    if(!tolower(tf) %in% CORE_TFS) {
+      print(paste("Transcription factor not in target group:", tf, "(skipped)"))
+      next
+    }
     
     # get the DESeq p-values by iterating and accessing matrix via id and TF-name
     idx <- 1

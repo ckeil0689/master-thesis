@@ -1,9 +1,7 @@
 # Combine previously generated Q-matrices into a single matrix
-combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
+combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
   
   print(paste("Dim K-qmat:", dim(kqmat)))
-  # Core target transcription factors
-  CORE_TFS <- c("batf", "irf4", "stat3", "hif1a", "maf", "fosl2", "rorc")
   
   qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
   
@@ -43,22 +41,16 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
   colnames(combined_mat) <- toupper(sort(CORE_TFS))
   
   print("Filling combination matrix with summed values from Q-matrices.")
-  # Iteration 2: filling data by matrix addition
+  # Iteration 2: performing Q-matrix addition to combine data types
   for(i in qmatlist) {
     if(is.null(i)) next
+
+    A_df=as.data.frame(as.table(combined_mat))
+    B_df=as.data.frame(as.table(i))
     
-    cAB <- union(colnames(combined_mat), colnames(i))
-    rAB <- union(rownames(combined_mat), rownames(i))
+    merged_df=rbind(A_df,B_df)
     
-    A1 <- matrix(0, ncol=length(cAB), nrow=length(rAB), dimnames=list(rAB, cAB))
-    B1 <- A1
-    
-    indxA <- outer(rAB, cAB, FUN=paste) %in% outer(rownames(combined_mat), colnames(combined_mat), FUN=paste) 
-    indxB <- outer(rAB, cAB, FUN=paste) %in% outer(rownames(i), colnames(i), FUN=paste)
-    A1[indxA] <- combined_mat
-    B1[indxB] <- as.matrix(i)
-    
-    combined_mat <- A1 + B1
+    combined_mat=acast(merged_df, Var1 ~ Var2, sum)
   }
   
   print(paste("Combined matrix dim:", dim(combined_mat)))

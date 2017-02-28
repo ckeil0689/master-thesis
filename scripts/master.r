@@ -7,7 +7,7 @@
 #       K = dESeq files for core TFs (RNA-seq KO) 
 #       R = Inferelator matrix (RNA-seq compendium)
 #       I = Inferelator matrix (Immgen microarray data)
-list.of.packages <- c("data.table")
+list.of.packages <- c("data.table", "reshape2")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # install if missing
 if(length(new.packages)) {
@@ -16,6 +16,7 @@ if(length(new.packages)) {
 }
 
 library(data.table)
+library(reshape2)
 
 DEBUG = TRUE
 
@@ -33,8 +34,12 @@ if(!dir.exists(outpath)) {
   dir.create(outpath)
 }
 
+# For input checking
 ALLOWED_COMBOS <- c("c", "k", "ri", "kc", "kcr", "kcri")
 ALLOWED_CELLS <- c("th17", "th0")
+
+# Core target transcription factors
+CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
 
 # Get user input 
 args <- commandArgs(trailingOnly=TRUE)
@@ -72,13 +77,6 @@ write.mat <- function(mat, prefix, suffix) {
   write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }
 
-# Generate zero initialized matrix
-tfs <- c()
-genes <- c()
-
-# Core target transcription factors
-CORE_TFS <- c("batf", "irf4", "stat3", "hif1a", "maf", "fosl2", "rorc")
-
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
@@ -101,13 +99,13 @@ for(opt in opts) {
   
   if(opt == "k") {
     source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
-    k_mat <- load.deseq(dir = deseqdir)
+    k_mat <- load.deseq(dir = deseqdir, CORE_TFS)
     k_sign_mat <- sign(as.data.frame(k_mat))
     if(DEBUG) write.mat(k_mat, "K_", "_smat")
     
   } else if(opt == "c") {
     source(paste0(getwd(), "/" , "chipExtract-fun.R"))
-    c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, thx = thx)
+    c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, thx = thx, CORE_TFS)
     if(DEBUG) write.mat(c_mat, "C_", "_smat")
     
   } else if(opt == "r") {
@@ -181,7 +179,7 @@ i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I_")
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
-combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat)
+combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat, CORE_TFS)
 if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "")
 
 # --------------
