@@ -45,7 +45,7 @@ create.interactions <- function(combomat, outpath, combo, thx) {
         set(sif.table, listrow, "nodeB", colnames(combomat)[j])
         # set(sif.table, listrow, "value", val)
         
-        eda.entry <- paste0(rownames(combomat)[i], " (", ia, ") ", colnames(combomat)[j], " = ", val)
+        eda.entry <- paste0(rownames(combomat)[i], " (", ia, ") ", colnames(combomat)[j], "=", val)
         set(eda.table, listrow, "Activity", eda.entry)
         listrow <- listrow + 1
       }
@@ -53,7 +53,7 @@ create.interactions <- function(combomat, outpath, combo, thx) {
   }
   cat("\n")
   write.mat(sif.table, outpath, paste0(combo, "_"), thx, ".sif")
-  write.mat(eda.table, outpath, paste0(combo, "_"), thx, ".eda")
+  write.mat(eda.table, outpath, paste0(combo, "_"), thx, ".eda.attrs")
   print("Done creating .sif and .eda for Cytoscape.")
   # return(sif.table)
 }

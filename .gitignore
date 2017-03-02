@@ -1,10 +1,12 @@
 /networks/
 /suppl/data/
 /papers/
+/scripts/external/
 
 .Rhistory
 ~*
 .*#
+*.swp
 *.ods
 *.xls*
 *.csv
