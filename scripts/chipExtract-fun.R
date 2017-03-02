@@ -36,32 +36,27 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     
     # use library name to get tf from reference for each condition
     row <- match(libname, ref_file$Library_ID)
-    if(tolower(ref_file$Condition[row])==thx && ref_file$Genotype[row]=='wt' && ref_file$Time_Point[row]=='') {
-      tf <- ref_file$Factor[row]
-      # correct for hyphens and underscores in TF names
-      tf <- gsub("(-|_)", "", tolower(tf))
-      tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
-      tf <- gsub("rorg", "rorc", tf)
-      
-      # only use target TFs
-      if(!tf %in% CORE_TFS) {
-        next
-      }
-      
-      thx_rows <- c(thx_rows, row)
-      
-      tf <- paste0(tf, "-", libname)
-      tfs_thx <- c(tfs_thx, tf)
-      
-      # read in the data and extract the library name
-      cst <- read.table(i, sep="\t", header=TRUE)
-      # create full gene list by adding all genes from this file
-      genes_thx_wt <- as.character(cst$Gene_ID)
-      all_genes_thx_wt <- append(all_genes_thx_wt, genes_thx_wt)
-      
-    } else {
+    tf <- ref_file$Factor[row]
+    # correct for hyphens and underscores in TF names
+    tf <- gsub("(-|_)", "", tolower(tf))
+    tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
+    tf <- gsub("rorg", "rorc", tf)
+    
+    # only use target TFs
+    if(!tf %in% CORE_TFS) {
       next
     }
+    
+    thx_rows <- c(thx_rows, row)
+    
+    tf <- paste0(tf, "-", libname)
+    tfs_thx <- c(tfs_thx, tf)
+    
+    # read in the data and extract the library name
+    cst <- read.table(i, sep="\t", header=TRUE)
+    # create full gene list by adding all genes from this file
+    genes_thx_wt <- as.character(cst$Gene_ID)
+    all_genes_thx_wt <- append(all_genes_thx_wt, genes_thx_wt)
   }
   
   # generate the empty Th17 and Th0 matrices for ChIP-seq
@@ -86,35 +81,30 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
     
     row <- match(libname, ref_file$Library_ID)
-    if(tolower(ref_file$Condition[row])==thx && ref_file$Genotype[row]=='wt' && ref_file$Time_Point[row]=='') {
-      # get tf from reference for Thx/wt condition
-      tf <- ref_file$Factor[row]
-      
-      # fix hyphens and underscores in TF names
-      tf <- gsub("(-|_)", "", tolower(tf))
-      tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
-      tf <- gsub("rorg", "rorc", tf)
-      
-      # only use target TFs
-      if(!tf %in% CORE_TFS) {
-        next
-      }
-      
-      tf <- paste0(tf, "-", libname)
-      
-      # order the genes, get index to also reorder Poisson model p-values
-      cst <- read.table(i, sep="\t", header=TRUE)
-      genes_thx_wt <- cst$Gene_ID
-      
-      # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
-      idx <- 1
-      for(j in genes_thx_wt) {
-        thx_mat[j, tf] <- cst$genewide_pois_model_pval[idx]
-        idx <- idx + 1
-      }
-      
-    } else {
+    # get tf from reference for Thx/wt condition
+    tf <- ref_file$Factor[row]
+    
+    # fix hyphens and underscores in TF names
+    tf <- gsub("(-|_)", "", tolower(tf))
+    tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
+    tf <- gsub("rorg", "rorc", tf)
+    
+    # only use target TFs
+    if(!tf %in% CORE_TFS) {
       next
+    }
+    
+    tf <- paste0(tf, "-", libname)
+    
+    # order the genes, get index to also reorder Poisson model p-values
+    cst <- read.table(i, sep="\t", header=TRUE)
+    genes_thx_wt <- cst$Gene_ID
+    
+    # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
+    idx <- 1
+    for(j in genes_thx_wt) {
+      thx_mat[j, tf] <- cst$genewide_pois_model_pval[idx]
+      idx <- idx + 1
     }
   }
   
