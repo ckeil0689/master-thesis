@@ -3,6 +3,7 @@
 # Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
 # ----------------
 load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
+  BOOST_P300 <- TRUE # TODO set in master script with other options
   print("Reading ChIP files to create lists of TFs and genes.")
   setwd(dir)
   ref_file <- read.table(reflibfile, sep=",", header=TRUE)
@@ -10,14 +11,29 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   # ChIP-seq results files from GEO (assumes local copy in chipdir)
   # The chosen files here correspond with the ones which the original authors
   # have found to be qualitative superior results files. Each TF has one Th0 and one Th17 file.
-  chipfiles <- c("GSM1004787_SL3037_SL3036_genes.txt", "GSM1004785_SL3192_SL3190_genes.txt", # BATF Th17 wt / Th0 wt
-                 "GSM1004824_SL1235_SL1234_genes.txt", "GSM1004833_SL2872_SL2876_genes.txt", # IRF4 Th0 wt / Th17 rorc wt
-                 "GSM1004798_SL4424_SL4425_genes.txt", "GSM1004800_SL3032_SL2871_genes.txt", # MAF Th0 wt / Th17 wt
-                 "GSM1004842_SL1948_SL1947_genes.txt", "GSM1004851_SL3594_SL3592_genes.txt", # P300 Th0 wt / Th17 rorc wt
-                 "GSM1004857_SL3780_SL3778_genes.txt", "GSM1004865_SL3315_SL3319_genes.txt", # STAT3 Th0 wt / Th17 rorc wt
-                 "GSM1004853_SL3779_SL3778_genes.txt", "GSM1004856_SL2870_SL2871_genes.txt", # RORC Th0 wt / Th17 wt
-                 "GSM1004808_SL6500_SL6499_genes.txt", "GSM1004809_SL6498_SL6497_genes.txt"  # FOSL2 Th0 wt / Th17 wt
-                 )
+  th0_chipfiles <- c("GSM1004785_SL3192_SL3190_genes.txt", # BATF wt
+                     "GSM1004824_SL1235_SL1234_genes.txt", # IRF4 wt
+                     "GSM1004798_SL4424_SL4425_genes.txt", # MAF wt
+                     "GSM1004842_SL1948_SL1947_genes.txt", # P300 wt
+                     "GSM1004857_SL3780_SL3778_genes.txt", # STAT3 wt
+                     "GSM1004853_SL3779_SL3778_genes.txt", # RORC wt
+                     "GSM1004808_SL6500_SL6499_genes.txt") # FOSL2 wt
+                    
+  th17_chipfiles <- c("GSM1004787_SL3037_SL3036_genes.txt", # BATF wt
+                      "GSM1004833_SL2872_SL2876_genes.txt", # IRF4 rorc wt
+                      "GSM1004800_SL3032_SL2871_genes.txt", # MAF wt
+                      "GSM1004865_SL3315_SL3319_genes.txt", # STAT3 rorc wt
+                      "GSM1004856_SL2870_SL2871_genes.txt", # RORC wt
+                      "GSM1004809_SL6498_SL6497_genes.txt") # FOSL2 wt
+  
+  p300_chipfiles <- c("GSM1004842_SL1948_SL1947_genes.txt", # P300 Th0 wt
+                      "GSM1004851_SL3594_SL3592_genes.txt") # P300 Th17 rorc wt
+  
+  if(BOOST_P300) {
+    all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_chipfiles)
+  } else {
+    all_chipfiles <- c(th0_chipfiles, th17_chipfiles)
+  }
   thx_rows <- c()
   
   # Vectors for row and column names of final Thx (x=0/=17) matrix
@@ -26,7 +42,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   
   # Iteration 1: create unique, maximal list of tested TFs and genes with MACS peaks
   print("Finding unique list of all genes tested in all ChIP files.")
-  for(i in chipfiles) {
+  for(i in all_chipfiles) {
     # skip non-ChIP-seq files
     if(!grepl('^GSM[0-9]*(_SL[0-9]{1,9}){2}_genes.txt$', i)) {
       next
@@ -72,7 +88,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   
   print("Extract Poisson model p-values from ChIP-seq files.")
   # iteration 2: extract and assign associated Poisson model p-values to the matrix
-  for(i in chipfiles) {
+  for(i in all_chipfiles) {
     # skip non-ChIP-seq files
     if(!grepl('^GSM[0-9]*(_SL[0-9]{1,9}){2}_genes.txt$', i)) {
       next
@@ -124,10 +140,8 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   
   cols <- colnames(thx_mat)
   
-  print("Calculate actual confidence scores (mean p-values for unique TFs)...")
-  # TODO check if 0s should be counted in mean
+  print("Calculate final ChIP-seq score matrix (cs = Th17 - Th0)...")
   for(i in tfs_thx_unique) {
-    
     # pattern to match
     p <- paste0(i, "-(SL[0-9]{1,9})$")
     tf_colset <- c()
@@ -139,6 +153,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
       }
     }
     
+    # TODO replace mean with (Th17-Th0) value 
     subsetCols <- subset(thx_mat, select = tf_colset)
     subsetCols[subsetCols == 0] <- NA # exclude zeroes from mean (debug)
     # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
