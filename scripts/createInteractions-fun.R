@@ -9,19 +9,18 @@ write.mat <- function(mat, outpath, prefix, thx, ext) {
 create.interactions <- function(combomat, outpath, combo, thx) {
   print("Transforming matrix to node-node-value list.")
   
-  pos <- length(combomat[combomat > 1.5])
-  neg <- length(combomat[combomat < -1.5])
+  pos <- length(combomat[combomat > 1.50])
+  neg <- length(combomat[combomat < -1.50])
   
   tot <- pos + neg
   
-  print(paste("Total edges (pos):", pos))
-  print(paste("Total edges (neg):", neg))
-  
-  print(paste("sif.table to write:", tot))
+  print(paste("Positive edges:", pos))
+  print(paste("Negative edges:", neg))
+  print(paste("Edges to write:", tot))
   
   #pre-allocate data table since dimensions are known
-  sif.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=rep("NA_kc", tot), "nodeB"=as.character(rep(NA, tot)))
-  eda.table <- data.table("Activity"=as.character(rep(NA, tot)))
+  cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), "nodeB"=as.character(rep(NA, tot), "confidence_score"=rep(0, tot)))
+  print(dim(cyt.table))
   
   # Fill table with values from the combined matrix
   listrow <- 1
@@ -29,31 +28,28 @@ create.interactions <- function(combomat, outpath, combo, thx) {
     if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(combomat)), digits = 0), "%"))
     for (j in 1:ncol(combomat)) {
       val <- combomat[i,j]
-      if(abs(val) > 1.50) {
-        
-        signv <- sign(val)
-        if(signv == 1) {
-          ia <- "positive_kc"
-        } else if(signv) {
-          ia <- "negative_kc"
-        } else {
-          ia <- "NA_kc"
-        }
-        
-        set(sif.table, listrow, "nodeA", rownames(combomat)[i])
-        set(sif.table, listrow, "interaction", ia)
-        set(sif.table, listrow, "nodeB", colnames(combomat)[j])
-        # set(sif.table, listrow, "value", val)
-        
-        eda.entry <- paste0(rownames(combomat)[i], " (", ia, ") ", colnames(combomat)[j], "=", val)
-        set(eda.table, listrow, "Activity", eda.entry)
-        listrow <- listrow + 1
+      
+      if(val > 1.50) {
+        edge.type <- "positive_kc"
+      } else if(val < -1.50) {
+        edge.type <- "negative_kc"
+      } else {
+        edge.type <- "neutral"
       }
+        
+      set(cyt.table, listrow, "nodeA", colnames(combomat)[j])
+      set(cyt.table, listrow, "interaction", edge.type)
+      set(cyt.table, listrow, "nodeB", rownames(combomat)[i])
+      set(cyt.table, listrow, "confidence_score", val)
+      
+      # eda.entry <- paste0(rownames(combomat)[i], " (", ia, ") ", colnames(combomat)[j], "=", val)
+      # set(eda.table, listrow, "Activity", eda.entry)
+      listrow <- listrow + 1
     }
   }
   cat("\n")
-  write.mat(sif.table, outpath, paste0(combo, "_"), thx, ".sif")
-  write.mat(eda.table, outpath, paste0(combo, "_"), thx, ".eda.attrs")
-  print("Done creating .sif and .eda for Cytoscape.")
-  # return(sif.table)
+  write.mat(cyt.table, outpath, paste0(combo, "_"), thx, ".txt")
+  # write.mat(eda.table, outpath, paste0(combo, "_"), thx, ".eda.attrs")
+  print("Done creating data table for Cytoscape.")
+  # return(cyt.table)
 }

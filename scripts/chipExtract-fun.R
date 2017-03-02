@@ -8,7 +8,16 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   ref_file <- read.table(reflibfile, sep=",", header=TRUE)
   
   # ChIP-seq results files from GEO (assumes local copy in chipdir)
-  chipfiles <- list.files(getwd())
+  # The chosen files here correspond with the ones which the original authors
+  # have found to be qualitative superior results files. Each TF has one Th0 and one Th17 file.
+  chipfiles <- c("GSM1004787_SL3037_SL3036_genes.txt", "GSM1004785_SL3192_SL3190_genes.txt", # BATF Th17 wt / Th0 wt
+                 "GSM1004824_SL1235_SL1234_genes.txt", "GSM1004833_SL2872_SL2876_genes.txt", # IRF4 Th0 wt / Th17 rorc wt
+                 "GSM1004798_SL4424_SL4425_genes.txt", "GSM1004800_SL3032_SL2871_genes.txt", # MAF Th0 wt / Th17 wt
+                 "GSM1004842_SL1948_SL1947_genes.txt", "GSM1004851_SL3594_SL3592_genes.txt", # P300 Th0 wt / Th17 rorc wt
+                 "GSM1004857_SL3780_SL3778_genes.txt", "GSM1004865_SL3315_SL3319_genes.txt", # STAT3 Th0 wt / Th17 rorc wt
+                 "GSM1004853_SL3779_SL3778_genes.txt", "GSM1004856_SL2870_SL2871_genes.txt", # RORC Th0 wt / Th17 wt
+                 "GSM1004808_SL6500_SL6499_genes.txt", "GSM1004809_SL6498_SL6497_genes.txt"  # FOSL2 Th0 wt / Th17 wt
+                 )
   thx_rows <- c()
   
   # Vectors for row and column names of final Thx (x=0/=17) matrix
