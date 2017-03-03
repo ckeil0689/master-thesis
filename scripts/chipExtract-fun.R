@@ -48,11 +48,11 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
       next
     }
     
-    libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
-    
     # use library name to get tf from reference for each condition
+    libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
     row <- match(libname, ref_file$Library_ID)
     tf <- ref_file$Factor[row]
+    
     # correct for hyphens and underscores in TF names
     tf <- gsub("(-|_)", "", tolower(tf))
     tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
@@ -65,14 +65,20 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     
     thx_rows <- c(thx_rows, row)
     
-    tf <- paste0(tf, "-", libname)
+    if(i %in% th0_chipfiles || i == p300_th0_chipfile) {
+      thx <- "th0" 
+    } else {
+      thx <- "th17"
+    }
+    
+    tf <- paste0(tf, "-", thx)
     tf.list <- c(tf.list, tf)
     
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
     # create full gene list by adding all genes from this file
-    genes_thx_wt <- as.character(cst$Gene_ID)
-    genes.all <- append(genes.all, genes_thx_wt)
+    genes <- as.character(cst$Gene_ID)
+    genes.all <- append(genes.all, genes)
   }
   
   # generate the empty Th17 and Th0 matrices for ChIP-seq
@@ -94,10 +100,9 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
       next
     }
     
-    libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
-    
-    row <- match(libname, ref_file$Library_ID)
     # get tf from reference for Thx/wt condition
+    libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
+    row <- match(libname, ref_file$Library_ID)
     tf <- ref_file$Factor[row]
     
     # fix hyphens and underscores in TF names
@@ -116,15 +121,15 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
       thx <- "th17"
     }
     
-    tf <- paste0(tf, "-", libname)
+    tf <- paste0(tf, "-", thx)
     
     # order the genes, get index to also reorder Poisson model p-values
     cst <- read.table(i, sep="\t", header=TRUE)
-    genes_thx_wt <- cst$Gene_ID
+    genes <- cst$Gene_ID
     
     # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
     idx <- 1
-    for(j in genes_thx_wt) {
+    for(j in genes) {
       thx_mat[j, tf] <- cst$genewide_pois_model_pval[idx]
       idx <- idx + 1
     }
@@ -140,24 +145,31 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   tfs.list.unique <- sort(unique(tfs.list))
   
   print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
-  thx_unique_mat <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
-  rownames(thx_unique_mat) <- genes.unique
-  colnames(thx_unique_mat) <- tfs.list.unique
+  chipscores <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
+  rownames(chipscores) <- genes.unique
+  colnames(chipscores) <- tfs.list.unique
   
   cols <- colnames(thx_mat)
   
   print("Calculate final ChIP-seq score matrix (cs = Th17 - Th0)...")
   for(i in tfs.list.unique) {
-    # pattern to match
-    p <- paste0(i, "-(SL[0-9]{1,9})$")
-    tf_colset <- c()
+    # patterns to match
+    p_th0 <- paste0(i, "-th0")
+    p_th17 <- paste0(i, "-th17")
     
-    # extract all columns that match the current TF
+    # Assumes one Th17 and one Th0 experiment for each TF
     for(j in cols) {
-      if(grepl(p, j)) {
-        tf_colset <- c(tf_colset, j)
+      if(grepl(p_th0, j)) {
+        th0_col <- j
+      } else if(grepl(p_th17, j)) {
+        th17_col <- j
+      } else {
+        next
       }
     }
+    
+    df <- as.data.frame(th17_col, th0_col)
+    th.diff.col <- (df$th17_col - df$th0_col)
     
     # TODO replace mean with (Th17-Th0) value 
     # subsetCols <- subset(thx_mat, select = tf_colset)
@@ -165,13 +177,13 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
     # tf_meancol <- rowMeans(subsetCols, na.rm = TRUE)
     # tf_meancol[is.na(tf_meancol)] <- 0 # change excluded indices back to 0s or problems might occur later
-    thx_unique_mat[,i] <- tf_meancol
+    chipscores[,i] <- th.diff.col
   }
   
   # finally let labels be capital letters
-  rownames(thx_unique_mat) <- toupper(genes.unique)
-  colnames(thx_unique_mat) <- toupper(tfs.list.unique)
+  rownames(chipscores) <- toupper(genes.unique)
+  colnames(chipscores) <- toupper(tfs.list.unique)
   
   print("Completed generation of ChIP-seq confidence score matrix.")
-  return(thx_unique_mat)
+  return(chipscores)
 }
