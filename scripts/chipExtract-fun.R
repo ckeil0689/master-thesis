@@ -26,19 +26,19 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
                       "GSM1004856_SL2870_SL2871_genes.txt", # RORC wt
                       "GSM1004809_SL6498_SL6497_genes.txt") # FOSL2 wt
   
-  p300_chipfiles <- c("GSM1004842_SL1948_SL1947_genes.txt", # P300 Th0 wt
-                      "GSM1004851_SL3594_SL3592_genes.txt") # P300 Th17 rorc wt
+  p300_th0_chipfile <- "GSM1004842_SL1948_SL1947_genes.txt" # P300 Th0 wt
+  p300_th17_chipfile <- "GSM1004851_SL3594_SL3592_genes.txt" # P300 Th17 rorc wt
   
   if(BOOST_P300) {
-    all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_chipfiles)
+    all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_th0_chipfile, p300_th17_chipfile)
   } else {
     all_chipfiles <- c(th0_chipfiles, th17_chipfiles)
   }
   thx_rows <- c()
   
   # Vectors for row and column names of final Thx (x=0/=17) matrix
-  all_genes_thx_wt <- c()
-  tfs_thx <- c()
+  genes.all <- c()
+  tf.list <- c()
   
   # Iteration 1: create unique, maximal list of tested TFs and genes with MACS peaks
   print("Finding unique list of all genes tested in all ChIP files.")
@@ -66,25 +66,25 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     thx_rows <- c(thx_rows, row)
     
     tf <- paste0(tf, "-", libname)
-    tfs_thx <- c(tfs_thx, tf)
+    tf.list <- c(tf.list, tf)
     
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
     # create full gene list by adding all genes from this file
     genes_thx_wt <- as.character(cst$Gene_ID)
-    all_genes_thx_wt <- append(all_genes_thx_wt, genes_thx_wt)
+    genes.all <- append(genes.all, genes_thx_wt)
   }
   
   # generate the empty Th17 and Th0 matrices for ChIP-seq
-  all_genes_thx_unique <- sort(unique(all_genes_thx_wt))
+  genes.unique <- sort(unique(genes.all))
   
-  print(paste("Generate a zero-filled matrix skeleton.", "(genes =", length(all_genes_thx_unique), ", TF columns =", length(tfs_thx), ")"))
+  print(paste("Generate a zero-filled matrix skeleton.", "(genes =", length(genes.unique), ", TF columns =", length(tf.list), ")"))
   # 0-initialized matrix  
-  thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx))
+  thx_mat <- matrix(0, nrow = length(genes.unique), ncol = length(tf.list))
   # unique gene list makes up rows
-  rownames(thx_mat) <- all_genes_thx_unique
+  rownames(thx_mat) <- genes.unique
   # unique transcription factor list makes up columns
-  colnames(thx_mat) <- tfs_thx
+  colnames(thx_mat) <- tf.list
   
   print("Extract Poisson model p-values from ChIP-seq files.")
   # iteration 2: extract and assign associated Poisson model p-values to the matrix
@@ -110,6 +110,12 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
       next
     }
     
+    if(i %in% th0_chipfiles) {
+      thx <- "th0" 
+    } else {
+      thx <- "th17"
+    }
+    
     tf <- paste0(tf, "-", libname)
     
     # order the genes, get index to also reorder Poisson model p-values
@@ -130,18 +136,18 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   
   print("Create sorted, unique TF list from loaded files.")
   # remove library suffix from transcription factor names and create a sorted, unique TF list
-  tfs_thx_unique <- gsub("-(SL[0-9]{1,9})$", "", tfs_thx)
-  tfs_thx_unique <- sort(unique(tfs_thx_unique))
+  tfs.list <- gsub("-(SL[0-9]{1,9})$", "", tf.list)
+  tfs.list.unique <- sort(unique(tfs.list))
   
-  print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(all_genes_thx_unique), ", TFs (unique) =", length(tfs_thx_unique), ")"))
-  thx_unique_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx_unique))
-  rownames(thx_unique_mat) <- all_genes_thx_unique
-  colnames(thx_unique_mat) <- tfs_thx_unique
+  print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
+  thx_unique_mat <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
+  rownames(thx_unique_mat) <- genes.unique
+  colnames(thx_unique_mat) <- tfs.list.unique
   
   cols <- colnames(thx_mat)
   
   print("Calculate final ChIP-seq score matrix (cs = Th17 - Th0)...")
-  for(i in tfs_thx_unique) {
+  for(i in tfs.list.unique) {
     # pattern to match
     p <- paste0(i, "-(SL[0-9]{1,9})$")
     tf_colset <- c()
@@ -154,17 +160,17 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     }
     
     # TODO replace mean with (Th17-Th0) value 
-    subsetCols <- subset(thx_mat, select = tf_colset)
-    subsetCols[subsetCols == 0] <- NA # exclude zeroes from mean (debug)
+    # subsetCols <- subset(thx_mat, select = tf_colset)
+    # subsetCols[subsetCols == 0] <- NA # exclude zeroes from mean (debug)
     # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
-    tf_meancol <- rowMeans(subsetCols, na.rm = TRUE)
-    tf_meancol[is.na(tf_meancol)] <- 0 # change excluded indices back to 0s or problems might occur later
+    # tf_meancol <- rowMeans(subsetCols, na.rm = TRUE)
+    # tf_meancol[is.na(tf_meancol)] <- 0 # change excluded indices back to 0s or problems might occur later
     thx_unique_mat[,i] <- tf_meancol
   }
   
   # finally let labels be capital letters
-  rownames(thx_unique_mat) <- toupper(all_genes_thx_unique)
-  colnames(thx_unique_mat) <- toupper(tfs_thx_unique)
+  rownames(thx_unique_mat) <- toupper(genes.unique)
+  colnames(thx_unique_mat) <- toupper(tfs.list.unique)
   
   print("Completed generation of ChIP-seq confidence score matrix.")
   return(thx_unique_mat)
