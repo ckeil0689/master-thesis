@@ -152,6 +152,9 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   cols <- colnames(thx_mat)
   
   print("Calculate final ChIP-seq score matrix (cs = Th17 - Th0)...")
+  #TODO incorporate p300 boost
+  # The Th17 and Th0 column for each TF in thx_mat will be replaced with a single TF column
+  # Th0 value will be substracted from Th17 to create the final chip score 
   for(i in tfs.list.unique) {
     # patterns to match
     p_th0 <- paste0(i, "-th0")
@@ -169,15 +172,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     }
     
     df <- data.frame(th17_col, th0_col)
-    # print(df[1:5,])
     th.diff.col <- (df$th17_col - df$th0_col)
-    
-    # TODO replace mean with (Th17-Th0) value 
-    # subsetCols <- subset(thx_mat, select = tf_colset)
-    # subsetCols[subsetCols == 0] <- NA # exclude zeroes from mean (debug)
-    # now matrix has a column for each library file - take the mean for each TF and write that in ONE column (final result: one column per unique TF)
-    # tf_meancol <- rowMeans(subsetCols, na.rm = TRUE)
-    # tf_meancol[is.na(tf_meancol)] <- 0 # change excluded indices back to 0s or problems might occur later
     chipscores[,i] <- th.diff.col
   }
   

@@ -19,8 +19,8 @@ create.interactions <- function(combomat, outpath, combo, thx) {
   print(paste("Edges to write:", tot))
   
   #pre-allocate data table since dimensions are known
-  cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), "nodeB"=as.character(rep(NA, tot), "confidence_score"=rep(0, tot)))
-  print(dim(cyt.table))
+  cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), 
+                          "nodeB"=as.character(rep(NA, tot)), "confidence_score"=as.character(rep(0, tot)))
   
   # Fill table with values from the combined matrix
   listrow <- 1
@@ -34,16 +34,14 @@ create.interactions <- function(combomat, outpath, combo, thx) {
       } else if(val < -1.50) {
         edge.type <- "negative_kc"
       } else {
-        edge.type <- "neutral"
+        next # do not set any edge (list size limited to 'tot')
       }
-        
+      
       set(cyt.table, listrow, "nodeA", colnames(combomat)[j])
       set(cyt.table, listrow, "interaction", edge.type)
       set(cyt.table, listrow, "nodeB", rownames(combomat)[i])
       set(cyt.table, listrow, "confidence_score", val)
       
-      # eda.entry <- paste0(rownames(combomat)[i], " (", ia, ") ", colnames(combomat)[j], "=", val)
-      # set(eda.table, listrow, "Activity", eda.entry)
       listrow <- listrow + 1
     }
   }
