@@ -75,7 +75,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     tf.list <- c(tf.list, tf)
     
     # read in the data and extract the library name
-    cst <- read.table(i, sep="\t", header=TRUE)
+    cst <- read.table(i, sep="\t", header=TRUE, stringsAsFactors = FALSE)
     # create full gene list by adding all genes from this file
     genes <- as.character(cst$Gene_ID)
     genes.all <- append(genes.all, genes)
@@ -115,7 +115,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
       next
     }
     
-    if(i %in% th0_chipfiles) {
+    if(i %in% th0_chipfiles || i == p300_th0_chipfile) {
       thx <- "th0" 
     } else {
       thx <- "th17"
@@ -124,7 +124,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     tf <- paste0(tf, "-", thx)
     
     # order the genes, get index to also reorder Poisson model p-values
-    cst <- read.table(i, sep="\t", header=TRUE)
+    cst <- read.table(i, sep="\t", header=TRUE, stringsAsFactors = FALSE)
     genes <- cst$Gene_ID
     
     # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
@@ -141,7 +141,7 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   
   print("Create sorted, unique TF list from loaded files.")
   # remove library suffix from transcription factor names and create a sorted, unique TF list
-  tfs.list <- gsub("-(SL[0-9]{1,9})$", "", tf.list)
+  tfs.list <- gsub("-(th0|th17)$", "", tf.list)
   tfs.list.unique <- sort(unique(tfs.list))
   
   print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
@@ -160,15 +160,16 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     # Assumes one Th17 and one Th0 experiment for each TF
     for(j in cols) {
       if(grepl(p_th0, j)) {
-        th0_col <- j
+        th0_col <- thx_mat[,j]
       } else if(grepl(p_th17, j)) {
-        th17_col <- j
+        th17_col <- thx_mat[,j]
       } else {
         next
       }
     }
     
-    df <- as.data.frame(th17_col, th0_col)
+    df <- data.frame(th17_col, th0_col)
+    # print(df[1:5,])
     th.diff.col <- (df$th17_col - df$th0_col)
     
     # TODO replace mean with (Th17-Th0) value 
