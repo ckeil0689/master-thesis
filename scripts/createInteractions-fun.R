@@ -30,9 +30,9 @@ create.interactions <- function(combomat, outpath, combo, thx) {
       val <- combomat[i,j]
       
       if(val > 1.50) {
-        edge.type <- "positive_kc"
+        edge.type <- "positive_KC"
       } else if(val < -1.50) {
-        edge.type <- "negative_kc"
+        edge.type <- "negative_KC"
       } else {
         next # do not set any edge (list size limited to 'tot')
       }
@@ -46,7 +46,7 @@ create.interactions <- function(combomat, outpath, combo, thx) {
     }
   }
   cat("\n")
-  write.mat(cyt.table, outpath, paste0(combo, "_"), thx, ".txt")
+  write.mat(cyt.table, outpath, paste0(combo, "_"), thx, ".xls")
   # write.mat(eda.table, outpath, paste0(combo, "_"), thx, ".eda.attrs")
   print("Done creating data table for Cytoscape.")
   # return(cyt.table)

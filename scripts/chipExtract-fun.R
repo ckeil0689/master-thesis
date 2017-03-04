@@ -58,8 +58,8 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
     tf <- gsub("rorg", "rorc", tf)
     
-    # only use target TFs
-    if(!tf %in% CORE_TFS) {
+    # only use target TFs or p300 (when boosting)
+    if(!tf %in% CORE_TFS && (BOOST_P300 && tf != "p300")) {
       next
     }
     
@@ -110,8 +110,8 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     tf <- gsub("cmaf", "maf", tf) # only these TF names are inconsistent all the time...
     tf <- gsub("rorg", "rorc", tf)
     
-    # only use target TFs
-    if(!tf %in% CORE_TFS) {
+    # only use target TFs or p300 (when boosting)
+    if(!tf %in% CORE_TFS && (BOOST_P300 && tf != "p300")) {
       next
     }
     
@@ -144,12 +144,26 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   tfs.list <- gsub("-(th0|th17)$", "", tf.list)
   tfs.list.unique <- sort(unique(tfs.list))
   
+  print(tfs.list.unique)
+  # Drop p300 - it was only needed for boosting
+  if(BOOST_P300) {
+    tfs.list.unique <- tfs.list.unique[tfs.list.unique !="p300"]
+  }
+  print(tfs.list.unique)
+  
   print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
   chipscores <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
   rownames(chipscores) <- genes.unique
   colnames(chipscores) <- tfs.list.unique
   
   cols <- colnames(thx_mat)
+  
+  if(BOOST_P300) {
+    p300.th17.col <- thx_mat[,"p300-th17"]
+    p300.th0.col <- thx_mat[,"p300-th0"]
+    p300.df <- data.frame(p300.th17.col, p300.th0.col)
+    p300.score.col <- (p300.df$p300.th17.col - p300.df$p300.th0.col)
+  }
   
   print("Calculate final ChIP-seq score matrix (cs = Th17 - Th0)...")
   #TODO incorporate p300 boost
@@ -172,13 +186,21 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
     }
     
     df <- data.frame(th17_col, th0_col)
-    th.diff.col <- (df$th17_col - df$th0_col)
+    
+    if(BOOST_P300) {
+      th.diff.col <- (df$th17_col - df$th0_col) + p300.score.col
+    } else {
+      th.diff.col <- (df$th17_col - df$th0_col)
+    }
+    
     chipscores[,i] <- th.diff.col
   }
   
   # finally let labels be capital letters
   rownames(chipscores) <- toupper(genes.unique)
   colnames(chipscores) <- toupper(tfs.list.unique)
+  
+  print(colnames(chipscores))
   
   print("Completed generation of ChIP-seq confidence score matrix.")
   return(chipscores)
