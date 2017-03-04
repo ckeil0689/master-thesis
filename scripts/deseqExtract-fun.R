@@ -81,6 +81,8 @@ load.deseq <- function(dir, CORE_TFS) {
   thx_mat[thx_mat == Inf] <- 0
   thx_mat[is.na(thx_mat)] <- 0
   
+  # drop 0-only-rows
+  thx_mat <- thx_mat[rowSums(thx_mat[, -1])>(1e-10),]
   return(thx_mat)
 }
 

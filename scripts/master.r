@@ -19,7 +19,9 @@ library(data.table)
 library(reshape2)
 # library(xlsx)
 
-DEBUG = TRUE
+GLOBAL <- list()
+GLOBAL[["DEBUG"]] <- TRUE
+GLOBAL[["BOOST_P300"]] <- TRUE
 
 # Input file directories
 scriptdir <- getwd()
@@ -42,8 +44,8 @@ sink(zz, type="message")
 ALLOWED_COMBOS <- c("c", "k", "ri", "kc", "kcr", "kcri")
 
 # Core target transcription factors
-CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
-# CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2")
+# CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
+CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2")
 
 # Get user input 
 args <- commandArgs(trailingOnly=TRUE)
@@ -89,6 +91,16 @@ i_sign_mat <- NULL
 # Split into separate characters
 opts = unlist(strsplit(combo, ""))
 
+if(length(opts) == 2) {
+  GLOBAL[["abs.cut"]] <- 1.5
+} else if(length(opts) == 3) {
+  GLOBAL[["abs.cut"]] <- 2.0
+} else if(length(opts) == 4) {
+  GLOBAL[["abs.cut"]] <- 2.5
+} else {
+  GLOBAL[["abs.cut"]] <- 0.75
+}
+
 for(opt in opts) {
   # reset because functions may globally change working directory and source() breaks
   setwd(scriptdir)
@@ -97,12 +109,12 @@ for(opt in opts) {
     source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
     k_mat <- load.deseq(dir = deseqdir, CORE_TFS)
     k_sign_mat <- sign(as.data.frame(k_mat))
-    if(DEBUG) write.mat(k_mat, "K", "_smat")
+    if(GLOBAL[["DEBUG"]]) write.mat(k_mat, "K", "_smat")
     
   } else if(opt == "c") {
     source(paste0(getwd(), "/" , "chipExtract-fun.R"))
     c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, CORE_TFS)
-    if(DEBUG) write.mat(c_mat, "C", "_smat")
+    if(GLOBAL[["DEBUG"]]) write.mat(c_mat, "C", "_smat")
     
   } else if(opt == "r") {
     r_mat <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
@@ -134,7 +146,7 @@ source(paste0(getwd(), "/" , "rankSmat-fun.R"))
 do.rank <- function(mat, prefix) {
   if(!is.null(mat)) {
     mat_ranked <- rank.smat(mat)
-    if(DEBUG) write.mat(mat_ranked, prefix, "_ranked")
+    if(GLOBAL[["DEBUG"]]) write.mat(mat_ranked, prefix, "_ranked")
     return(mat_ranked)
   }
   return(NULL)
@@ -158,7 +170,7 @@ source(paste0(getwd(), "/" , "qmat-fun.R"))
 do.qcalc <- function(mat, mat_ranked, prefix) {
   if(!is.null(mat_ranked)) {
     qmat <- calc.qmat(mat, mat_ranked)
-    if(DEBUG) write.mat(qmat, prefix, "_qmat")
+    if(GLOBAL[["DEBUG"]]) write.mat(qmat, prefix, "_qmat")
     return(as.matrix(qmat))
   }
   return(NULL)
@@ -172,7 +184,9 @@ print("Calculating Q-matrices.")
 
 source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
 k_qmat <- convert.scores.to.relative.ranks.pos(abs(k_mat))
+write.mat(k_qmat, "K", "_nyu_qmat")
 c_qmat <- convert.scores.to.relative.ranks.pos(c_mat)
+write.mat(c_qmat, "C", "_nyu_qmat")
 r_qmat <- NULL
 i_qmat <- NULL
 # write.mat(c_nyu_qmat, "C", "_nyu_qmat")
@@ -186,14 +200,14 @@ source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 print("Combining Q-matrices to a single matrix.")
 combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat, CORE_TFS)
-if(DEBUG) write.mat(combined_mat, combo, "_mat")
+if(GLOBAL[["DEBUG"]]) write.mat(combined_mat, combo, "_mat")
 
 # --------------
 # 5) Apply sign matrix 
 # --------------
 sign_mat <- k_sign_mat #temp
 sign_mat[sign_mat == 0] <- 1
-if(DEBUG) write.mat(sign_mat, combo, "_signmat")
+if(GLOBAL[["DEBUG"]]) write.mat(sign_mat, combo, "_signmat")
 
 print("Checking dimensions...")
 
@@ -204,7 +218,7 @@ if(!identical(dim(sign_mat), dim(combined_mat))) {
 print("Applying sign matrix to combined matrix...")
 combined_mat <- combined_mat * as.vector(sign_mat) # element-wise multiplication
 
-if(DEBUG) write.mat(combined_mat, combo, "_signed")
+if(GLOBAL[["DEBUG"]]) write.mat(combined_mat, combo, "_signed")
 
 # --------------
 # 6) From combine data matrix, create a list of node-node-value interactions for Cytoscape

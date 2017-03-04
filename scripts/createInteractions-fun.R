@@ -9,7 +9,7 @@ write.mat <- function(mat, outpath, prefix) {
 create.interactions <- function(combomat, outpath, combo) {
   print("Transforming matrix to node-node-value list.")
   
-  cut <- 1.50
+  cut <- GLOBAL[["abs.cut"]]
   pos <- length(combomat[combomat > cut])
   neg <- length(combomat[combomat < -1*cut])
   

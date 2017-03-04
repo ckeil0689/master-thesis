@@ -3,7 +3,6 @@
 # Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
 # ----------------
 load.chip <- function(dir, reflibfile, CORE_TFS) {
-  BOOST_P300 <- FALSE # TODO set in master script with other options
   print("Reading ChIP files to create lists of TFs and genes.")
   setwd(dir)
   ref_file <- read.table(reflibfile, sep=",", header=TRUE)
@@ -28,7 +27,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   p300_th0_chipfile <- "GSM1004842_SL1948_SL1947_genes.txt" # P300 Th0 wt
   p300_th17_chipfile <- "GSM1004851_SL3594_SL3592_genes.txt" # P300 Th17 rorc wt
   
-  if(BOOST_P300) {
+  if(GLOBAL[["BOOST_P300"]]) {
     print("ChIP with p300 boost files.")
     all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_th0_chipfile, p300_th17_chipfile)
   } else {
@@ -44,11 +43,6 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   # Iteration 1: create unique, maximal list of tested TFs and genes with MACS peaks
   print("Finding unique list of all genes tested in all ChIP files.")
   for(i in all_chipfiles) {
-    # skip non-ChIP-seq files
-    if(!grepl('^GSM[0-9]*(_SL[0-9]{1,9}){2}_genes.txt$', i)) {
-      next
-    }
-    
     # use library name to get tf from reference for each condition
     libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
     row <- match(libname, ref_file$Library_ID)
@@ -61,7 +55,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
     
     # only use target TFs or p300 (when boosting)
     if(!tf %in% CORE_TFS) {
-      if(!(BOOST_P300 && tf == "p300")) {
+      if(!(GLOBAL[["BOOST_P300"]] && tf == "p300")) {
         next
       }
     }
@@ -98,11 +92,6 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   print("Extract Poisson model p-values from ChIP-seq files.")
   # iteration 2: extract and assign associated Poisson model p-values to the matrix
   for(i in all_chipfiles) {
-    # skip non-ChIP-seq files
-    if(!grepl('^GSM[0-9]*(_SL[0-9]{1,9}){2}_genes.txt$', i)) {
-      next
-    }
-    
     # get tf from reference for Thx/wt condition
     libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
     row <- match(libname, ref_file$Library_ID)
@@ -115,7 +104,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
     
     # only use target TFs or p300 (when boosting)
     if(!tf %in% CORE_TFS) {
-      if(!(BOOST_P300 && tf == "p300")) {
+      if(!(GLOBAL[["BOOST_P300"]] && tf == "p300")) {
         next
       }
     }
@@ -150,7 +139,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   tfs.list.unique <- sort(unique(tfs.list))
   
   # Drop p300 - it was only needed for boosting
-  if(BOOST_P300) {
+  if(GLOBAL[["BOOST_P300"]]) {
     tfs.list.unique <- tfs.list.unique[tfs.list.unique !="p300"]
   }
   
@@ -161,7 +150,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   
   cols <- colnames(thx_mat)
   
-  if(BOOST_P300) {
+  if(GLOBAL[["BOOST_P300"]]) {
     p300.th17.col <- thx_mat[,"p300-th17"]
     p300.th0.col <- thx_mat[,"p300-th0"]
     p300.df <- data.frame(p300.th17.col, p300.th0.col)
@@ -190,7 +179,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
     
     df <- data.frame(th17_col, th0_col)
     
-    if(BOOST_P300) {
+    if(GLOBAL[["BOOST_P300"]]) {
       th.diff.col <- (df$th17_col - df$th0_col) + p300.score.col
     } else {
       th.diff.col <- (df$th17_col - df$th0_col)
@@ -202,6 +191,9 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   # finally let labels be capital letters
   rownames(chipscores) <- toupper(genes.unique)
   colnames(chipscores) <- toupper(tfs.list.unique)
+  
+  # remove all 0-only-rows
+  chipscores <- chipscores[rowSums(chipscores[, -1])>(1e-10),]
   
   print("Completed generation of ChIP-seq confidence score matrix.")
   return(chipscores)

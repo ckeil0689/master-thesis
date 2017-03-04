@@ -4,13 +4,13 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
   qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
   
   # Vectors for row and column names of final Thx (x=0/=17) matrix
-  ko.genes <- toupper(sort(rownames(kqmat)))
-  print(paste("Unique genes (total):", length(ko.genes)))
+  final.genes <- toupper(sort(unique(c(rownames(kqmat), rownames(cqmat), rownames(rqmat), rownames(iqmat)))))
+  print(paste("Unique genes (total):", length(final.genes)))
 
   # 0-initialized matrix  
-  combined_mat <- matrix(0, nrow = length(ko.genes), ncol = length(CORE_TFS))
+  combined_mat <- matrix(0, nrow = length(final.genes), ncol = length(CORE_TFS))
   # unique gene list makes up rows
-  rownames(combined_mat) <- ko.genes
+  rownames(combined_mat) <- final.genes
   # unique transcription factor list makes up columns
   colnames(combined_mat) <- toupper(sort(CORE_TFS))
   
@@ -26,7 +26,7 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
   }
   
   # Only include RNA-seq KO-ko.genes (derived from mmc4.xlsx from materials)
-  combined_mat <- combined_mat[ko.genes,] 
+  combined_mat <- combined_mat[final.genes,] 
   
   print("Finished integration of data.")
   return(combined_mat)
