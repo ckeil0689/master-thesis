@@ -21,10 +21,7 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
     # from https://stackoverflow.com/questions/26042738/r-add-matrices-based-on-row-and-column-names
     A_df=as.data.frame(as.table(combined_mat))
     B_df=as.data.frame(as.table(i))
-    
-    print(B_df[1:5,])
     merged_df = rbind(A_df, B_df)
-    
     combined_mat = acast(merged_df, Var1 ~ Var2, sum)
   }
   

@@ -1,6 +1,6 @@
 # Laod confidence score matrices by option
-write.mat <- function(mat, outpath, prefix, ext) {
-  filename = paste0(outpath, prefix, ext)
+write.mat <- function(mat, outpath, prefix) {
+  filename = paste0(outpath, prefix, ".xlsx")
   print(paste("Writing matrix to file:", filename))
   write.table(mat, file = filename, sep = "\t", row.names = FALSE, col.names = TRUE)
 }
@@ -47,6 +47,6 @@ create.interactions <- function(combomat, outpath, combo) {
     }
   }
   cat("\n")
-  write.mat(cyt.table, outpath, combo, ".xls")
+  write.mat(cyt.table, outpath, combo)
   print("Done creating data table for Cytoscape.")
 }

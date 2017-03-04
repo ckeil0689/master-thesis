@@ -7,7 +7,7 @@
 #       K = dESeq files for core TFs (RNA-seq KO) 
 #       R = Inferelator matrix (RNA-seq compendium)
 #       I = Inferelator matrix (Immgen microarray data)
-list.of.packages <- c("data.table", "reshape2")
+list.of.packages <- c("data.table", "reshape2")#, "xlsx")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # install if missing
 if(length(new.packages)) {
@@ -17,6 +17,7 @@ if(length(new.packages)) {
 
 library(data.table)
 library(reshape2)
+# library(xlsx)
 
 DEBUG = TRUE
 
@@ -41,7 +42,8 @@ sink(zz, type="message")
 ALLOWED_COMBOS <- c("c", "k", "ri", "kc", "kcr", "kcri")
 
 # Core target transcription factors
-CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2")
+CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
+# CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2")
 
 # Get user input 
 args <- commandArgs(trailingOnly=TRUE)
@@ -177,14 +179,14 @@ source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 print("Combining Q-matrices to a single matrix.")
 combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat, CORE_TFS)
-if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "")
+if(DEBUG) write.mat(combined_mat, combo, "")
 
 # --------------
 # 5) Apply sign matrix 
 # --------------
 sign_mat <- k_sign_mat #temp
 sign_mat[sign_mat == 0] <- 1
-if(DEBUG) write.mat(sign_mat, paste0(combo, "_"), "_signmat")
+if(DEBUG) write.mat(sign_mat, combo, "_signmat")
 
 if(!identical(dim(sign_mat), dim(combined_mat))) {
   stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
