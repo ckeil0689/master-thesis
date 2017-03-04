@@ -34,6 +34,9 @@ if(!dir.exists(outpath)) {
   dir.create(outpath)
 }
 
+zz <- file(paste0(outpath,"/all.Rout"), open="wt")
+sink(zz, type="message")
+
 # For input checking
 ALLOWED_COMBOS <- c("c", "k", "ri", "kc", "kcr", "kcri")
 
@@ -46,10 +49,10 @@ combo <- tolower(as.character(args[1]))
 
 # Check user input for valiitiy
 print_usage <- function() {
-  print(paste("Usage: ./script.r <combo> <cell-type>", "(k = rnaseq-ko, c = chipseq, r = rna-compendium, i = immgen) (Th17 | Th0)"))
+  print(paste("Usage: ./script.r <combo>", "(k = rnaseq-ko, c = chipseq, r = rna-compendium, i = immgen)"))
 }
 
-if(length(args) != 2){
+if(length(args) != 1){
   print_usage()
   stop("Incorrect number of arguments.")
 }
@@ -199,3 +202,5 @@ source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 
 create.interactions(combined_mat, outpath, combo)
 print("Done.")
+warnings()
+close(zz)

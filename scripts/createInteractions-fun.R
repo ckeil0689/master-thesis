@@ -21,7 +21,7 @@ create.interactions <- function(combomat, outpath, combo) {
   
   #pre-allocate data table since dimensions are known
   cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), 
-                          "nodeB"=as.character(rep(NA, tot)), "confidence_score"=as.character(rep(0, tot)))
+                          "nodeB"=as.character(rep(NA, tot)), "confidence_score"=as.double(rep(0, tot)))
   
   # Fill table with values from the combined matrix
   listrow <- 1
@@ -38,10 +38,10 @@ create.interactions <- function(combomat, outpath, combo) {
         next # do not set any edge (list size limited to 'tot')
       }
       
-      set(cyt.table, listrow, "nodeA", colnames(combomat)[j])
-      set(cyt.table, listrow, "interaction", edge.type)
-      set(cyt.table, listrow, "nodeB", rownames(combomat)[i])
-      set(cyt.table, listrow, "confidence_score", val)
+      set(cyt.table, as.integer(listrow), "nodeA", colnames(combomat)[j])
+      set(cyt.table, as.integer(listrow), "interaction", edge.type)
+      set(cyt.table, as.integer(listrow), "nodeB", rownames(combomat)[i])
+      set(cyt.table, as.integer(listrow), "confidence_score", val)
       
       listrow <- listrow + 1
     }
