@@ -97,12 +97,12 @@ for(opt in opts) {
     source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
     k_mat <- load.deseq(dir = deseqdir, CORE_TFS)
     k_sign_mat <- sign(as.data.frame(k_mat))
-    if(DEBUG) write.mat(k_mat, "K_", "_smat")
+    if(DEBUG) write.mat(k_mat, "K", "_smat")
     
   } else if(opt == "c") {
     source(paste0(getwd(), "/" , "chipExtract-fun.R"))
     c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, CORE_TFS)
-    if(DEBUG) write.mat(c_mat, "C_", "_smat")
+    if(DEBUG) write.mat(c_mat, "C", "_smat")
     
   } else if(opt == "r") {
     r_mat <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
@@ -141,10 +141,10 @@ do.rank <- function(mat, prefix) {
 }
 
 print("Creating rank matrices.")
-k_mat_ranked <- do.rank(k_mat, "K_")
-c_mat_ranked <- do.rank(c_mat, "C_")
-r_mat_ranked <- do.rank(r_mat, "R_")
-i_mat_ranked <- do.rank(i_mat, "I_")
+k_mat_ranked <- do.rank(k_mat, "K")
+c_mat_ranked <- do.rank(c_mat, "C")
+r_mat_ranked <- do.rank(r_mat, "R")
+i_mat_ranked <- do.rank(i_mat, "I")
 
 # --------------
 # 3) Calculate quantiles for each ranked matrix to obtain the Q-matrix.
@@ -165,10 +165,17 @@ do.qcalc <- function(mat, mat_ranked, prefix) {
 }
 
 print("Calculating Q-matrices.")
-k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K_")
-c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C_")
-r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R_")
-i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I_")
+# k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K")
+# c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C")
+# r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R")
+# i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I")
+
+source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
+k_qmat <- convert.scores.to.relative.ranks.pos(abs(k_mat))
+c_qmat <- convert.scores.to.relative.ranks.pos(c_mat)
+r_qmat <- NULL
+i_qmat <- NULL
+# write.mat(c_nyu_qmat, "C", "_nyu_qmat")
 
 # --------------
 # 4) Combine data according to chosen data type combination
@@ -179,7 +186,7 @@ source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 print("Combining Q-matrices to a single matrix.")
 combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat, CORE_TFS)
-if(DEBUG) write.mat(combined_mat, combo, "")
+if(DEBUG) write.mat(combined_mat, combo, "_mat")
 
 # --------------
 # 5) Apply sign matrix 
@@ -188,12 +195,16 @@ sign_mat <- k_sign_mat #temp
 sign_mat[sign_mat == 0] <- 1
 if(DEBUG) write.mat(sign_mat, combo, "_signmat")
 
+print("Checking dimensions...")
+
 if(!identical(dim(sign_mat), dim(combined_mat))) {
   stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
 }
+
+print("Applying sign matrix to combined matrix...")
 combined_mat <- combined_mat * as.vector(sign_mat) # element-wise multiplication
 
-if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "_signed")
+if(DEBUG) write.mat(combined_mat, combo, "_signed")
 
 # --------------
 # 6) From combine data matrix, create a list of node-node-value interactions for Cytoscape
@@ -202,7 +213,7 @@ if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "_signed")
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 
+print("Creating interactions...")
 create.interactions(combined_mat, outpath, combo)
 print("Done.")
-warnings()
 close(zz)

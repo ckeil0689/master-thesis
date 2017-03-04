@@ -60,8 +60,10 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
     tf <- gsub("rorg", "rorc", tf)
     
     # only use target TFs or p300 (when boosting)
-    if(!tf %in% CORE_TFS && (BOOST_P300 && tf != "p300")) {
-      next
+    if(!tf %in% CORE_TFS) {
+      if(!(BOOST_P300 && tf == "p300")) {
+        next
+      }
     }
     
     thx_rows <- c(thx_rows, row)
@@ -112,8 +114,10 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
     tf <- gsub("rorg", "rorc", tf)
     
     # only use target TFs or p300 (when boosting)
-    if(!tf %in% CORE_TFS && (BOOST_P300 && tf != "p300")) {
-      next
+    if(!tf %in% CORE_TFS) {
+      if(!(BOOST_P300 && tf == "p300")) {
+        next
+      }
     }
     
     if(i %in% th0_chipfiles || i == p300_th0_chipfile) {
@@ -145,12 +149,10 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   tfs.list <- gsub("-(th0|th17)$", "", tf.list)
   tfs.list.unique <- sort(unique(tfs.list))
   
-  print(tfs.list.unique)
   # Drop p300 - it was only needed for boosting
   if(BOOST_P300) {
     tfs.list.unique <- tfs.list.unique[tfs.list.unique !="p300"]
   }
-  print(tfs.list.unique)
   
   print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
   chipscores <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
@@ -200,8 +202,6 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   # finally let labels be capital letters
   rownames(chipscores) <- toupper(genes.unique)
   colnames(chipscores) <- toupper(tfs.list.unique)
-  
-  print(colnames(chipscores))
   
   print("Completed generation of ChIP-seq confidence score matrix.")
   return(chipscores)
