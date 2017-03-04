@@ -1,16 +1,17 @@
 # Laod confidence score matrices by option
-write.mat <- function(mat, outpath, prefix, thx, ext) {
-  filename = paste0(outpath, prefix, thx, ext)
+write.mat <- function(mat, outpath, prefix, ext) {
+  filename = paste0(outpath, prefix, ext)
   print(paste("Writing matrix to file:", filename))
   write.table(mat, file = filename, sep = "\t", row.names = FALSE, col.names = TRUE)
 }
 
 # Takes a combined matrix file and transforms it to a list of node-node interactions that can be loaded into Cytoscape
-create.interactions <- function(combomat, outpath, combo, thx) {
+create.interactions <- function(combomat, outpath, combo) {
   print("Transforming matrix to node-node-value list.")
   
-  pos <- length(combomat[combomat > 1.50])
-  neg <- length(combomat[combomat < -1.50])
+  cut <- 1.50
+  pos <- length(combomat[combomat > cut])
+  neg <- length(combomat[combomat < -1*cut])
   
   tot <- pos + neg
   
@@ -29,9 +30,9 @@ create.interactions <- function(combomat, outpath, combo, thx) {
     for (j in 1:ncol(combomat)) {
       val <- combomat[i,j]
       
-      if(val > 1.50) {
+      if(val > cut) {
         edge.type <- "positive_KC"
-      } else if(val < -1.50) {
+      } else if(val < -1*cut) {
         edge.type <- "negative_KC"
       } else {
         next # do not set any edge (list size limited to 'tot')
@@ -46,8 +47,6 @@ create.interactions <- function(combomat, outpath, combo, thx) {
     }
   }
   cat("\n")
-  write.mat(cyt.table, outpath, paste0(combo, "_"), thx, ".xls")
-  # write.mat(eda.table, outpath, paste0(combo, "_"), thx, ".eda.attrs")
+  write.mat(cyt.table, outpath, combo, ".xls")
   print("Done creating data table for Cytoscape.")
-  # return(cyt.table)
 }

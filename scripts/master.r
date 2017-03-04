@@ -36,15 +36,13 @@ if(!dir.exists(outpath)) {
 
 # For input checking
 ALLOWED_COMBOS <- c("c", "k", "ri", "kc", "kcr", "kcri")
-ALLOWED_CELLS <- c("th17", "th0")
 
 # Core target transcription factors
-CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
+CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2")
 
 # Get user input 
 args <- commandArgs(trailingOnly=TRUE)
 combo <- tolower(as.character(args[1]))
-thx <- tolower(as.character(args[2]))
 
 # Check user input for valiitiy
 print_usage <- function() {
@@ -63,16 +61,9 @@ if(combo == "" || !combo %in% ALLOWED_COMBOS) {
   stop("invalid argument")
 }
 
-if(thx == "" || !thx %in% ALLOWED_CELLS) {
-  err <- c("Problem with argument. Enter a valid cell type: ", ALLOWED_CELLS)
-  print(paste(err, collapse = " "))
-  print_usage()
-  stop("invalid argument")
-}
-
-# Laod confidence score matrices by option
+# Load confidence score matrices by option
 write.mat <- function(mat, prefix, suffix) {
-  filename = paste0(outpath, prefix, thx, suffix, ".txt")
+  filename = paste0(outpath, prefix, suffix, ".txt")
   print(paste("Writing matrix to file:", filename))
   write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }
@@ -105,7 +96,7 @@ for(opt in opts) {
     
   } else if(opt == "c") {
     source(paste0(getwd(), "/" , "chipExtract-fun.R"))
-    c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, thx = thx, CORE_TFS)
+    c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, CORE_TFS)
     if(DEBUG) write.mat(c_mat, "C_", "_smat")
     
   } else if(opt == "r") {
@@ -193,7 +184,7 @@ sign_mat[sign_mat == 0] <- 1
 if(DEBUG) write.mat(sign_mat, paste0(combo, "_"), "_signmat")
 
 if(!identical(dim(sign_mat), dim(combined_mat))) {
-  stop("Sign matrix does not have the same dimension as Q-matrix, things will break. Stopping.")
+  stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
 }
 combined_mat <- combined_mat * as.vector(sign_mat) # element-wise multiplication
 
@@ -206,7 +197,5 @@ if(DEBUG) write.mat(combined_mat, paste0(combo, "_"), "_signed")
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 
-create.interactions(combined_mat, outpath, combo, thx)
-# edges <- create.interactions(combined_mat, outpath, combo, thx)
-# write.mat(edges, paste0(combo, "_"), "_edges")
+create.interactions(combined_mat, outpath, combo)
 print("Done.")

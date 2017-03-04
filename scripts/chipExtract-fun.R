@@ -2,8 +2,8 @@
 # ----------------
 # Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
 # ----------------
-load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
-  BOOST_P300 <- TRUE # TODO set in master script with other options
+load.chip <- function(dir, reflibfile, CORE_TFS) {
+  BOOST_P300 <- FALSE # TODO set in master script with other options
   print("Reading ChIP files to create lists of TFs and genes.")
   setwd(dir)
   ref_file <- read.table(reflibfile, sep=",", header=TRUE)
@@ -14,7 +14,6 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   th0_chipfiles <- c("GSM1004785_SL3192_SL3190_genes.txt", # BATF wt
                      "GSM1004824_SL1235_SL1234_genes.txt", # IRF4 wt
                      "GSM1004798_SL4424_SL4425_genes.txt", # MAF wt
-                     "GSM1004842_SL1948_SL1947_genes.txt", # P300 wt
                      "GSM1004857_SL3780_SL3778_genes.txt", # STAT3 wt
                      "GSM1004853_SL3779_SL3778_genes.txt", # RORC wt
                      "GSM1004808_SL6500_SL6499_genes.txt") # FOSL2 wt
@@ -30,8 +29,10 @@ load.chip <- function(dir, reflibfile, thx, CORE_TFS) {
   p300_th17_chipfile <- "GSM1004851_SL3594_SL3592_genes.txt" # P300 Th17 rorc wt
   
   if(BOOST_P300) {
+    print("ChIP with p300 boost files.")
     all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_th0_chipfile, p300_th17_chipfile)
   } else {
+    print("ChIP without p300 boost files.")
     all_chipfiles <- c(th0_chipfiles, th17_chipfiles)
   }
   thx_rows <- c()
