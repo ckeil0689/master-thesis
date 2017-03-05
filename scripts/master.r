@@ -92,14 +92,16 @@ i_sign_mat <- NULL
 opts = unlist(strsplit(combo, ""))
 
 if(length(opts) == 2) {
-  GLOBAL[["abs.cut"]] <- 1.5
+  GLOBAL[["abs.cut"]] <- 1.50
 } else if(length(opts) == 3) {
-  GLOBAL[["abs.cut"]] <- 2.0
+  GLOBAL[["abs.cut"]] <- 2.00
 } else if(length(opts) == 4) {
-  GLOBAL[["abs.cut"]] <- 2.5
+  GLOBAL[["abs.cut"]] <- 2.50
 } else {
   GLOBAL[["abs.cut"]] <- 0.75
 }
+
+print(paste("Chosen absolute cutoff:", GLOBAL[["abs.cut"]]))
 
 for(opt in opts) {
   # reset because functions may globally change working directory and source() breaks
@@ -177,19 +179,19 @@ do.qcalc <- function(mat, mat_ranked, prefix) {
 }
 
 print("Calculating Q-matrices.")
-# k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K")
-# c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C")
-# r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R")
-# i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I")
+k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K")
+c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C")
+r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R")
+i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I")
 
-source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
-k_qmat <- convert.scores.to.relative.ranks.pos(abs(k_mat))
-write.mat(k_qmat, "K", "_nyu_qmat")
-c_qmat <- convert.scores.to.relative.ranks.pos(c_mat)
-write.mat(c_qmat, "C", "_nyu_qmat")
-r_qmat <- NULL
-i_qmat <- NULL
-# write.mat(c_nyu_qmat, "C", "_nyu_qmat")
+# source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
+# k_qmat <- convert.scores.to.relative.ranks.pos(k_mat)
+# write.mat(k_qmat, "K", "_nyu_qmat")
+# c_qmat <- convert.scores.to.relative.ranks.pos(c_mat)
+# write.mat(c_qmat, "C", "_nyu_qmat")
+# r_qmat <- NULL
+# i_qmat <- NULL
+# # write.mat(c_nyu_qmat, "C", "_nyu_qmat")
 
 # --------------
 # 4) Combine data according to chosen data type combination
@@ -211,12 +213,12 @@ if(GLOBAL[["DEBUG"]]) write.mat(sign_mat, combo, "_signmat")
 
 print("Checking dimensions...")
 
-if(!identical(dim(sign_mat), dim(combined_mat))) {
-  stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
-}
+# if(!identical(dim(sign_mat), dim(combined_mat))) {
+#   stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
+# }
 
 print("Applying sign matrix to combined matrix...")
-combined_mat <- combined_mat * as.vector(sign_mat) # element-wise multiplication
+combined_mat <- combined_mat[rownames(k_qmat),] * as.vector(sign_mat) # element-wise multiplication
 
 if(GLOBAL[["DEBUG"]]) write.mat(combined_mat, combo, "_signed")
 
