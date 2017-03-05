@@ -101,7 +101,7 @@ if(length(opts) == 2) {
   GLOBAL[["abs.cut"]] <- 0.75
 }
 
-print(paste("Chosen absolute cutoff:", GLOBAL[["abs.cut"]]))
+print(paste("Determined absolute cutoff:", GLOBAL[["abs.cut"]]))
 
 for(opt in opts) {
   # reset because functions may globally change working directory and source() breaks
