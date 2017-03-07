@@ -1,5 +1,5 @@
 # Load confidence score matrices by option
-write.mat <- function(mat, outpath, combo, type, append = FALSE) {
+write.mat <- function(mat, outpath, combo, type, pos.edge = "positive", neg.edge = "negative", append = FALSE) {
   filename = paste0(outpath, combo, "_", type,".xlsx")
   print(paste("Writing matrix to file:", filename))
   
@@ -16,9 +16,6 @@ create.interactions <- function(combomat, outpath, combo, type, append = FALSE) 
   
   # Select top 20% of edges from signed combined matrix
   m.cut <- quantile(combomat, probs=0.8)
-  
-  print(paste("Combomat uncut:", dim(combomat)))
-  print(paste("Combomat cut:", dim(m.cut)))
   
   cut <- GLOBAL[["abs.cut"]]
   pos <- length(combomat[combomat > cut])
@@ -42,9 +39,9 @@ create.interactions <- function(combomat, outpath, combo, type, append = FALSE) 
       val <- combomat[i,j]
       
       if(val > cut) {
-        edge.type <- "positive_KC"
-      } else if(val < -1*cut) {
-        edge.type <- "negative_KC"
+        edge.type <- pos.edge
+      } else if(val < cut) {
+        edge.type <- neg.edge
       } else {
         next # do not set any edge (list size limited to 'tot')
       }

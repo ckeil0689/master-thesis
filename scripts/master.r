@@ -250,12 +250,15 @@ if(GLOBAL[["DEBUG"]])  {
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 
+# Positive edges are surpassing the cut value for the edges. They are tagged as 'positive_KC' if >1.50 is about activation, and as 'negative_KC' if >1.50 is
+# about repression. This has been imitated from Aviv Madar's original code in an effort to get the procedure right, but I find the variable handling and
+# naming very inconvenient and confusing. If there is time, I will change this.
 print("Writing interactions as single list...")
-create.interactions(combined_mat.activator, outpath, combo, "single", append = FALSE)
-create.interactions(combined_mat.repressor, outpath, combo, "single", append = TRUE)
+create.interactions(combined_mat.activator, outpath, combo, "single", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
+create.interactions(combined_mat.repressor, outpath, combo, "single", pos.edge= "negative_KC", neg.edge = "positive_KC", append = TRUE)
 
 print("Writing interactions as separate lists...")
-create.interactions(combined_mat.activator, outpath, combo, "activator", append = FALSE)
-create.interactions(combined_mat.repressor, outpath, combo, "repressor", append = FALSE)
+create.interactions(combined_mat.activator, outpath, combo, "activator", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
+create.interactions(combined_mat.repressor, outpath, combo, "repressor", pos.edge= "negative_KC", neg.edge = "positive_KC", append = FALSE)
 print("Done.")
 close(zz)
