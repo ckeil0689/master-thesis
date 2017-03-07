@@ -2,6 +2,11 @@
 write.mat <- function(mat, outpath, combo, type, append = FALSE) {
   filename = paste0(outpath, combo, "_", type,".xlsx")
   print(paste("Writing matrix to file:", filename))
+  
+  # remove header row if appending
+  if(append) {
+    mat <- mat[-1,]
+  }
   write.table(mat, file = filename, append = append, sep = "\t", row.names = FALSE, col.names = TRUE)
 }
 
