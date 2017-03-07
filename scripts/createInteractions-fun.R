@@ -1,13 +1,19 @@
-# Laod confidence score matrices by option
-write.mat <- function(mat, outpath, prefix) {
-  filename = paste0(outpath, prefix, ".xlsx")
+# Load confidence score matrices by option
+write.mat <- function(mat, outpath, combo, type) {
+  filename = paste0(outpath, combo, "_", type,".xlsx")
   print(paste("Writing matrix to file:", filename))
   write.table(mat, file = filename, sep = "\t", row.names = FALSE, col.names = TRUE)
 }
 
 # Takes a combined matrix file and transforms it to a list of node-node interactions that can be loaded into Cytoscape
-create.interactions <- function(combomat, outpath, combo) {
+create.interactions <- function(combomat, outpath, combo, type) {
   print("Transforming matrix to node-node-value list.")
+  
+  # Select top 20% of edges from signed combined matrix
+  m.cut <- quantile(combomat, probs=0.8)
+  
+  print(paste("Combomat uncut:", dim(combomat)))
+  print(paste("Combomat cut:", dim(m.cut)))
   
   cut <- GLOBAL[["abs.cut"]]
   pos <- length(combomat[combomat > cut])
@@ -47,6 +53,6 @@ create.interactions <- function(combomat, outpath, combo) {
     }
   }
   cat("\n")
-  write.mat(cyt.table, outpath, combo)
+  write.mat(cyt.table, outpath, combo, type)
   print("Done creating data table for Cytoscape.")
 }

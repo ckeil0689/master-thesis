@@ -1,7 +1,9 @@
 #!/usr/bin/env Rscript
 # Master script for processing TF-target gene interaction data into network files for Cytoscape 
 # (see Computational Methods paper, http://www.cell.com/action/showImagesData?pii=S0092-8674%2812%2901123-3 ) 
-# 
+# Aviv Madar has provided R-scripts from the original project. Some procedures have been taken and/or adapted 
+# from his code.
+#
 # Input: 
 #       C = customized MACS output (ChIP-seq) 
 #       K = dESeq files for core TFs (RNA-seq KO) 
@@ -101,7 +103,7 @@ if(length(opts) == 2) {
   GLOBAL[["abs.cut"]] <- 0.75
 }
 
-print(paste("Determined absolute cutoff:", GLOBAL[["abs.cut"]]))
+print(paste("Determined absolute cutoff from chosen data types:", GLOBAL[["abs.cut"]]))
 
 for(opt in opts) {
   # reset because functions may globally change working directory and source() breaks
@@ -179,19 +181,21 @@ do.qcalc <- function(mat, mat_ranked, prefix) {
 }
 
 print("Calculating Q-matrices.")
-k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K")
-c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C")
-r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R")
-i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I")
+# k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K")
+# c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C")
+# r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R")
+# i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I")
 
-# source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
-# k_qmat <- convert.scores.to.relative.ranks.pos(k_mat)
-# write.mat(k_qmat, "K", "_nyu_qmat")
-# c_qmat <- convert.scores.to.relative.ranks.pos(c_mat)
-# write.mat(c_qmat, "C", "_nyu_qmat")
-# r_qmat <- NULL
-# i_qmat <- NULL
-# # write.mat(c_nyu_qmat, "C", "_nyu_qmat")
+# Utilizing ranking methods from AM for testing purposes
+source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
+k_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(k_mat))
+k_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*k_mat))
+write.mat(k_qmat.activator, "K", "_nyu_qmat_activator")
+write.mat(k_qmat.repressor, "K", "_nyu_qmat_repressor")
+c_qmat <- abs(convert.scores.to.relative.ranks(c_mat))
+write.mat(c_qmat, "C", "_nyu_qmat")
+r_qmat <- NULL
+i_qmat <- NULL
 
 # --------------
 # 4) Combine data according to chosen data type combination
@@ -201,26 +205,39 @@ setwd(scriptdir)
 source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 print("Combining Q-matrices to a single matrix.")
-combined_mat <- combine.qmats(k_qmat, c_qmat, r_qmat, i_qmat, CORE_TFS)
-if(GLOBAL[["DEBUG"]]) write.mat(combined_mat, combo, "_mat")
+combined_mat.activator <- combine.qmats(k_qmat.activator, c_qmat, r_qmat, i_qmat, CORE_TFS)
+combined_mat.repressor <- combine.qmats(k_qmat.repressor, c_qmat, r_qmat, i_qmat, CORE_TFS)
+if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.activator, combo, "_mat_activator")
+if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_mat_repressor")
 
 # --------------
-# 5) Apply sign matrix 
+# 5) Apply sign matrix
 # --------------
-sign_mat <- k_sign_mat #temp
-sign_mat[sign_mat == 0] <- 1
-if(GLOBAL[["DEBUG"]]) write.mat(sign_mat, combo, "_signmat")
+# Empty matrix with same dimension as combined matrix
+m.sign.kc <- matrix(0, nc=ncol(combined_mat.activator), nr=nrow(combined_mat.activator), dimnames=dimnames(combined_mat.activator))
+# Only set values which also appear in KO matrix (TF-target gene pairs)
+m.sign.kc[rownames(k_mat), colnames(k_mat)] <- k_mat
+# The knockout values will give us signs, everything else treated as positive (ChIP!)
+m.sign.kc <- sign(m.sign.kc)
+m.sign.kc[which(m.sign.kc==0)] <- 1
+
+if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, combo, "_signmat")
 
 print("Checking dimensions...")
 
-# if(!identical(dim(sign_mat), dim(combined_mat))) {
-#   stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
-# }
+if(!identical(dim(m.sign.kc), dim(combined_mat.activator))) {
+  print(paste("Dimension sign_mat:", dim(sign_mat)))
+  print(paste("Dimension combined_mat.activator:", dim(combined_mat.activator)))
+  print(paste("Dimension k_qmat.activator:", dim(k_qmat.activator)))
+  print(paste("Dimension c_qmat:", dim(c_qmat)))
+  stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
+}
 
 print("Applying sign matrix to combined matrix...")
-combined_mat <- combined_mat[rownames(k_qmat),] * as.vector(sign_mat) # element-wise multiplication
-
-if(GLOBAL[["DEBUG"]]) write.mat(combined_mat, combo, "_signed")
+combined_mat.activator <- combined_mat.activator * as.vector(m.sign.kc) # element-wise multiplication
+combined_mat.repressor <- combined_mat.repressor * as.vector(m.sign.kc*-1) # element-wise multiplication
+if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.activator, combo, "_signed_activator")
+if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_signed_repressor")
 
 # --------------
 # 6) From combine data matrix, create a list of node-node-value interactions for Cytoscape
@@ -230,6 +247,7 @@ setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 
 print("Creating interactions...")
-create.interactions(combined_mat, outpath, combo)
+create.interactions(combined_mat.activator, outpath, combo, "activator")
+create.interactions(combined_mat.repressor, outpath, combo, "repressor")
 print("Done.")
 close(zz)

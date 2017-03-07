@@ -25,9 +25,6 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
     combined_mat = acast(merged_df, Var1 ~ Var2, sum)
   }
   
-  # Only include RNA-seq KO-ko.genes (derived from mmc4.xlsx from materials)
-  combined_mat <- combined_mat[final.genes,] 
-  
   print("Finished integration of data.")
   return(combined_mat)
 }
