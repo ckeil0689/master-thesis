@@ -224,7 +224,6 @@ m.sign.kc[which(m.sign.kc==0)] <- 1
 if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, combo, "_signmat")
 
 print("Checking dimensions...")
-
 if(!identical(dim(m.sign.kc), dim(combined_mat.activator))) {
   print(paste("Dimension sign_mat:", dim(sign_mat)))
   print(paste("Dimension combined_mat.activator:", dim(combined_mat.activator)))
@@ -234,10 +233,15 @@ if(!identical(dim(m.sign.kc), dim(combined_mat.activator))) {
 }
 
 print("Applying sign matrix to combined matrix...")
-combined_mat.activator <- combined_mat.activator * as.vector(m.sign.kc) # element-wise multiplication
+# Element-wise multiplication with sign matrix
+combined_mat.activator <- combined_mat.activator * as.vector(m.sign.kc)
+# Positive scores in repressor mean repression. Multiply by -1 so repressor edges >1.50 will be filtered as negative in createInteractions
 combined_mat.repressor <- combined_mat.repressor * as.vector(m.sign.kc*-1) # element-wise multiplication
-if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.activator, combo, "_signed_activator")
-if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_signed_repressor")
+
+if(GLOBAL[["DEBUG"]])  {
+  write.mat(combined_mat.activator, combo, "_signed_activator")
+  write.mat(combined_mat.repressor, combo, "_signed_repressor")
+}
 
 # --------------
 # 6) From combine data matrix, create a list of node-node-value interactions for Cytoscape
@@ -246,8 +250,12 @@ if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_signed_represso
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 
-print("Creating interactions...")
-create.interactions(combined_mat.activator, outpath, combo, "activator")
-create.interactions(combined_mat.repressor, outpath, combo, "repressor")
+print("Writing interactions as single list...")
+create.interactions(combined_mat.activator, outpath, combo, "single", append = FALSE)
+create.interactions(combined_mat.repressor, outpath, combo, "single", append = TRUE)
+
+print("Writing interactions as separate lists...")
+create.interactions(combined_mat.activator, outpath, combo, "activator", append = FALSE)
+create.interactions(combined_mat.repressor, outpath, combo, "repressor", append = FALSE)
 print("Done.")
 close(zz)
