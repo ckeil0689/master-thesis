@@ -1,5 +1,5 @@
 # Load confidence score matrices by option
-write.mat <- function(mat, outpath, combo, type, pos.edge = "positive", neg.edge = "negative", append = FALSE) {
+write.mat <- function(mat, outpath, combo, type, append = FALSE) {
   filename = paste0(outpath, combo, "_", type,".xlsx")
   print(paste("Writing matrix to file:", filename))
   
@@ -11,21 +11,15 @@ write.mat <- function(mat, outpath, combo, type, pos.edge = "positive", neg.edge
 }
 
 # Takes a combined matrix file and transforms it to a list of node-node interactions that can be loaded into Cytoscape
-create.interactions <- function(combomat, outpath, combo, type, append = FALSE) {
+create.interactions <- function(combomat, outpath, combo, type, pos.edge = "positive", neg.edge = "negative", append = FALSE) {
   print("Transforming matrix to node-node-value list.")
   
   # Select top 20% of edges from signed combined matrix
   m.cut <- quantile(combomat, probs=0.8)
+  print(paste("Determined cut:", m.cut))
   
-  cut <- GLOBAL[["abs.cut"]]
-  pos <- length(combomat[combomat > cut])
-  neg <- length(combomat[combomat < -1*cut])
-  
-  tot <- pos + neg
-  
-  print(paste("Positive edges:", pos))
-  print(paste("Negative edges:", neg))
-  print(paste("Edges to write:", tot))
+  abs.cut <- GLOBAL[["abs.cut"]]
+  tot <- length(combomat[abs(combomat > abs.cut)])
   
   #pre-allocate data table since dimensions are known
   cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), 
@@ -33,22 +27,27 @@ create.interactions <- function(combomat, outpath, combo, type, append = FALSE) 
   
   # Fill table with values from the combined matrix
   listrow <- 1
-  for (i in 1:nrow(combomat)) {
+  # Iterate over TFs (columns)
+  for (i in 1:ncol(combomat)) {
     if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(combomat)), digits = 0), "%"))
-    for (j in 1:ncol(combomat)) {
-      val <- combomat[i,j]
+    # Per TF, only look at genes with absolute interaction value over the cutoff
+    target.genes <- which(abs(combomat[,i]) > abs.cut)
+    for (j in 1:length(target.genes)) {
+      gene <- target.genes[j]
+      val <- combomat[gene, i]
       
-      if(val > cut) {
+      if(val > abs.cut) {
         edge.type <- pos.edge
-      } else if(val < cut) {
+      } else if(val < abs.cut) {
         edge.type <- neg.edge
       } else {
         next # do not set any edge (list size limited to 'tot')
       }
       
-      set(cyt.table, as.integer(listrow), "nodeA", colnames(combomat)[j])
+
+      set(cyt.table, as.integer(listrow), "nodeA", colnames(combomat)[i])
       set(cyt.table, as.integer(listrow), "interaction", edge.type)
-      set(cyt.table, as.integer(listrow), "nodeB", rownames(combomat)[i])
+      set(cyt.table, as.integer(listrow), "nodeB", rownames(combomat)[j])
       set(cyt.table, as.integer(listrow), "confidence_score", val)
       
       listrow <- listrow + 1
