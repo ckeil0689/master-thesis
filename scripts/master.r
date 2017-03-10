@@ -47,7 +47,7 @@ ALLOWED_COMBOS <- c("c", "k", "ri", "kc", "kcr", "kcri")
 
 # Core target transcription factors
 # CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
-CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2")
+CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2", "hif1a")
 
 # Get user input 
 args <- commandArgs(trailingOnly=TRUE)

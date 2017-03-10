@@ -2,12 +2,8 @@
 write.mat <- function(mat, outpath, combo, type, append = FALSE) {
   filename = paste0(outpath, combo, "_", type,".xlsx")
   print(paste("Writing matrix to file:", filename))
-  
-  # remove header row if appending
-  if(append) {
-    mat <- mat[-1,]
-  }
-  write.table(mat, file = filename, append = append, sep = "\t", row.names = FALSE, col.names = TRUE)
+  # no column names when appending (otherwise it will be treated as random data entry by Cytoscape)
+  write.table(mat, file = filename, append = append, sep = "\t", row.names = FALSE, col.names = !append)
 }
 
 # Takes a combined matrix file and transforms it to a list of node-node interactions that can be loaded into Cytoscape
@@ -15,15 +11,20 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   print("Transforming matrix to node-node-value list.")
   
   # Select top 20% of edges from signed combined matrix
-  m.cut <- quantile(combomat, probs=0.8)
+  m.cut <- quantile(combomat, probs=.8)
   print(paste("Determined cut:", m.cut))
   
   abs.cut <- GLOBAL[["abs.cut"]]
-  tot <- length(combomat[abs(combomat > abs.cut)])
+  tot <- length(combomat[abs(combomat) > abs.cut])
   
   #pre-allocate data table since dimensions are known
   cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), 
                           "nodeB"=as.character(rep(NA, tot)), "confidence_score"=as.double(rep(0, tot)))
+  
+  fact <- 1
+  if(pos.edge == "negative_KC"){
+    fact <- -1
+  }
   
   # Fill table with values from the combined matrix
   listrow <- 1
@@ -47,8 +48,8 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
 
       set(cyt.table, as.integer(listrow), "nodeA", colnames(combomat)[i])
       set(cyt.table, as.integer(listrow), "interaction", edge.type)
-      set(cyt.table, as.integer(listrow), "nodeB", rownames(combomat)[j])
-      set(cyt.table, as.integer(listrow), "confidence_score", val)
+      set(cyt.table, as.integer(listrow), "nodeB", rownames(combomat)[gene])
+      set(cyt.table, as.integer(listrow), "confidence_score", val*fact)
       
       listrow <- listrow + 1
     }
