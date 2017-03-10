@@ -82,10 +82,10 @@ load.deseq <- function(dir, CORE_TFS) {
   thx_mat[is.na(thx_mat)] <- 0
   
   # drop 0-only-rows
-  print(dim(thx_mat))
-  thx_mat <- thx_mat[rowSums(abs(thx_mat[, -1]))>(1e-10),]
-  print("DROPPED---------------------------------------")
-  print(dim(thx_mat))
+  # print(dim(thx_mat))
+  # thx_mat <- thx_mat[rowSums(abs(thx_mat[, -1]))>(1e-10),]
+  # print("DROPPED---------------------------------------")
+  # print(dim(thx_mat))
   return(thx_mat)
 }
 

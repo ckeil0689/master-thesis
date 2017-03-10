@@ -33,6 +33,10 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
     if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(combomat)), digits = 0), "%"))
     # Per TF, only look at genes with absolute interaction value over the cutoff
     target.genes <- which(abs(combomat[,i]) > abs.cut)
+    if(length(target.genes) == 0) {
+      print(paste("No targets found. Skipping", colnames(combomat)[i]))
+      next
+    }
     for (j in 1:length(target.genes)) {
       gene <- target.genes[j]
       val <- combomat[gene, i]

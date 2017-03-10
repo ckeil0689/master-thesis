@@ -193,7 +193,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   colnames(chipscores) <- toupper(tfs.list.unique)
   
   # remove all 0-only-rows
-  chipscores <- chipscores[rowSums(chipscores[, -1])>(1e-10),]
+  # chipscores <- chipscores[rowSums(abs(chipscores[, -1]))>(1e-10),]
   
   print("Completed generation of ChIP-seq confidence score matrix.")
   return(chipscores)
