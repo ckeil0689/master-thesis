@@ -23,7 +23,7 @@ library(reshape2)
 
 GLOBAL <- list()
 GLOBAL[["DEBUG"]] <- TRUE
-GLOBAL[["BOOST_P300"]] <- TRUE
+GLOBAL[["BOOST_P300"]] <- FALSE
 
 # Input file directories
 scriptdir <- getwd()
@@ -80,10 +80,10 @@ write.mat <- function(mat, prefix, suffix) {
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
-k_mat <- NULL
-c_mat <- NULL
-r_mat <- NULL
-i_mat <- NULL
+ko.scores <- NULL
+chip.scores <- NULL
+rna.scores <- NULL
+immgen.scores <- NULL
 
 # ChIP always has positive values
 k_sign_mat <- NULL
@@ -111,28 +111,28 @@ for(opt in opts) {
   
   if(opt == "k") {
     source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
-    k_mat <- load.deseq(dir = deseqdir, CORE_TFS)
-    k_sign_mat <- sign(as.data.frame(k_mat))
-    if(GLOBAL[["DEBUG"]]) write.mat(k_mat, "K", "_smat")
+    ko.scores <- load.deseq(dir = deseqdir, CORE_TFS)
+    k_sign_mat <- sign(as.data.frame(ko.scores))
+    if(GLOBAL[["DEBUG"]]) write.mat(ko.scores, "K", "_smat")
     
   } else if(opt == "c") {
     source(paste0(getwd(), "/" , "chipExtract-fun.R"))
-    c_mat <- load.chip(dir = chipdir, reflibfile = ref_filepath, CORE_TFS)
-    if(GLOBAL[["DEBUG"]]) write.mat(c_mat, "C", "_smat")
+    chip.scores <- load.chip(dir = chipdir, reflibfile = ref_filepath, CORE_TFS)
+    if(GLOBAL[["DEBUG"]]) write.mat(chip.scores, "C", "_smat")
     
   } else if(opt == "r") {
-    r_mat <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
+    rna.scores <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
     # remove first column or sign()-function will explode
-    rownames(r_mat) <- r_mat[, 1]
-    r_mat[, 1] <- NULL
-    r_sign_mat <- sign(as.data.frame(r_mat))
+    rownames(rna.scores) <- rna.scores[, 1]
+    rna.scores[, 1] <- NULL
+    r_sign_mat <- sign(as.data.frame(rna.scores))
     
   } else if(opt == "i") {
-    i_mat <- as.data.frame(read.table(immgenfile, sep="\t", header=TRUE))
+    immgen.scores <- as.data.frame(read.table(immgenfile, sep="\t", header=TRUE))
     # remove first column or sign()-function will explode
-    rownames(i_mat) <- i_mat[, 1]
-    i_mat[, 1] <- NULL
-    i_sign_mat <- sign(as.data.frame(i_mat))
+    rownames(immgen.scores) <- immgen.scores[, 1]
+    immgen.scores[, 1] <- NULL
+    i_sign_mat <- sign(as.data.frame(immgen.scores))
     
   } else {
     stop(paste("Option not recognized:", opt))
@@ -157,10 +157,10 @@ do.rank <- function(mat, prefix) {
 }
 
 print("Creating rank matrices.")
-k_mat_ranked <- do.rank(k_mat, "K")
-c_mat_ranked <- do.rank(c_mat, "C")
-r_mat_ranked <- do.rank(r_mat, "R")
-i_mat_ranked <- do.rank(i_mat, "I")
+ko.scores_ranked <- do.rank(ko.scores, "K")
+chip.scores_ranked <- do.rank(chip.scores, "C")
+rna.scores_ranked <- do.rank(rna.scores, "R")
+immgen.scores_ranked <- do.rank(immgen.scores, "I")
 
 # --------------
 # 3) Calculate quantiles for each ranked matrix to obtain the Q-matrix.
@@ -171,9 +171,9 @@ source(paste0(getwd(), "/" , "qmat-fun.R"))
 
 # Wrapper for calculating quantile scores from ranked matrices.
 # @param mat - The original confidence score S-matrix for the data type
-do.qcalc <- function(mat, mat_ranked, prefix) {
-  if(!is.null(mat_ranked)) {
-    qmat <- calc.qmat(mat, mat_ranked)
+do.qcalc <- function(scores, scores_ranked, prefix) {
+  if(!is.null(scores_ranked)) {
+    qmat <- calc.qmat(scores, scores_ranked)
     if(GLOBAL[["DEBUG"]]) write.mat(qmat, prefix, "_qmat")
     return(as.matrix(qmat))
   }
@@ -181,21 +181,21 @@ do.qcalc <- function(mat, mat_ranked, prefix) {
 }
 
 print("Calculating Q-matrices.")
-# k_qmat <- do.qcalc(k_mat, k_mat_ranked, "K")
-# c_qmat <- do.qcalc(c_mat, c_mat_ranked, "C")
-# r_qmat <- do.qcalc(r_mat, r_mat_ranked, "R")
-# i_qmat <- do.qcalc(i_mat, i_mat_ranked, "I")
+# ko_qmat <- do.qcalc(ko.scores, ko.scores_ranked, "K")
+# chip_qmat <- do.qcalc(chip.scores, chip.scores_ranked, "C")
+# rna_qmat <- do.qcalc(rna.scores, rna.scores_ranked, "R")
+# immgen_qmat <- do.qcalc(immgen.scores, immgen.scores_ranked, "I")
 
 # Utilizing ranking methods from AM for testing purposes
 source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
-k_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(k_mat))
-k_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*k_mat))
-write.mat(k_qmat.activator, "K", "_nyu_qmat_activator")
-write.mat(k_qmat.repressor, "K", "_nyu_qmat_repressor")
-c_qmat <- abs(convert.scores.to.relative.ranks(c_mat))
-write.mat(c_qmat, "C", "_nyu_qmat")
-r_qmat <- NULL
-i_qmat <- NULL
+ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
+ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
+write.mat(ko_qmat.activator, "K", "_nyu_qmat_activator")
+write.mat(ko_qmat.repressor, "K", "_nyu_qmat_repressor")
+chip_qmat <- abs(convert.scores.to.relative.ranks(chip.scores))
+write.mat(chip_qmat, "C", "_nyu_qmat")
+rna_qmat <- NULL
+immgen_qmat <- NULL
 
 # --------------
 # 4) Combine data according to chosen data type combination
@@ -205,8 +205,8 @@ setwd(scriptdir)
 source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 print("Combining Q-matrices to a single matrix.")
-combined_mat.activator <- combine.qmats(k_qmat.activator, c_qmat, r_qmat, i_qmat, CORE_TFS)
-combined_mat.repressor <- combine.qmats(k_qmat.repressor, c_qmat, r_qmat, i_qmat, CORE_TFS)
+combined_mat.activator <- combine.qmats(ko_qmat.activator, chip_qmat, rna_qmat, immgen_qmat, CORE_TFS)
+combined_mat.repressor <- combine.qmats(ko_qmat.repressor, chip_qmat, rna_qmat, immgen_qmat, CORE_TFS)
 if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.activator, combo, "_mat_activator")
 if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_mat_repressor")
 
@@ -216,7 +216,7 @@ if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_mat_repressor")
 # Empty matrix with same dimension as combined matrix
 m.sign.kc <- matrix(0, nc=ncol(combined_mat.activator), nr=nrow(combined_mat.activator), dimnames=dimnames(combined_mat.activator))
 # Only set values which also appear in KO matrix (TF-target gene pairs)
-m.sign.kc[rownames(k_mat), colnames(k_mat)] <- k_mat
+m.sign.kc[rownames(ko.scores), colnames(ko.scores)] <- ko.scores
 # The knockout values will give us signs, everything else treated as positive (ChIP!)
 m.sign.kc <- sign(m.sign.kc)
 m.sign.kc[which(m.sign.kc==0)] <- 1
@@ -227,8 +227,8 @@ print("Checking dimensions...")
 if(!identical(dim(m.sign.kc), dim(combined_mat.activator))) {
   print(paste("Dimension sign_mat:", dim(sign_mat)))
   print(paste("Dimension combined_mat.activator:", dim(combined_mat.activator)))
-  print(paste("Dimension k_qmat.activator:", dim(k_qmat.activator)))
-  print(paste("Dimension c_qmat:", dim(c_qmat)))
+  print(paste("Dimension ko_qmat.activator:", dim(ko_qmat.activator)))
+  print(paste("Dimension chip_qmat:", dim(chip_qmat)))
   stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
 }
 
