@@ -5,20 +5,14 @@ load.deseq <- function(dir, CORE_TFS) {
   # DEseq results files
   deseqfiles <- list.files(getwd())
   
-  # Vectors for row and column names of final Thx (x=0/=17) matrix
-  all_genes_thx_wt <- c()
-  tfs_thx <- c()
+  # Vectors for row and column names of final KO-matrix
+  all.genes <- c()
+  all.tfs <- c()
   
-  print(paste("Reading DESeq files to create complete list of genes.", length(deseqfiles)))
+  print(paste("Reading", length(deseqfiles),"DESeq files to create complete list of genes."))
         
   # Iteration 1: get list of all tested genes and TFs so a matrix can be set up
   for(i in deseqfiles) {
-    
-    # skip non-DEseq files, regex tests for format as found on GEO Series GSE40918
-    if(!grepl('^GSE[0-9]+_(Th[0-9]{1,2})\\..+\\.wt\\.vs\\.(Th[0-9]{1,2})\\..+\\.ko_.+_(20\\d\\d)\\.txt$', i)) {
-      next
-    }
-    
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
     
@@ -32,29 +26,28 @@ load.deseq <- function(dir, CORE_TFS) {
       next
     }
     
-    tfs_thx <- c(tfs_thx, tf)
+    all.tfs <- c(all.tfs, tf)
     
     # create full gene list by adding all genes from this file
-    genes_thx_wt <- as.character(cst$id)
-    all_genes_thx_wt <- append(all_genes_thx_wt, genes_thx_wt)
+    file.genes <- as.character(cst$id)
+    all.genes <- append(all.genes, file.genes)
   }
   
   print("Generate zero-filled matrix skeleton.")
   # generate the empty Th17 and Th0 matrices for ChIP-seq
-  all_genes_thx_unique <- toupper(sort(unique(all_genes_thx_wt)))
+  all.genes.unique <- toupper(sort(unique(all.genes)))
   
   # 0-initialized matrix  
-  thx_mat <- matrix(0, nrow = length(all_genes_thx_unique), ncol = length(tfs_thx))
+  ko.scores <- matrix(0, nrow = length(all.genes.unique), ncol = length(all.tfs))
   # unique gene list makes up rows
-  rownames(thx_mat) <- all_genes_thx_unique
+  rownames(ko.scores) <- all.genes.unique
   # unique transcription factor list makes up columns
-  colnames(thx_mat) <- toupper(tfs_thx)
+  colnames(ko.scores) <- toupper(all.tfs)
   
-  print("Extract DESeq p-values (non-adjusted) and log2 foldchange from files.")
-  # iteration 2: extract p-values and log2 values from DESeq results files and 
+  print("Extract DESeq non-adjusted p-values and log2(foldchange) from files.")
+  # Iteration 2: extract p-values and log2(foldchange) values from DESeq results files and 
   # fill confidence score matrix according to formula in Computational Methods
   for(i in deseqfiles) {
-    
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
     
@@ -71,25 +64,20 @@ load.deseq <- function(dir, CORE_TFS) {
     # get the DESeq p-values by iterating and accessing matrix via id and TF-name
     idx <- 1
     for(j in cst$id) {
-      thx_mat[j, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])
+      ko.scores[j, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])
       idx <- idx + 1
     }
   }
   
   # replace NA and Inf values in matrix with 0s (for later ranking procedure)
-  print("Replacing Inf and NA values with 0.")
-  thx_mat[thx_mat == Inf] <- 0
-  thx_mat[is.na(thx_mat)] <- 0
+  print("Replacing Inf and NA values with 0 KO-score.")
+  ko.scores[ko.scores == Inf] <- 0
+  ko.scores[is.na(ko.scores)] <- 0
   
   # drop 0-only-rows
-  # print(dim(thx_mat))
-  # thx_mat <- thx_mat[rowSums(abs(thx_mat[, -1]))>(1e-10),]
+  # print(dim(ko.scores))
+  # ko.scores <- ko.scores[rowSums(abs(ko.scores[, -1]))>(1e-10),]
   # print("DROPPED---------------------------------------")
-  # print(dim(thx_mat))
-  return(thx_mat)
+  # print(dim(ko.scores))
+  return(ko.scores)
 }
-
-# print("Writing K-matrix to file.")
-# # write matrices to a tab-delimited file
-# filename=paste0(outpath, "K_", thx, "_mat.txt")
-# write.table(thx_mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)

@@ -16,6 +16,7 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   
   abs.cut <- GLOBAL[["abs.cut"]]
   tot <- length(combomat[abs(combomat) > abs.cut])
+  print(paste0(tot, " [", pos.edge, "]"))
   
   #pre-allocate data table since dimensions are known
   cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), 
