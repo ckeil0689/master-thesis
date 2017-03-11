@@ -11,7 +11,7 @@ load.deseq <- function(dir, CORE_TFS) {
   
   print(paste("Reading", length(deseqfiles),"DESeq files to create complete list of genes."))
         
-  # Iteration 1: get list of all tested genes and TFs so a matrix can be set up
+  # Iteration 1: get list of all tested genes and TFs so a matrix can be pre-allocated
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
@@ -46,7 +46,8 @@ load.deseq <- function(dir, CORE_TFS) {
   
   print("Extract DESeq non-adjusted p-values and log2(foldchange) from files.")
   # Iteration 2: extract p-values and log2(foldchange) values from DESeq results files and 
-  # fill confidence score matrix according to formula in Computational Methods
+  # fill pre-allocated confidence score matrix according to formula in Computational Methods:
+  # score = pval * sign(log2(foldchange))
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
@@ -61,7 +62,7 @@ load.deseq <- function(dir, CORE_TFS) {
       next
     }
     
-    # get the DESeq p-values by iterating and accessing matrix via id and TF-name
+    # get the DESeq p-values by iterating and accessing matrix via id and TF-name (genes are not ordered by name in DESeq files!)
     idx <- 1
     for(j in cst$id) {
       ko.scores[j, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])
