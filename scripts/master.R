@@ -224,6 +224,7 @@ if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_mat_repressor")
 # --------------
 # 5) Apply sign matrix
 # --------------
+#  Activator
 # Empty matrix with same dimension as combined matrix
 m.sign.kc <- matrix(0, nc=ncol(combined_mat.activator), nr=nrow(combined_mat.activator), dimnames=dimnames(combined_mat.activator))
 # Only set values which also appear in KO matrix (TF-target gene pairs)
@@ -231,23 +232,43 @@ m.sign.kc[rownames(ko.scores), colnames(ko.scores)] <- ko.scores
 # The knockout values will give us signs, everything else treated as positive (ChIP!)
 m.sign.kc <- sign(m.sign.kc)
 m.sign.kc[which(m.sign.kc==0)] <- 1
+if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, combo, "_activator_signmat")
 
-if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, combo, "_signmat")
+# Repressor
+# Empty matrix with same dimension as combined matrix
+m.sign.kc.r <- matrix(0, nc=ncol(combined_mat.repressor), nr=nrow(combined_mat.repressor), dimnames=dimnames(combined_mat.repressor))
+# Only set values which also appear in KO matrix (TF-target gene pairs)
+m.sign.kc.r[rownames(ko.scores), colnames(ko.scores)] <- ko.scores
+# The knockout values will give us signs, everything else treated as positive (ChIP!)
+m.sign.kc.r <- sign(m.sign.kc.r)
+m.sign.kc.r[which(m.sign.kc.r==0)] <- 1
+if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, combo, "_repressor_signmat")
 
 print("Checking dimensions...")
 if(!identical(dim(m.sign.kc), dim(combined_mat.activator))) {
-  print(paste("Dimension sign_mat:", dim(sign_mat)))
+  print(paste("Dimension sign_mat:", dim(m.sign.kc)))
   print(paste("Dimension combined_mat.activator:", dim(combined_mat.activator)))
   print(paste("Dimension ko_qmat.activator:", dim(ko_qmat.activator)))
-  print(paste("Dimension chip_qmat:", dim(chip_qmat)))
+  print(paste("Dimension chip_qmat:", dim(chip_qmat.activator)))
   stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
 }
 
-print("Applying sign matrix to combined matrix...")
+print("Applying sign matrix to combined activator matrix...")
 # Element-wise multiplication with sign matrix
 combined_mat.activator <- combined_mat.activator * as.vector(m.sign.kc)
+
+print("Checking dimensions...")
+if(!identical(dim(m.sign.kc.r), dim(combined_mat.repressor))) {
+  print(paste("Dimension sign_mat:", dim(m.sign.kc.r)))
+  print(paste("Dimension combined_mat.activator:", dim(combined_mat.repressor)))
+  print(paste("Dimension ko_qmat.activator:", dim(ko_qmat.repressor)))
+  print(paste("Dimension chip_qmat:", dim(chip_qmat.repressor)))
+  stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
+}
+
+print("Applying sign matrix to combined repressor matrix...")
 # Positive scores in repressor mean repression. Multiply by -1 so repressor edges >1.50 will be filtered as negative in createInteractions
-combined_mat.repressor <- combined_mat.repressor * as.vector(m.sign.kc*-1) # element-wise multiplication
+combined_mat.repressor <- combined_mat.repressor * as.vector(m.sign.kc.r*-1) # element-wise multiplication
 
 if(GLOBAL[["DEBUG"]])  {
   write.mat(combined_mat.activator, combo, "_signed_activator")
