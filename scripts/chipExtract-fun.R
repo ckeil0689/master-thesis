@@ -2,7 +2,7 @@
 # ----------------
 # Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
 # ----------------
-load.chip <- function(dir, reflibfile, CORE_TFS) {
+load.chip <- function(dir, reflibfile, boost.p300 = FALSE, CORE_TFS) {
   print("Reading ChIP files to create lists of TFs and genes.")
   setwd(dir)
   ref_file <- read.table(reflibfile, sep=",", header=TRUE)
@@ -27,11 +27,11 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   p300_th0_chipfile <- "GSM1004842_SL1948_SL1947_genes.txt" # P300 Th0 wt
   p300_th17_chipfile <- "GSM1004851_SL3594_SL3592_genes.txt" # P300 Th17 rorc wt
   
-  if(GLOBAL[["BOOST_P300"]]) {
-    print("ChIP with p300 boost files.")
+  if(boost.p300) {
+    print("ChIP-scores activator with p300 boost files.")
     all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_th0_chipfile, p300_th17_chipfile)
   } else {
-    print("ChIP without p300 boost files.")
+    print("ChIP-scores repressor/absolute without p300 boost files.")
     all_chipfiles <- c(th0_chipfiles, th17_chipfiles)
   }
   thx_rows <- c()
@@ -55,7 +55,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
     
     # only use target TFs or p300 (when boosting)
     if(!tf %in% CORE_TFS) {
-      if(!(GLOBAL[["BOOST_P300"]] && tf == "p300")) {
+      if(!(boost.p300 && tf == "p300")) {
         next
       }
     }
@@ -104,7 +104,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
     
     # only use target TFs or p300 (when boosting)
     if(!tf %in% CORE_TFS) {
-      if(!(GLOBAL[["BOOST_P300"]] && tf == "p300")) {
+      if(!(boost.p300 && tf == "p300")) {
         next
       }
     }
@@ -139,7 +139,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   tfs.list.unique <- sort(unique(tfs.list))
   
   # Drop p300 - it was only needed for boosting
-  if(GLOBAL[["BOOST_P300"]]) {
+  if(boost.p300) {
     tfs.list.unique <- tfs.list.unique[tfs.list.unique !="p300"]
   }
   
@@ -150,7 +150,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
   
   cols <- colnames(thx_mat)
   
-  if(GLOBAL[["BOOST_P300"]]) {
+  if(boost.p300) {
     p300.th17.col <- thx_mat[,"p300-th17"]
     p300.th0.col <- thx_mat[,"p300-th0"]
     p300.df <- data.frame(p300.th17.col, p300.th0.col)
@@ -179,7 +179,7 @@ load.chip <- function(dir, reflibfile, CORE_TFS) {
     
     df <- data.frame(th17_col, th0_col)
     
-    if(GLOBAL[["BOOST_P300"]]) {
+    if(boost.p300) {
       th.diff.col <- (df$th17_col - df$th0_col) + p300.score.col
     } else {
       th.diff.col <- (df$th17_col - df$th0_col)

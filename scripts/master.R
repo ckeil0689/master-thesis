@@ -81,7 +81,8 @@ write.mat <- function(mat, prefix, suffix) {
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
 ko.scores <- NULL
-chip.scores <- NULL
+chip.scores.activator <- NULL
+chip.scores.repressor <- NULL
 rna.scores <- NULL
 immgen.scores <- NULL
 
@@ -117,8 +118,10 @@ for(opt in opts) {
     
   } else if(opt == "c") {
     source(paste0(getwd(), "/" , "chipExtract-fun.R"))
-    chip.scores <- load.chip(dir = chipdir, reflibfile = ref_filepath, CORE_TFS)
-    if(GLOBAL[["DEBUG"]]) write.mat(chip.scores, "C", "_smat")
+    chip.scores.activator <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = TRUE, CORE_TFS)
+    chip.scores.repressor <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = FALSE, CORE_TFS)
+    if(GLOBAL[["DEBUG"]]) write.mat(chip.scores.activator, "C", "_activator_smat")
+    if(GLOBAL[["DEBUG"]]) write.mat(chip.scores.repressor, "C", "_repressor_smat")
     
   } else if(opt == "r") {
     rna.scores <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
@@ -158,7 +161,8 @@ do.rank <- function(mat, prefix) {
 
 print("Creating rank matrices.")
 ko.scores_ranked <- do.rank(ko.scores, "K")
-chip.scores_ranked <- do.rank(chip.scores, "C")
+chip.scores.activator_ranked <- do.rank(chip.scores.activator, "C_activator")
+chip.scores.repressor_ranked <- do.rank(chip.scores.repressor, "C_repressor")
 rna.scores_ranked <- do.rank(rna.scores, "R")
 immgen.scores_ranked <- do.rank(immgen.scores, "I")
 
@@ -188,12 +192,19 @@ print("Calculating Q-matrices.")
 
 # Utilizing ranking methods from AM for testing purposes
 source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
+
+# KO scores
 ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
 ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
-write.mat(ko_qmat.activator, "K", "_nyu_qmat_activator")
-write.mat(ko_qmat.repressor, "K", "_nyu_qmat_repressor")
-chip_qmat <- abs(convert.scores.to.relative.ranks(chip.scores))
-write.mat(chip_qmat, "C", "_nyu_qmat")
+write.mat(ko_qmat.activator, "K", "activator_nyu_qmat")
+write.mat(ko_qmat.repressor, "K", "repressor_nyu_qmat")
+
+# ChIP scores
+chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator))
+chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor))
+write.mat(chip_qmat.activator, "C", "activator_nyu_qmat")
+write.mat(chip_qmat.repressor, "C", "repressor_nyu_qmat")
+
 rna_qmat <- NULL
 immgen_qmat <- NULL
 
@@ -205,8 +216,8 @@ setwd(scriptdir)
 source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 print("Combining Q-matrices to a single matrix.")
-combined_mat.activator <- combine.qmats(ko_qmat.activator, chip_qmat, rna_qmat, immgen_qmat, CORE_TFS)
-combined_mat.repressor <- combine.qmats(ko_qmat.repressor, chip_qmat, rna_qmat, immgen_qmat, CORE_TFS)
+combined_mat.activator <- combine.qmats(ko_qmat.activator, chip_qmat.activator, rna_qmat, immgen_qmat, CORE_TFS)
+combined_mat.repressor <- combine.qmats(ko_qmat.repressor, chip_qmat.repressor, rna_qmat, immgen_qmat, CORE_TFS)
 if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.activator, combo, "_mat_activator")
 if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_mat_repressor")
 
