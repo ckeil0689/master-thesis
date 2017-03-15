@@ -11,11 +11,16 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   print("Transforming matrix to node-node-value list.")
   
   # Select top 20% of edges from signed combined matrix
-  m.cut <- quantile(combomat, probs=.8)
+  m.cut <- quantile(combomat, probs=.97)
   print(paste("Determined cut:", m.cut))
   
-  abs.cut <- GLOBAL[["abs.cut"]]
-  tot <- length(combomat[abs(combomat) > abs.cut])
+  # This value was apparently used in the KC.cys example file. It is an alternative to m.cut
+  cs.cut <- 1.50
+  
+  # testing: set which cut value is used
+  used.cut = cs.cut
+  
+  tot <- length(combomat[abs(combomat) > used.cut])
   print(paste0(tot, " [", pos.edge, "]"))
   
   #pre-allocate data table since dimensions are known
@@ -33,7 +38,7 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   for (i in 1:ncol(combomat)) {
     if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(combomat)), digits = 0), "%"))
     # Per TF, only look at genes with absolute interaction value over the cutoff
-    target.genes <- which(abs(combomat[,i]) > abs.cut)
+    target.genes <- which(abs(combomat[,i]) > used.cut)
     if(length(target.genes) == 0) {
       print(paste("No targets found. Skipping", colnames(combomat)[i]))
       next
@@ -42,9 +47,9 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
       gene <- target.genes[j]
       val <- combomat[gene, i]
       
-      if(val > abs.cut) {
+      if(val > used.cut) {
         edge.type <- pos.edge
-      } else if(val < abs.cut) {
+      } else if(val < used.cut) {
         edge.type <- neg.edge
       } else {
         next # do not set any edge (list size limited to 'tot')

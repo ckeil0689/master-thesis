@@ -21,9 +21,10 @@ library(data.table)
 library(reshape2)
 # library(xlsx)
 
+# Global variables
 GLOBAL <- list()
 GLOBAL[["DEBUG"]] <- TRUE
-GLOBAL[["BOOST_P300"]] <- FALSE
+GLOBAL[["z.abs.cut"]] <- 2.50 # carried over from original Aviv Madar code
 
 # Input file directories
 scriptdir <- getwd()
@@ -32,15 +33,13 @@ chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 rnaseqfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_RNAseq.txt")
 immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
 ref_filepath <- paste0(getwd(), "/../suppl/mmc4.csv")
+zscores_filepath <- paste0(getwd(), "/../suppl/mmc5.xls")
 
 # Put all output into analysis folder
 outpath <- paste0(getwd(), "/../suppl/data/analysis/")
 if(!dir.exists(outpath)) {
   dir.create(outpath)
 }
-
-zz <- file(paste0(outpath,"/all.Rout"), open="wt")
-sink(zz, type="message")
 
 # For input checking
 ALLOWED_COMBOS <- c("c", "k", "ri", "kc", "kcr", "kcri")
@@ -80,6 +79,15 @@ write.mat <- function(mat, prefix, suffix) {
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
+zscore.table <- read.table(zscores_filepath, sep="\t", header=TRUE)
+# Column is '8' because R has trouble reading "Th17/Th0 zscores" and doesn't accept the String it produces when printing colnames()...
+zscore_col <- "Th17.Th0.zscores"
+genes.final.idx <- which(abs(zscore.table[, zscore_col]) > GLOBAL[["z.abs.cut"]])
+genes.final <- zscore.table[genes.final.idx, "Gene_id"]
+
+print(paste("Original gene number:", length(zscore.table[, "Gene_id"])))
+print(paste("Genes with abs(zscore) > 2.50:", length(genes.final)))
+
 ko.scores <- NULL
 chip.scores.activator <- NULL
 chip.scores.repressor <- NULL
@@ -93,18 +101,6 @@ i_sign_mat <- NULL
 
 # Split into separate characters
 opts = unlist(strsplit(combo, ""))
-
-if(length(opts) == 2) {
-  GLOBAL[["abs.cut"]] <- 1.50
-} else if(length(opts) == 3) {
-  GLOBAL[["abs.cut"]] <- 2.00
-} else if(length(opts) == 4) {
-  GLOBAL[["abs.cut"]] <- 2.50
-} else {
-  GLOBAL[["abs.cut"]] <- 0.75
-}
-
-print(paste("Determined absolute cutoff from chosen data types:", GLOBAL[["abs.cut"]]))
 
 for(opt in opts) {
   # reset because functions may globally change working directory and source() breaks
@@ -196,14 +192,14 @@ source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
 # KO scores
 ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
 ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
-write.mat(ko_qmat.activator, "K", "activator_nyu_qmat")
-write.mat(ko_qmat.repressor, "K", "repressor_nyu_qmat")
+write.mat(ko_qmat.activator, "K", "_activator_nyu_qmat")
+write.mat(ko_qmat.repressor, "K", "_repressor_nyu_qmat")
 
 # ChIP scores
 chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator))
 chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor))
-write.mat(chip_qmat.activator, "C", "activator_nyu_qmat")
-write.mat(chip_qmat.repressor, "C", "repressor_nyu_qmat")
+write.mat(chip_qmat.activator, "C", "_activator_nyu_qmat")
+write.mat(chip_qmat.repressor, "C", "_repressor_nyu_qmat")
 
 rna_qmat <- NULL
 immgen_qmat <- NULL
@@ -218,27 +214,54 @@ source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 print("Combining Q-matrices to a single matrix.")
 combined_mat.activator <- combine.qmats(ko_qmat.activator, chip_qmat.activator, rna_qmat, immgen_qmat, CORE_TFS)
 combined_mat.repressor <- combine.qmats(ko_qmat.repressor, chip_qmat.repressor, rna_qmat, immgen_qmat, CORE_TFS)
+
+# Filter the combined matrices by zscores from mmc5
+filtered.genes.idx <- which(rownames(combined_mat.activator) %in% genes.final)
+# print(paste("all genes from activator:", rownames(combined_mat.activator)))
+print(paste("final genes from activator:", filtered.genes.idx))
+
+filtered.genes.activator <- rownames(combined_mat.activator)[filtered.genes.idx]
+# print(paste("activator genes after filtering:", filtered.genes.activator))
+
+combined_mat.activator <- combined_mat.activator[filtered.genes.idx,]
+rownames(combined_mat.activator) <- filtered.genes.activator
+
+filtered.genes.idx <- which(genes.final %in% rownames(combined_mat.repressor))
+# print(paste("final genes from repressor:", length(filtered.genes.idx)))
+
+# Bug
+filtered.genes.repressor <- rownames(combined_mat.repressor)[filtered.genes.idx]
+# print(paste("repressor genes after filtering:", filtered.genes.repressor))
+
+
+combined_mat.repressor <- combined_mat.repressor[filtered.genes.idx,]
+rownames(combined_mat.repressor) <- filtered.genes.repressor
+
 if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.activator, combo, "_mat_activator")
 if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_mat_repressor")
 
 # --------------
 # 5) Apply sign matrix
 # --------------
+print("Applying signs to activator matrix.")
 #  Activator
 # Empty matrix with same dimension as combined matrix
 m.sign.kc <- matrix(0, nc=ncol(combined_mat.activator), nr=nrow(combined_mat.activator), dimnames=dimnames(combined_mat.activator))
 # Only set values which also appear in KO matrix (TF-target gene pairs)
-m.sign.kc[rownames(ko.scores), colnames(ko.scores)] <- ko.scores
+ko.genes <- rownames(ko.scores)[which(filtered.genes.activator %in% rownames(ko.scores))]
+m.sign.kc[rownames(ko.genes), colnames(ko.scores)] <- ko.scores[ko.genes,]
 # The knockout values will give us signs, everything else treated as positive (ChIP!)
 m.sign.kc <- sign(m.sign.kc)
 m.sign.kc[which(m.sign.kc==0)] <- 1
 if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, combo, "_activator_signmat")
 
+print("Applying signs to repressor matrix.")
 # Repressor
 # Empty matrix with same dimension as combined matrix
 m.sign.kc.r <- matrix(0, nc=ncol(combined_mat.repressor), nr=nrow(combined_mat.repressor), dimnames=dimnames(combined_mat.repressor))
 # Only set values which also appear in KO matrix (TF-target gene pairs)
-m.sign.kc.r[rownames(ko.scores), colnames(ko.scores)] <- ko.scores
+ko.genes <- rownames(ko.scores)[which(filtered.genes.repressor %in% rownames(ko.scores))]
+m.sign.kc.r[rownames(ko.genes), colnames(ko.scores)] <- ko.scores[ko.genes,]
 # The knockout values will give us signs, everything else treated as positive (ChIP!)
 m.sign.kc.r <- sign(m.sign.kc.r)
 m.sign.kc.r[which(m.sign.kc.r==0)] <- 1
@@ -268,7 +291,7 @@ if(!identical(dim(m.sign.kc.r), dim(combined_mat.repressor))) {
 
 print("Applying sign matrix to combined repressor matrix...")
 # Positive scores in repressor mean repression. Multiply by -1 so repressor edges >1.50 will be filtered as negative in createInteractions
-combined_mat.repressor <- combined_mat.repressor * as.vector(m.sign.kc.r*-1) # element-wise multiplication
+combined_mat.repressor <- combined_mat.repressor * as.vector(m.sign.kc.r * -1) # element-wise multiplication
 
 if(GLOBAL[["DEBUG"]])  {
   write.mat(combined_mat.activator, combo, "_signed_activator")
@@ -293,4 +316,3 @@ print("Writing interactions as separate lists...")
 create.interactions(combined_mat.activator, outpath, combo, "activator", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
 create.interactions(combined_mat.repressor, outpath, combo, "repressor", pos.edge= "negative_KC", neg.edge = "positive_KC", append = FALSE)
 print("Done.")
-close(zz)
