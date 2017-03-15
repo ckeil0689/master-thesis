@@ -217,23 +217,12 @@ combined_mat.repressor <- combine.qmats(ko_qmat.repressor, chip_qmat.repressor, 
 
 # Filter the combined matrices by zscores from mmc5
 filtered.genes.idx <- which(rownames(combined_mat.activator) %in% genes.final)
-# print(paste("all genes from activator:", rownames(combined_mat.activator)))
-print(paste("final genes from activator:", filtered.genes.idx))
-
 filtered.genes.activator <- rownames(combined_mat.activator)[filtered.genes.idx]
-# print(paste("activator genes after filtering:", filtered.genes.activator))
-
 combined_mat.activator <- combined_mat.activator[filtered.genes.idx,]
 rownames(combined_mat.activator) <- filtered.genes.activator
 
-filtered.genes.idx <- which(genes.final %in% rownames(combined_mat.repressor))
-# print(paste("final genes from repressor:", length(filtered.genes.idx)))
-
-# Bug
+filtered.genes.idx <- which(rownames(combined_mat.repressor) %in% genes.final)
 filtered.genes.repressor <- rownames(combined_mat.repressor)[filtered.genes.idx]
-# print(paste("repressor genes after filtering:", filtered.genes.repressor))
-
-
 combined_mat.repressor <- combined_mat.repressor[filtered.genes.idx,]
 rownames(combined_mat.repressor) <- filtered.genes.repressor
 

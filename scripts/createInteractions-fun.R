@@ -29,6 +29,7 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   
   fact <- 1
   if(pos.edge == "negative_KC"){
+    print("Using adjustment factor.")
     fact <- -1
   }
   
