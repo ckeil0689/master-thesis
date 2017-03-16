@@ -15,7 +15,7 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   print(paste("Determined cut:", m.cut))
   
   # This value was apparently used in the KC.cys example file. It is an alternative to m.cut
-  cs.cut <- 1.50
+  cs.cut <- 1.65
   
   # testing: set which cut value is used
   used.cut = cs.cut
