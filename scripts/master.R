@@ -24,7 +24,7 @@ library(reshape2)
 # Global variables
 GLOBAL <- list()
 GLOBAL[["DEBUG"]] <- TRUE
-GLOBAL[["z.abs.cut"]] <- 2.50 # carried over from original Aviv Madar code
+GLOBAL[["z.abs.cut"]] <- 0.00 # carried over from original Aviv Madar code
 
 # Input file directories
 scriptdir <- getwd()
@@ -79,10 +79,14 @@ write.mat <- function(mat, prefix, suffix) {
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
+# Load zscores from SAM stored in mmc5 table of original authors. 
+# They may be used for filtering by 'z.abs.cut' and provide a color scheme for nodes in Cytoscape (differential expression)
 zscore.table <- read.table(zscores_filepath, sep="\t", header=TRUE)
-# Column is '8' because R has trouble reading "Th17/Th0 zscores" and doesn't accept the String it produces when printing colnames()...
 zscore_col <- "Th17.Th0.zscores"
-genes.final.idx <- which(abs(zscore.table[, zscore_col]) > GLOBAL[["z.abs.cut"]])
+zscores.all <- as.matrix(zscore.table[, zscore_col])
+rownames(zscores.all) <- rownames(zscore.table)
+colnames(zscores.all) <- "Th17/Th0 zscores" # matches mmc5 column name but directly loaded, R transforms this String for some reason
+genes.final.idx <- which(abs(zscores.all) > GLOBAL[["z.abs.cut"]])
 genes.final <- zscore.table[genes.final.idx, "Gene_id"]
 
 print(paste("Original gene number:", length(zscore.table[, "Gene_id"])))
@@ -288,7 +292,13 @@ if(GLOBAL[["DEBUG"]])  {
 }
 
 # --------------
-# 6) From combine data matrix, create a list of node-node-value interactions for Cytoscape
+# 6) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
+# --------------
+print("Writing zscores from mmc5.")
+write.mat(zscores.all, combo, "_zscores")
+
+# --------------
+# 7) From combine data matrix, create a list of node-node-value interactions for Cytoscape
 # --------------
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
@@ -304,4 +314,5 @@ create.interactions(combined_mat.repressor, outpath, combo, "single", pos.edge= 
 print("Writing interactions as separate lists...")
 create.interactions(combined_mat.activator, outpath, combo, "activator", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
 create.interactions(combined_mat.repressor, outpath, combo, "repressor", pos.edge= "negative_KC", neg.edge = "positive_KC", append = FALSE)
-print("Done.")
+print("---------------------")
+print("Done. Now files can be loaded into Cytoscape.")
