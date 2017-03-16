@@ -23,7 +23,7 @@ library(reshape2)
 
 # Global variables
 GLOBAL <- list()
-GLOBAL[["DEBUG"]] <- TRUE
+GLOBAL[["DEBUG"]] <- FALSE
 GLOBAL[["z.abs.cut"]] <- 0.00 # carried over from original Aviv Madar code
 
 # Input file directories
@@ -36,9 +36,14 @@ ref_filepath <- paste0(getwd(), "/../suppl/mmc4.csv")
 zscores_filepath <- paste0(getwd(), "/../suppl/mmc5.xls")
 
 # Put all output into analysis folder
-outpath <- paste0(getwd(), "/../suppl/data/analysis/")
-if(!dir.exists(outpath)) {
-  dir.create(outpath)
+outpath.debug <- paste0(getwd(), "/../suppl/data/analysis/debug/")
+if(!dir.exists(outpath.debug)) {
+  dir.create(outpath.debug)
+}
+
+outpath.cyt <- paste0(getwd(), "/../suppl/data/analysis/cyt/")
+if(!dir.exists(outpath.cyt)) {
+  dir.create(outpath.cyt)
 }
 
 # For input checking
@@ -70,7 +75,7 @@ if(combo == "" || !combo %in% ALLOWED_COMBOS) {
 }
 
 # Load confidence score matrices by option
-write.mat <- function(mat, prefix, suffix) {
+write.mat <- function(mat, outpath, prefix, suffix) {
   filename = paste0(outpath, prefix, suffix, ".txt")
   print(paste("Writing matrix to file:", filename))
   write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
@@ -84,8 +89,8 @@ write.mat <- function(mat, prefix, suffix) {
 zscore.table <- read.table(zscores_filepath, sep="\t", header=TRUE)
 zscore_col <- "Th17.Th0.zscores"
 zscores.all <- as.matrix(zscore.table[, zscore_col])
-rownames(zscores.all) <- rownames(zscore.table)
-colnames(zscores.all) <- "Th17/Th0 zscores" # matches mmc5 column name but directly loaded, R transforms this String for some reason
+rownames(zscores.all) <- zscore.table[, "Gene_id"]
+colnames(zscores.all) <- "Th17_vs_Th0_Zscores" # matches name used in Cytoscape Style for example KC.cys
 genes.final.idx <- which(abs(zscores.all) > GLOBAL[["z.abs.cut"]])
 genes.final <- zscore.table[genes.final.idx, "Gene_id"]
 
@@ -114,14 +119,14 @@ for(opt in opts) {
     source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
     ko.scores <- load.deseq(dir = deseqdir, CORE_TFS)
     k_sign_mat <- sign(as.data.frame(ko.scores))
-    if(GLOBAL[["DEBUG"]]) write.mat(ko.scores, "K", "_smat")
+    if(GLOBAL[["DEBUG"]]) write.mat(ko.scores, outpath.debug, "K", "_smat")
     
   } else if(opt == "c") {
     source(paste0(getwd(), "/" , "chipExtract-fun.R"))
     chip.scores.activator <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = TRUE, CORE_TFS)
     chip.scores.repressor <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = FALSE, CORE_TFS)
-    if(GLOBAL[["DEBUG"]]) write.mat(chip.scores.activator, "C", "_activator_smat")
-    if(GLOBAL[["DEBUG"]]) write.mat(chip.scores.repressor, "C", "_repressor_smat")
+    if(GLOBAL[["DEBUG"]]) write.mat(chip.scores.activator, outpath.debug, "C", "_activator_smat")
+    if(GLOBAL[["DEBUG"]]) write.mat(chip.scores.repressor, outpath.debug, "C", "_repressor_smat")
     
   } else if(opt == "r") {
     rna.scores <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
@@ -153,7 +158,7 @@ source(paste0(getwd(), "/" , "rankSmat-fun.R"))
 do.rank <- function(mat, prefix) {
   if(!is.null(mat)) {
     mat_ranked <- rank.smat(mat)
-    if(GLOBAL[["DEBUG"]]) write.mat(mat_ranked, prefix, "_ranked")
+    if(GLOBAL[["DEBUG"]]) write.mat(mat_ranked, outpath.debug, prefix, "_ranked")
     return(mat_ranked)
   }
   return(NULL)
@@ -178,7 +183,7 @@ source(paste0(getwd(), "/" , "qmat-fun.R"))
 do.qcalc <- function(scores, scores_ranked, prefix) {
   if(!is.null(scores_ranked)) {
     qmat <- calc.qmat(scores, scores_ranked)
-    if(GLOBAL[["DEBUG"]]) write.mat(qmat, prefix, "_qmat")
+    if(GLOBAL[["DEBUG"]]) write.mat(qmat, outpath.debug, prefix, "_qmat")
     return(as.matrix(qmat))
   }
   return(NULL)
@@ -196,14 +201,14 @@ source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
 # KO scores
 ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
 ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
-write.mat(ko_qmat.activator, "K", "_activator_nyu_qmat")
-write.mat(ko_qmat.repressor, "K", "_repressor_nyu_qmat")
+write.mat(ko_qmat.activator, outpath.debug, "K", "_activator_nyu_qmat")
+write.mat(ko_qmat.repressor, outpath.debug, "K", "_repressor_nyu_qmat")
 
 # ChIP scores
 chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator))
 chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor))
-write.mat(chip_qmat.activator, "C", "_activator_nyu_qmat")
-write.mat(chip_qmat.repressor, "C", "_repressor_nyu_qmat")
+write.mat(chip_qmat.activator, outpath.debug, "C", "_activator_nyu_qmat")
+write.mat(chip_qmat.repressor, outpath.debug, "C", "_repressor_nyu_qmat")
 
 rna_qmat <- NULL
 immgen_qmat <- NULL
@@ -230,8 +235,8 @@ filtered.genes.repressor <- rownames(combined_mat.repressor)[filtered.genes.idx]
 combined_mat.repressor <- combined_mat.repressor[filtered.genes.idx,]
 rownames(combined_mat.repressor) <- filtered.genes.repressor
 
-if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.activator, combo, "_mat_activator")
-if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, combo, "_mat_repressor")
+if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.activator, outpath.debug, combo, "_mat_activator")
+if(GLOBAL[["DEBUG"]]) write.mat(combined_mat.repressor, outpath.debug, combo, "_mat_repressor")
 
 # --------------
 # 5) Apply sign matrix
@@ -246,7 +251,7 @@ m.sign.kc[rownames(ko.genes), colnames(ko.scores)] <- ko.scores[ko.genes,]
 # The knockout values will give us signs, everything else treated as positive (ChIP!)
 m.sign.kc <- sign(m.sign.kc)
 m.sign.kc[which(m.sign.kc==0)] <- 1
-if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, combo, "_activator_signmat")
+if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, outpath.debug, combo, "_activator_signmat")
 
 print("Applying signs to repressor matrix.")
 # Repressor
@@ -258,7 +263,7 @@ m.sign.kc.r[rownames(ko.genes), colnames(ko.scores)] <- ko.scores[ko.genes,]
 # The knockout values will give us signs, everything else treated as positive (ChIP!)
 m.sign.kc.r <- sign(m.sign.kc.r)
 m.sign.kc.r[which(m.sign.kc.r==0)] <- 1
-if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, combo, "_repressor_signmat")
+if(GLOBAL[["DEBUG"]]) write.mat(m.sign.kc, outpath.debug, combo, "_repressor_signmat")
 
 print("Checking dimensions...")
 if(!identical(dim(m.sign.kc), dim(combined_mat.activator))) {
@@ -287,15 +292,15 @@ print("Applying sign matrix to combined repressor matrix...")
 combined_mat.repressor <- combined_mat.repressor * as.vector(m.sign.kc.r * -1) # element-wise multiplication
 
 if(GLOBAL[["DEBUG"]])  {
-  write.mat(combined_mat.activator, combo, "_signed_activator")
-  write.mat(combined_mat.repressor, combo, "_signed_repressor")
+  write.mat(combined_mat.activator, outpath.debug, combo, "_signed_activator")
+  write.mat(combined_mat.repressor, outpath.debug, combo, "_signed_repressor")
 }
 
 # --------------
 # 6) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
 # --------------
 print("Writing zscores from mmc5.")
-write.mat(zscores.all, combo, "_zscores")
+write.mat(zscores.all, outpath.cyt, combo, "_zscores")
 
 # --------------
 # 7) From combine data matrix, create a list of node-node-value interactions for Cytoscape
@@ -308,11 +313,11 @@ source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 # about repression. This has been imitated from Aviv Madar's original code in an effort to get the procedure right, but I find the variable handling and
 # naming very inconvenient and confusing. If there is time, I will change this.
 print("Writing interactions as single list...")
-create.interactions(combined_mat.activator, outpath, combo, "single", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
-create.interactions(combined_mat.repressor, outpath, combo, "single", pos.edge= "negative_KC", neg.edge = "positive_KC", append = TRUE)
+create.interactions(combined_mat.activator, outpath.cyt, combo, "single", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
+create.interactions(combined_mat.repressor, outpath.cyt, combo, "single", pos.edge= "negative_KC", neg.edge = "positive_KC", append = TRUE)
 
 print("Writing interactions as separate lists...")
-create.interactions(combined_mat.activator, outpath, combo, "activator", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
-create.interactions(combined_mat.repressor, outpath, combo, "repressor", pos.edge= "negative_KC", neg.edge = "positive_KC", append = FALSE)
+create.interactions(combined_mat.activator, outpath.cyt, combo, "activator", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
+create.interactions(combined_mat.repressor, outpath.cyt, combo, "repressor", pos.edge= "negative_KC", neg.edge = "positive_KC", append = FALSE)
 print("---------------------")
 print("Done. Now files can be loaded into Cytoscape.")
