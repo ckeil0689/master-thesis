@@ -89,16 +89,15 @@ k_sign_mat <- NULL
 r_sign_mat <- NULL
 i_sign_mat <- NULL
 
-# reset because functions may globally change working directory and source() breaks
-setwd(scriptdir)
-    
 # Load RNA-seq knockout scores
+setwd(scriptdir)
 source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
 ko.scores <- load.deseq(dir = deseqdir, CORE_TFS)
 k_sign_mat <- sign(as.data.frame(ko.scores))
 if(GLOBAL[["DEBUG"]]) write.mat(ko.scores, outpath.debug, "K", "_smat")
  
-# Load ChIP-seq scores   
+# Load ChIP-seq scores  
+setwd(scriptdir)
 source(paste0(getwd(), "/" , "chipExtract-fun.R"))
 chip.scores.activator <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = TRUE, CORE_TFS)
 chip.scores.repressor <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = FALSE, CORE_TFS)
