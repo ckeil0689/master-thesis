@@ -5,10 +5,12 @@
 # from his code.
 #
 # Input: 
-#       C = customized MACS output (ChIP-seq) 
-#       K = dESeq files for core TFs (RNA-seq KO) 
-#       R = Inferelator matrix (RNA-seq compendium)
-#       I = Inferelator matrix (Immgen microarray data)
+#       C = customized MACS output (ChIP-seq - provided on GEO) 
+#       K = DEseq files for core TFs (RNA-seq KO - provided on GEO but should be exchangeable) 
+#       R = Inferelator matrix (RNA-seq compendium - provided on GEO)
+#       I = Inferelator matrix (2011 Immgen microarray data - provided on GEO)
+
+# Perform some intial setups
 list.of.packages <- c("data.table", "reshape2")#, "xlsx")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # install if missing
@@ -19,9 +21,9 @@ if(length(new.packages)) {
 
 library(data.table)
 library(reshape2)
-# library(xlsx)
+# library(xlsx) // causes issues with rJava package installs which rely on specific Java dev kit installs --> unreliable mess
 
-# Global variables
+# Set some global variables
 GLOBAL <- list()
 GLOBAL[["DEBUG"]] <- FALSE
 GLOBAL[["z.abs.cut"]] <- 0.00 # carried over from original Aviv Madar code
@@ -41,6 +43,7 @@ if(!dir.exists(outpath.debug)) {
   dir.create(outpath.debug)
 }
 
+# What will eventually be used in Cytoscape
 outpath.cyt <- paste0(getwd(), "/../suppl/data/analysis/cyt/")
 if(!dir.exists(outpath.cyt)) {
   dir.create(outpath.cyt)
@@ -57,7 +60,7 @@ CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2", "hif1a")
 args <- commandArgs(trailingOnly=TRUE)
 combo <- tolower(as.character(args[1]))
 
-# Check user input for valiitiy
+# Check user input for validitiy
 print_usage <- function() {
   print(paste("Usage: ./script.r <combo>", "(k = rnaseq-ko, c = chipseq, r = rna-compendium, i = immgen)"))
 }
@@ -84,18 +87,20 @@ write.mat <- function(mat, outpath, prefix, suffix) {
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
-# Load zscores from SAM stored in mmc5 table of original authors. 
-# They may be used for filtering by 'z.abs.cut' and provide a color scheme for nodes in Cytoscape (differential expression)
+# Load z-scores from SAM stored in mmc5 table of original authors (available on the Cell page, link on top of this script). 
+# Z-scores provide a color scheme for nodes in Cytoscape which shows differential expression Th17 vs Th0 after 48h.
 zscore.table <- read.table(zscores_filepath, sep="\t", header=TRUE)
 zscore_col <- "Th17.Th0.zscores"
 zscores.all <- as.matrix(zscore.table[, zscore_col])
 rownames(zscores.all) <- zscore.table[, "Gene_id"]
 colnames(zscores.all) <- "Th17_vs_Th0_Zscores" # matches name used in Cytoscape Style for example KC.cys
+
+# Z-scores may also be used for filtering of included genes
 genes.final.idx <- which(abs(zscores.all) > GLOBAL[["z.abs.cut"]])
 genes.final <- zscore.table[genes.final.idx, "Gene_id"]
 
-print(paste("Original gene number:", length(zscore.table[, "Gene_id"])))
-print(paste("Genes with abs(zscore) > 2.50:", length(genes.final)))
+print(paste("Original gene number:", length(zscore.table[, "Gene_id"]), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
+print(paste())
 
 ko.scores <- NULL
 chip.scores.activator <- NULL

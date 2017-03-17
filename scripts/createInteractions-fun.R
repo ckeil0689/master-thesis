@@ -12,18 +12,19 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   
   # Select top 20% of edges from signed combined matrix
   m.cut <- quantile(combomat, probs=.97)
-  print(paste("Determined cut:", m.cut))
   
   # This value was apparently used in the KC.cys example file. It is an alternative to m.cut
   cs.cut <- 1.65
   
-  # testing: set which cut value is used
+  # Set which cut value is used (quantile or defined confidence score cut)
   used.cut = cs.cut
+  print(paste("Using absolute confidence score cut:", used.cut))
   
+  # Info about the total number of edges
   tot <- length(combomat[abs(combomat) > used.cut])
   print(paste0(tot, " [", pos.edge, "]"))
   
-  #pre-allocate data table since dimensions are known
+  # Pre-allocate data table since final dimensions are known - performance is much better than dynamic resize
   cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), 
                           "nodeB"=as.character(rep(NA, tot)), "confidence_score"=as.double(rep(0, tot)))
   
