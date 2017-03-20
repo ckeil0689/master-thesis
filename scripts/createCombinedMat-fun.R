@@ -16,7 +16,7 @@ createCombinedMat <- function(combo, type, ko_qmat, chip_qmat, rna_qmat, immgen_
   filtered.genes <- rownames(combined_mat)[filtered.genes.idx]
   combined_mat <- combined_mat[filtered.genes.idx,]
   rownames(combined_mat) <- filtered.genes
-  if(GLOBAL[["DEBUG"]]) write.mat(combined_mat, outpath.debug, combo, "_mat_", type)
+  if(GLOBAL[["DEBUG"]]) write.mat(combined_mat, outpath.debug, combo, paste0("_mat_", type))
   
   # --------------
   # Apply sign matrix
@@ -26,11 +26,12 @@ createCombinedMat <- function(combo, type, ko_qmat, chip_qmat, rna_qmat, immgen_
   mat.sign <- matrix(0, nc=ncol(combined_mat), nr=nrow(combined_mat), dimnames=dimnames(combined_mat))
   # Only set values which also appear in KO matrix (TF-target gene pairs)
   ko.genes <- rownames(ko.scores)[which(filtered.genes %in% rownames(ko.scores))]
-  mat.sign[rownames(ko.genes), colnames(ko.scores)] <- ko.scores[ko.genes,]
+  print(typeof(ko.genes))
+  mat.sign[ko.genes, colnames(ko.scores)] <- ko.scores[ko.genes,]
   # The knockout values will give us signs, everything else treated as positive (ChIP!)
   mat.sign <- sign(mat.sign)
   mat.sign[which(mat.sign==0)] <- 1
-  if(GLOBAL[["DEBUG"]]) write.mat(mat.sign, outpath.debug, combo, "_", type, "_signmat")
+  if(GLOBAL[["DEBUG"]]) write.mat(mat.sign, outpath.debug, combo, paste0("_", type, "_signmat"))
   
   print("Checking dimensions...")
   if(!identical(dim(mat.sign), dim(combined_mat))) {
@@ -50,5 +51,5 @@ createCombinedMat <- function(combo, type, ko_qmat, chip_qmat, rna_qmat, immgen_
   # Element-wise multiplication with sign matrix
   combined_mat <- combined_mat * as.vector(mat.sign * factor)
   
-  if(GLOBAL[["DEBUG"]])  write.mat(combined_mat, outpath.debug, combo, "_signed_", type)
+  if(GLOBAL[["DEBUG"]])  write.mat(combined_mat, outpath.debug, combo, paste0("_signed_", type))
 }

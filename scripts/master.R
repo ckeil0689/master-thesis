@@ -25,7 +25,7 @@ library(reshape2)
 
 # Set some global variables
 GLOBAL <- list()
-GLOBAL[["DEBUG"]] <- FALSE
+GLOBAL[["DEBUG"]] <- TRUE
 GLOBAL[["z.abs.cut"]] <- 0.00 # carried over from original Aviv Madar code
 
 # Input file directories
@@ -49,6 +49,28 @@ if(!dir.exists(outpath.cyt)) {
   dir.create(outpath.cyt)
 }
 
+args = commandArgs(trailingOnly=TRUE)
+
+if(length(args) > 1) {
+  stop("Only one argument allowed. Stopping.")
+}
+
+# ChIP and DEseq data is generated from GEO input, if this is true.
+# If the user enters the 'noload' option, existing matrices will be loaded (if they exist)
+shouldReloadKCData <- TRUE
+
+# Can only be length 0 or 1 here
+if(length(args) == 1) {
+  if(args[[1]] == "noload") {
+    shouldReloadKCData <- FALSE
+    print("Attemtpting to use existing data for knockout and ChIP data.")
+  } else {
+    stop("Option not recognized. Available options: noload")
+  }
+} else {
+  print("Newly generating the KC data.")
+}
+
 # Core target transcription factors
 # CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
 CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2", "hif1a")
@@ -63,6 +85,7 @@ write.mat <- function(mat, outpath, prefix, suffix) {
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
+print(">>>>>>>>>>>>>>>>> 1) Loading all data <<<<<<<<<<<<<<<<<<<<<<")
 # Load z-scores from SAM stored in mmc5 table of original authors (available on the Cell page, link on top of this script). 
 # Z-scores provide a color scheme for nodes in Cytoscape which shows differential expression Th17 vs Th0 after 48h.
 zscore.table <- read.table(zscores_filepath, sep="\t", header=TRUE)
@@ -75,7 +98,7 @@ colnames(zscores.all) <- "Th17_vs_Th0_Zscores" # matches name used in Cytoscape 
 genes.final.idx <- which(abs(zscores.all) > GLOBAL[["z.abs.cut"]])
 genes.final <- zscore.table[genes.final.idx, "Gene_id"]
 
-print(paste("Original gene number:", length(zscore.table[, "Gene_id"]), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
+print(paste("Total number of genes with z-scores:", length(zscore.table[, "Gene_id"]), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
 print(paste())
 
 ko.scores <- NULL
@@ -90,37 +113,109 @@ r_sign_mat <- NULL
 i_sign_mat <- NULL
 
 # Load RNA-seq knockout scores
-setwd(scriptdir)
-source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
-ko.scores <- load.deseq(dir = deseqdir, CORE_TFS)
-k_sign_mat <- sign(as.data.frame(ko.scores))
-if(GLOBAL[["DEBUG"]]) write.mat(ko.scores, outpath.debug, "K", "_smat")
+loadKOData <- function() {
+  setwd(scriptdir)
+  source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
+  print("Generating knockout scores.")
+  scores <- load.deseq(dir = deseqdir, CORE_TFS)
+  k_sign_mat <- sign(as.data.frame(scores))
+  if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "K", "_smat")
+  return(scores)
+}
+
+if(shouldReloadKCData) {
+  ko.scores <- loadKOData()
+} else {
+  print("Looking for existing knockout data matrix.")
+  ko.file <- paste0(outpath.debug, "K_smat.txt")
+  if(file.exists(ko.file)) {
+    print("Found knockout matrix file.")
+    ko.scores <- as.data.frame(read.table(immgenfile, sep="\t", header=TRUE))
+    rownames(ko.scores) <- ko.scores[, 1]
+    ko.scores[, 1] <- NULL
+    k_sign_mat <- sign(ko.scores)
+    ko.scores <- data.matrix(ko.scores)
+  } else {
+    print("Could not find knockout data matrix. Generating new matrix.")
+    ko.scores <- loadKOData()
+  }
+}
  
 # Load ChIP-seq scores  
-setwd(scriptdir)
-source(paste0(getwd(), "/" , "chipExtract-fun.R"))
-chip.scores.activator <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = TRUE, CORE_TFS)
-chip.scores.repressor <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = FALSE, CORE_TFS)
-if(GLOBAL[["DEBUG"]]) write.mat(chip.scores.activator, outpath.debug, "C", "_activator_smat")
-if(GLOBAL[["DEBUG"]]) write.mat(chip.scores.repressor, outpath.debug, "C", "_repressor_smat")
+loadChIPData <- function(type) {
+  setwd(scriptdir)
+  source(paste0(getwd(), "/" , "chipExtract-fun.R"))
+  print("Loading ChIP scores.")
+  if(type == "activator") {
+    scores <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = TRUE, CORE_TFS)
+    if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "_activator_smat")
+  } else if(type == "repressor") {
+    scores <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = FALSE, CORE_TFS)
+    if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "_repressor_smat")
+  } else {
+    stop("Unknown type when loading ChIP data.")
+  }
+  return(scores)
+}
+
+if(shouldReloadKCData) {
+  chip.scores.activator <- loadChIPData("activator")
+  chip.scores.repressor <- loadChIPData("repressor")
+} else {
+  # Activator
+  print("Looking for existing ChIP activator data matrix.")
+  chip.activator.file <- paste0(outpath.debug, "C_activator_smat.txt")
+  if(file.exists(chip.activator.file)) {
+    print("Found ChIP activator matrix file.")
+    chip.scores.activator <- as.data.frame(read.table(chip.activator.file, sep="\t", header=TRUE))
+    rownames(chip.scores.activator) <- chip.scores.activator[, 1]
+    chip.scores.activator[, 1] <- NULL
+    chip.scores.activator <- data.matrix(chip.scores.activator)
+  } else {
+    print("Could not find ChIP activator data matrix. Generating new matrix.")
+    chip.scores.activator <- loadChIPData("activator")
+  }
+  
+  # Repressor
+  print("Looking for existing ChIP repressor data matrix.")
+  chip.repressor.file <- paste0(outpath.debug, "C_repressor_smat.txt")
+  if(file.exists(chip.repressor.file)) {
+    print("Found ChIP repressor matrix file.")
+    chip.scores.repressor <- as.data.frame(read.table(chip.repressor.file, sep="\t", header=TRUE))
+    rownames(chip.scores.repressor) <- chip.scores.repressor[, 1]
+    chip.scores.repressor[, 1] <- NULL
+    chip.scores.repressor <- data.matrix(chip.scores.repressor)
+  } else {
+    print("Could not find ChIP repressor data matrix. Generating new matrix.")
+    chip.scores.repressor <- loadChIPData("repressor")
+  }
+}
 
 # Load RNA-compendium Inferelator scores - directly provided on GEO
+print("Loading RNA-seq inferelator scores.")
 rna.scores <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
 # remove first column or sign()-function will explode
-rownames(rna.scores) <- rna.scores[, 1]
-rna.scores[, 1] <- NULL
+rownames(rna.scores) <- rna.scores[, "GENE_ID"]
+# remove ID column and only keep data
+print("Removing gene column")
+rna.scores[, "GENE_ID"] <- NULL
+rna.scores <- data.matrix(rna.scores)
 r_sign_mat <- sign(as.data.frame(rna.scores))
 
 # Load Immgen microarray Inferelator scores - directly provided on GEO 
+print("Loading Immgen microarray inferelator scores.")
 immgen.scores <- as.data.frame(read.table(immgenfile, sep="\t", header=TRUE))
 # remove first column or sign()-function will explode
-rownames(immgen.scores) <- immgen.scores[, 1]
-immgen.scores[, 1] <- NULL
+rownames(immgen.scores) <- immgen.scores[, "GENE_ID"]
+# remove ID column and only keep data
+immgen.scores[, "GENE_ID"] <- NULL
+immgen.scores <- data.matrix(immgen.scores)
 i_sign_mat <- sign(as.data.frame(immgen.scores))
 
 # --------------
 # 2) Perform ranking on each confidence score matrix S
 # --------------
+print(">>>>>>>>>>>>>>>>> 2) Perform ranking on each data set <<<<<<<<<<<<<<<<<<<<<<")
 # Reset because previous functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "rankSmat-fun.R"))
@@ -145,6 +240,7 @@ immgen.scores_ranked <- do.rank(immgen.scores, "I")
 # --------------
 # 3) Calculate quantiles for each ranked matrix to obtain the Q-matrix.
 # --------------
+print(">>>>>>>>>>>>>>>>> Calculating scores for Q-matrices <<<<<<<<<<<<<<<<<<<<<<")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "qmat-fun.R"))
@@ -166,11 +262,13 @@ print("Calculating Q-matrices.")
 # rna_qmat.activator <- do.qcalc(rna.scores, rna.scores_ranked, "R")
 # immgen_qmat.activator <- do.qcalc(immgen.scores, immgen.scores_ranked, "I")
 
+print(">>>>>>>>>>>>>>>>> DEBUG: Calculating Aviv Madar's rank-score algorithm (in place of own ranking) <<<<<<<<<<<<<<<<<<<<<<")
 # Utilizing ranking methods from AM for testing purposes
 source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
 
 # KO scores
 print("Ranking knockout scores.")
+print(paste("Type KO scores:", typeof(ko.scores)))
 ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
 ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
 write.mat(ko_qmat.activator, outpath.debug, "K", "_activator_nyu_qmat")
@@ -178,6 +276,7 @@ write.mat(ko_qmat.repressor, outpath.debug, "K", "_repressor_nyu_qmat")
 
 # ChIP scores
 print("Ranking ChIP scores.")
+print(paste("Type Chip scores:", typeof(chip.scores.activator)))
 chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator))
 chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor))
 write.mat(chip_qmat.activator, outpath.debug, "C", "_activator_nyu_qmat")
@@ -185,21 +284,24 @@ write.mat(chip_qmat.repressor, outpath.debug, "C", "_repressor_nyu_qmat")
 
 # RNA compendium scores
 print("Ranking RNA compendium scores.")
-rna_qmat.activator <- abs(convert.scores.to.relative.ranks(rna.scores))
-rna_qmat.repressor <- abs(convert.scores.to.relative.ranks(-1*rna.scores))
+print(paste("Type RNA scores:", typeof(rna.scores)))
+rna_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(rna.scores))
+rna_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*rna.scores))
 write.mat(rna_qmat.activator, outpath.debug, "R", "_activator_nyu_qmat")
 write.mat(rna_qmat.repressor, outpath.debug, "R", "_repressor_nyu_qmat")
 
 # Immgen microarray scores
 print("Ranking Immgen microarray scores.")
-immgen_qmat.activator <- abs(convert.scores.to.relative.ranks(immgen.scores))
-immgen_qmat.repressor <- abs(convert.scores.to.relative.ranks(-1*immgen.scores))
+print(paste("Type Immgen scores:", typeof(immgen.scores)))
+immgen_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(immgen.scores))
+immgen_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*immgen.scores))
 write.mat(immgen_qmat.activator, outpath.debug, "I", "_activator_nyu_qmat")
 write.mat(immgen_qmat.repressor, outpath.debug, "I", "_repressor_nyu_qmat")
 
 # --------------
 # 4) Combine data according to various data type combinations
 # --------------
+print(">>>>>>>>>>>>>>>>> Combining Q-matrices to a single interaction matrix <<<<<<<<<<<<<<<<<<<<<<")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createCombinedMat-fun.R"))
@@ -219,12 +321,14 @@ kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko_qmat 
 # --------------
 # 6) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
 # --------------
+print(">>>>>>>>>>>>>>>>> Writing z-score table <<<<<<<<<<<<<<<<<<<<<<")
 print("Writing zscores from mmc5.")
-write.mat(zscores.all, outpath.cyt, "zscores")
+write.mat(zscores.all, outpath.cyt, "", "zscores")
 
 # --------------
 # 7) From combine data matrix, create a list of node-node-value interactions for Cytoscape
 # --------------
+print(">>>>>>>>>>>>>>>>> Writing interaction lists for Cytoscape network <<<<<<<<<<<<<<<<<<<<<<")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
