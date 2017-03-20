@@ -21,6 +21,7 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   print(paste("Using absolute confidence score cut:", used.cut))
   
   # Info about the total number of edges
+  print(combomat[1:5,])
   tot <- length(combomat[abs(combomat) > used.cut])
   print(paste0(tot, " [", pos.edge, "]"))
   

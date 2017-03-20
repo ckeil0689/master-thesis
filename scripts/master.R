@@ -99,8 +99,7 @@ genes.final.idx <- which(abs(zscores.all) > GLOBAL[["z.abs.cut"]])
 genes.final <- zscore.table[genes.final.idx, "Gene_id"]
 
 print(paste("Total number of genes with z-scores:", length(zscore.table[, "Gene_id"]), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
-print(paste())
-
+  
 ko.scores <- NULL
 chip.scores.activator <- NULL
 chip.scores.repressor <- NULL
@@ -130,7 +129,7 @@ if(shouldReloadKCData) {
   ko.file <- paste0(outpath.debug, "K_smat.txt")
   if(file.exists(ko.file)) {
     print("Found knockout matrix file.")
-    ko.scores <- as.data.frame(read.table(immgenfile, sep="\t", header=TRUE))
+    ko.scores <- as.data.frame(read.table(ko.file, sep="\t", header=TRUE))
     rownames(ko.scores) <- ko.scores[, 1]
     ko.scores[, 1] <- NULL
     k_sign_mat <- sign(ko.scores)
@@ -268,7 +267,7 @@ source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
 
 # KO scores
 print("Ranking knockout scores.")
-print(paste("Type KO scores:", typeof(ko.scores)))
+print(ko.scores[1:3,])
 ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
 ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
 write.mat(ko_qmat.activator, outpath.debug, "K", "_activator_nyu_qmat")
@@ -276,7 +275,6 @@ write.mat(ko_qmat.repressor, outpath.debug, "K", "_repressor_nyu_qmat")
 
 # ChIP scores
 print("Ranking ChIP scores.")
-print(paste("Type Chip scores:", typeof(chip.scores.activator)))
 chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator))
 chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor))
 write.mat(chip_qmat.activator, outpath.debug, "C", "_activator_nyu_qmat")
@@ -284,7 +282,6 @@ write.mat(chip_qmat.repressor, outpath.debug, "C", "_repressor_nyu_qmat")
 
 # RNA compendium scores
 print("Ranking RNA compendium scores.")
-print(paste("Type RNA scores:", typeof(rna.scores)))
 rna_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(rna.scores))
 rna_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*rna.scores))
 write.mat(rna_qmat.activator, outpath.debug, "R", "_activator_nyu_qmat")
@@ -292,7 +289,6 @@ write.mat(rna_qmat.repressor, outpath.debug, "R", "_repressor_nyu_qmat")
 
 # Immgen microarray scores
 print("Ranking Immgen microarray scores.")
-print(paste("Type Immgen scores:", typeof(immgen.scores)))
 immgen_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(immgen.scores))
 immgen_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*immgen.scores))
 write.mat(immgen_qmat.activator, outpath.debug, "I", "_activator_nyu_qmat")

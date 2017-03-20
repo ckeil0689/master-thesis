@@ -11,6 +11,10 @@ createCombinedMat <- function(combo, type, ko_qmat, chip_qmat, rna_qmat, immgen_
   print("Combining Q-matrices to a single matrix.")
   combined_mat <- combine.qmats(ko_qmat, chip_qmat, rna_qmat, immgen_qmat, CORE_TFS)
   
+  print(paste("Combined Mat:", combo))
+  print(paste("Core TFs:", CORE_TFS))
+  print(combined_mat[1:5,])
+  
   # Filter the combined matrices by zscores from mmc5
   filtered.genes.idx <- which(rownames(combined_mat) %in% genes.final)
   filtered.genes <- rownames(combined_mat)[filtered.genes.idx]
@@ -25,8 +29,7 @@ createCombinedMat <- function(combo, type, ko_qmat, chip_qmat, rna_qmat, immgen_
   # Empty matrix with same dimension as combined matrix
   mat.sign <- matrix(0, nc=ncol(combined_mat), nr=nrow(combined_mat), dimnames=dimnames(combined_mat))
   # Only set values which also appear in KO matrix (TF-target gene pairs)
-  ko.genes <- rownames(ko.scores)[which(filtered.genes %in% rownames(ko.scores))]
-  print(typeof(ko.genes))
+  ko.genes <- rownames(ko.scores)[which(rownames(ko.scores) %in% filtered.genes)]
   mat.sign[ko.genes, colnames(ko.scores)] <- ko.scores[ko.genes,]
   # The knockout values will give us signs, everything else treated as positive (ChIP!)
   mat.sign <- sign(mat.sign)

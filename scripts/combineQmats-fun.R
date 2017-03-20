@@ -3,8 +3,15 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
   
   qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
   
+  # Only keep non-NULL row names (genes)
+  genes <- c()
+  for(i in qmatlist) {
+    if(is.null(i)) next
+    genes <- c(genes, rownames(i))
+  }
+  
   # Vectors for row and column names of final Thx (x=0/=17) matrix
-  final.genes <- toupper(sort(unique(c(rownames(kqmat), rownames(cqmat), rownames(rqmat), rownames(iqmat)))))
+  final.genes <- toupper(sort(unique(genes)))
   print(paste("Unique genes (total):", length(final.genes)))
 
   # 0-initialized matrix  
@@ -17,7 +24,6 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
   # Performing Q-matrix addition to combine data types
   for(i in qmatlist) {
     if(is.null(i)) next
-
     # from https://stackoverflow.com/questions/26042738/r-add-matrices-based-on-row-and-column-names
     A_df=as.data.frame(as.table(combined_mat))
     B_df=as.data.frame(as.table(i))
