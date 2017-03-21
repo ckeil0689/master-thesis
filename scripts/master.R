@@ -37,32 +37,34 @@ immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_I
 ref_filepath <- paste0(getwd(), "/../suppl/mmc4.csv")
 zscores_filepath <- paste0(getwd(), "/../suppl/mmc5.xls")
 
-# Put all output into analysis folder
+# Debug output directory
 outpath.debug <- paste0(getwd(), "/../suppl/data/analysis/debug/")
 if(!dir.exists(outpath.debug)) {
   dir.create(outpath.debug)
 }
 
-# What will eventually be used in Cytoscape
+# Cytoscape output directory
 outpath.cyt <- paste0(getwd(), "/../suppl/data/analysis/cyt/")
 if(!dir.exists(outpath.cyt)) {
   dir.create(outpath.cyt)
 }
 
+# Get command line arguments
+# Possible options:
+# noload - skip generating new ChIP-seq and DEseq (knockout) confidence score matrices and attempt to load existing files
 args = commandArgs(trailingOnly=TRUE)
-
 if(length(args) > 1) {
   stop("Only one argument allowed. Stopping.")
 }
 
 # ChIP and DEseq data is generated from GEO input, if this is true.
 # If the user enters the 'noload' option, existing matrices will be loaded (if they exist)
-shouldReloadKCData <- TRUE
+shouldRegenerateKCData <- TRUE
 
 # Can only be length 0 or 1 here
 if(length(args) == 1) {
   if(args[[1]] == "noload") {
-    shouldReloadKCData <- FALSE
+    shouldRegenerateKCData <- FALSE
     print("Attemtpting to use existing data for knockout and ChIP data.")
   } else {
     stop("Option not recognized. Available options: noload")
@@ -75,17 +77,20 @@ if(length(args) == 1) {
 # CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
 CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2", "hif1a")
    
-# Load confidence score matrices by option
+# Write a matrix to tab-delimited .txt-file
 write.mat <- function(mat, outpath, prefix, suffix) {
   filename = paste0(outpath, prefix, suffix, ".txt")
   print(paste("Writing matrix to file:", filename))
   write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }
 
+# START OF PROCEDURE
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
-print(">>>>>>>>>>>>>>>>> 1) Loading all data <<<<<<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
+print(">>>>>>>>>>>>>>>>> 1) Loading all initial data <<<<<<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
 # Load z-scores from SAM stored in mmc5 table of original authors (available on the Cell page, link on top of this script). 
 # Z-scores provide a color scheme for nodes in Cytoscape which shows differential expression Th17 vs Th0 after 48h.
 zscore.table <- read.table(zscores_filepath, sep="\t", header=TRUE)
@@ -122,7 +127,7 @@ loadKOData <- function() {
   return(scores)
 }
 
-if(shouldReloadKCData) {
+if(shouldRegenerateKCData) {
   ko.scores <- loadKOData()
 } else {
   print("Looking for existing knockout data matrix.")
@@ -157,7 +162,7 @@ loadChIPData <- function(type) {
   return(scores)
 }
 
-if(shouldReloadKCData) {
+if(shouldRegenerateKCData) {
   chip.scores.activator <- loadChIPData("activator")
   chip.scores.repressor <- loadChIPData("repressor")
 } else {
@@ -214,7 +219,9 @@ i_sign_mat <- sign(as.data.frame(immgen.scores))
 # --------------
 # 2) Perform ranking on each confidence score matrix S
 # --------------
-print(">>>>>>>>>>>>>>>>> 2) Perform ranking on each data set <<<<<<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
+print(">>>>>>>>>>>>> 2) Perform ranking on each data set <<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
 # Reset because previous functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "rankSmat-fun.R"))
@@ -239,7 +246,9 @@ immgen.scores_ranked <- do.rank(immgen.scores, "I")
 # --------------
 # 3) Calculate quantiles for each ranked matrix to obtain the Q-matrix.
 # --------------
-print(">>>>>>>>>>>>>>>>> Calculating scores for Q-matrices <<<<<<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
+print(">>>>>>>>>>>>>>> Calculating scores for Q-matrices <<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "qmat-fun.R"))
@@ -297,7 +306,9 @@ write.mat(immgen_qmat.repressor, outpath.debug, "I", "_repressor_nyu_qmat")
 # --------------
 # 4) Combine data according to various data type combinations
 # --------------
-print(">>>>>>>>>>>>>>>>> Combining Q-matrices to a single interaction matrix <<<<<<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
+print(">>>>>>> Combining Q-matrices to a single interaction matrix <<<<<<<<")
+print("--------------------------------------------------------------------")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createCombinedMat-fun.R"))
@@ -317,14 +328,18 @@ kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko_qmat 
 # --------------
 # 6) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
 # --------------
-print(">>>>>>>>>>>>>>>>> Writing z-score table <<<<<<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
+print(">>>>>>>>>>>>>>>>>>>>> Writing z-score table <<<<<<<<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
 print("Writing zscores from mmc5.")
 write.mat(zscores.all, outpath.cyt, "", "zscores")
 
 # --------------
 # 7) From combine data matrix, create a list of node-node-value interactions for Cytoscape
 # --------------
-print(">>>>>>>>>>>>>>>>> Writing interaction lists for Cytoscape network <<<<<<<<<<<<<<<<<<<<<<")
+print("--------------------------------------------------------------------")
+print(">>>>>>>>> Writing interaction lists for Cytoscape network <<<<<<<<<<")
+print("--------------------------------------------------------------------")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
