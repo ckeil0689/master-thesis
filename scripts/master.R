@@ -124,11 +124,8 @@ if(shouldRegenerateKCData) {
   ko.file <- paste0(outpath.debug, "K_smat.txt")
   if(file.exists(ko.file)) {
     print("Found knockout matrix file.")
-    ko.scores <- as.data.frame(read.table(ko.file, sep="\t", header=TRUE))
-    rownames(ko.scores) <- ko.scores[, 1]
-    ko.scores[, 1] <- NULL
+    ko.scores <- as.matrix(read.table(ko.file, sep="\t", header=TRUE, row.names = 1))
     k_sign_mat <- sign(ko.scores)
-    ko.scores <- data.matrix(ko.scores)
   } else {
     print("Could not find knockout data matrix. Generating new matrix.")
     ko.scores <- loadKOData()
