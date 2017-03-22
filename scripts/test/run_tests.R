@@ -15,7 +15,11 @@ library(testthat)
 # Test directory paths
 test.dir <- getwd()
 results.out <- paste0(test.dir, "/results/")
+if(!dir.exists(results.out)) {
+  dir.create(results.out)
+}
 
-# 1) Testing 
-# source("path/to/fibo.R")
-test_results <- test_dir(results.out, reporter="summary")
+# Run the tests
+test_dir(test.dir, reporter="summary")
+
+print("Done testing.")

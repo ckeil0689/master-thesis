@@ -28,6 +28,9 @@ GLOBAL <- list()
 GLOBAL[["DEBUG"]] <- TRUE
 GLOBAL[["z.abs.cut"]] <- 0.00 # carried over from original Aviv Madar code
 
+# Load utility functions
+source("util.R")
+
 # Input file directories
 scriptdir <- getwd()
 deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
@@ -76,13 +79,6 @@ if(length(args) == 1) {
 # Core target transcription factors
 # CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
 CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2", "hif1a")
-   
-# Write a matrix to tab-delimited .txt-file
-write.mat <- function(mat, outpath, prefix, suffix) {
-  filename = paste0(outpath, prefix, suffix, ".txt")
-  print(paste("Writing matrix to file:", filename))
-  write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
-}
 
 # START OF PROCEDURE
 # --------------
@@ -123,7 +119,7 @@ loadKOData <- function() {
   print("Generating knockout scores.")
   scores <- load.deseq(dir = deseqdir, CORE_TFS)
   k_sign_mat <- sign(as.data.frame(scores))
-  if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "K", "_smat")
+  if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "K", "smat")
   return(scores)
 }
 
@@ -152,10 +148,10 @@ loadChIPData <- function(type) {
   print("Loading ChIP scores.")
   if(type == "activator") {
     scores <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = TRUE, CORE_TFS)
-    if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "_activator_smat")
+    if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "activator_smat")
   } else if(type == "repressor") {
     scores <- load.chip(dir = chipdir, reflibfile = ref_filepath, boost.p300 = FALSE, CORE_TFS)
-    if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "_repressor_smat")
+    if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "repressor_smat")
   } else {
     stop("Unknown type when loading ChIP data.")
   }
@@ -230,7 +226,7 @@ source(paste0(getwd(), "/" , "rankSmat-fun.R"))
 do.rank <- function(mat, prefix) {
   if(!is.null(mat)) {
     mat_ranked <- rank.smat(mat)
-    if(GLOBAL[["DEBUG"]]) write.mat(mat_ranked, outpath.debug, prefix, "_ranked")
+    if(GLOBAL[["DEBUG"]]) write.mat(mat_ranked, outpath.debug, prefix, "ranked")
     return(mat_ranked)
   }
   return(NULL)
@@ -258,7 +254,7 @@ source(paste0(getwd(), "/" , "qmat-fun.R"))
 do.qcalc <- function(scores, scores_ranked, prefix) {
   if(!is.null(scores_ranked)) {
     qmat <- calc.qmat(scores, scores_ranked)
-    if(GLOBAL[["DEBUG"]]) write.mat(qmat, outpath.debug, prefix, "_qmat")
+    if(GLOBAL[["DEBUG"]]) write.mat(qmat, outpath.debug, prefix, "qmat")
     return(as.matrix(qmat))
   }
   return(NULL)
@@ -279,29 +275,29 @@ print("Ranking knockout scores.")
 print(ko.scores[1:3,])
 ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
 ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
-write.mat(ko_qmat.activator, outpath.debug, "K", "_activator_nyu_qmat")
-write.mat(ko_qmat.repressor, outpath.debug, "K", "_repressor_nyu_qmat")
+write.mat(ko_qmat.activator, outpath.debug, "K", "activator_nyu_qmat")
+write.mat(ko_qmat.repressor, outpath.debug, "K", "repressor_nyu_qmat")
 
 # ChIP scores
 print("Ranking ChIP scores.")
 chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator))
 chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor))
-write.mat(chip_qmat.activator, outpath.debug, "C", "_activator_nyu_qmat")
-write.mat(chip_qmat.repressor, outpath.debug, "C", "_repressor_nyu_qmat")
+write.mat(chip_qmat.activator, outpath.debug, "C", "activator_nyu_qmat")
+write.mat(chip_qmat.repressor, outpath.debug, "C", "repressor_nyu_qmat")
 
 # RNA compendium scores
 print("Ranking RNA compendium scores.")
 rna_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(rna.scores))
 rna_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*rna.scores))
-write.mat(rna_qmat.activator, outpath.debug, "R", "_activator_nyu_qmat")
-write.mat(rna_qmat.repressor, outpath.debug, "R", "_repressor_nyu_qmat")
+write.mat(rna_qmat.activator, outpath.debug, "R", "activator_nyu_qmat")
+write.mat(rna_qmat.repressor, outpath.debug, "R", "repressor_nyu_qmat")
 
 # Immgen microarray scores
 print("Ranking Immgen microarray scores.")
 immgen_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(immgen.scores))
 immgen_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*immgen.scores))
-write.mat(immgen_qmat.activator, outpath.debug, "I", "_activator_nyu_qmat")
-write.mat(immgen_qmat.repressor, outpath.debug, "I", "_repressor_nyu_qmat")
+write.mat(immgen_qmat.activator, outpath.debug, "I", "activator_nyu_qmat")
+write.mat(immgen_qmat.repressor, outpath.debug, "I", "repressor_nyu_qmat")
 
 # --------------
 # 4) Combine data according to various data type combinations
