@@ -158,10 +158,7 @@ if(shouldRegenerateKCData) {
   chip.activator.file <- paste0(outpath.debug, "C_activator_smat.txt")
   if(file.exists(chip.activator.file)) {
     print("Found ChIP activator matrix file.")
-    chip.scores.activator <- as.data.frame(read.table(chip.activator.file, sep="\t", header=TRUE))
-    rownames(chip.scores.activator) <- chip.scores.activator[, 1]
-    chip.scores.activator[, 1] <- NULL
-    chip.scores.activator <- data.matrix(chip.scores.activator)
+    chip.scores.activator <- as.matrix(read.table(chip.activator.file, sep="\t", header=TRUE, row.names = 1))
   } else {
     print("Could not find ChIP activator data matrix. Generating new matrix.")
     chip.scores.activator <- loadChIPData("activator")
@@ -172,10 +169,7 @@ if(shouldRegenerateKCData) {
   chip.repressor.file <- paste0(outpath.debug, "C_repressor_smat.txt")
   if(file.exists(chip.repressor.file)) {
     print("Found ChIP repressor matrix file.")
-    chip.scores.repressor <- as.data.frame(read.table(chip.repressor.file, sep="\t", header=TRUE))
-    rownames(chip.scores.repressor) <- chip.scores.repressor[, 1]
-    chip.scores.repressor[, 1] <- NULL
-    chip.scores.repressor <- data.matrix(chip.scores.repressor)
+    chip.scores.repressor <- as.matrix(read.table(chip.repressor.file, sep="\t", header=TRUE, row.names = 1))
   } else {
     print("Could not find ChIP repressor data matrix. Generating new matrix.")
     chip.scores.repressor <- loadChIPData("repressor")
@@ -184,23 +178,12 @@ if(shouldRegenerateKCData) {
 
 # Load RNA-compendium Inferelator scores - directly provided on GEO
 print("Loading RNA-seq inferelator scores.")
-rna.scores <- as.data.frame(read.table(rnaseqfile, sep="\t", header=TRUE))
-# remove first column or sign()-function will explode
-rownames(rna.scores) <- rna.scores[, "GENE_ID"]
-# remove ID column and only keep data
-print("Removing gene column")
-rna.scores[, "GENE_ID"] <- NULL
-rna.scores <- data.matrix(rna.scores)
+rna.scores <- as.matrix(read.table(rnaseqfile, sep="\t", header=TRUE, row.names = 1))
 r_sign_mat <- sign(as.data.frame(rna.scores))
 
 # Load Immgen microarray Inferelator scores - directly provided on GEO 
 print("Loading Immgen microarray inferelator scores.")
-immgen.scores <- as.data.frame(read.table(immgenfile, sep="\t", header=TRUE))
-# remove first column or sign()-function will explode
-rownames(immgen.scores) <- immgen.scores[, "GENE_ID"]
-# remove ID column and only keep data
-immgen.scores[, "GENE_ID"] <- NULL
-immgen.scores <- data.matrix(immgen.scores)
+immgen.scores <- as.matrix(read.table(immgenfile, sep="\t", header=TRUE, row.names = 1))
 i_sign_mat <- sign(as.data.frame(immgen.scores))
 
 # --------------
