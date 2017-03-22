@@ -89,17 +89,11 @@ print(">>>>>>>>>>>>>>>>> 1) Loading all initial data <<<<<<<<<<<<<<<<<<<<<<")
 print("--------------------------------------------------------------------")
 # Load z-scores from SAM stored in mmc5 table of original authors (available on the Cell page, link on top of this script). 
 # Z-scores provide a color scheme for nodes in Cytoscape which shows differential expression Th17 vs Th0 after 48h.
-zscore.table <- read.table(zscores_filepath, sep="\t", header=TRUE)
-zscore_col <- "Th17.Th0.zscores"
-zscores.all <- as.matrix(zscore.table[, zscore_col])
-rownames(zscores.all) <- zscore.table[, "Gene_id"]
-colnames(zscores.all) <- "Th17_vs_Th0_Zscores" # matches name used in Cytoscape Style for example KC.cys
+zscores.all <- load.zscores(zscores_filepath)
 
 # Z-scores may also be used for filtering of included genes
-genes.final.idx <- which(abs(zscores.all) > GLOBAL[["z.abs.cut"]])
-genes.final <- zscore.table[genes.final.idx, "Gene_id"]
-
-print(paste("Total number of genes with z-scores:", length(zscore.table[, "Gene_id"]), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
+genes.final <- filter.genes.by.zscore(zscores.all)
+print(paste("Total number of genes with z-scores:", length(rownames(zscores.all)), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
   
 ko.scores <- NULL
 chip.scores.activator <- NULL
