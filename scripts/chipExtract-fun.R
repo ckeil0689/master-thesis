@@ -1,9 +1,10 @@
 # !/usr/bin/env Rscript
-
+# ----------------
 # Constants
+# ----------------
 # Experiment-library reference table; assumes running from /scripts/ directory
 reflibfile <- paste0(getwd(), "/../suppl/mmc4.csv")
-if(!file.exists(reflibfile)) stop("Reference file does not exist, cannot load ChIP-files.")
+if(!file.exists(reflibfile)) stop(paste("Reference file does not exist, cannot load ChIP-files:", reflibfile))
 ref.table <- read.table(reflibfile, sep=",", header=TRUE)
 
 # ChIP-seq results files from GEO (assumes local copy in chipdir)
@@ -26,6 +27,9 @@ th17_chipfiles <- c("GSM1004787_SL3037_SL3036_genes.txt", # BATF wt
 p300_th0_chipfile <- "GSM1004842_SL1948_SL1947_genes.txt" # P300 Th0 wt
 p300_th17_chipfile <- "GSM1004851_SL3594_SL3592_genes.txt" # P300 Th17 rorc wt
 
+# ----------------
+# Sub-routines
+# ----------------
 # Correct for hyphens and underscores in TF names
 fix.tf.name <- function(tf.name) {
   tf.name <- gsub("(-|_)", "", tolower(tf.name))
@@ -167,7 +171,7 @@ calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300)
 }
 
 # ----------------
-# Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
+# Main function: load & process ChIP-seq data and return the confidence score matrix S(ChIP)
 # ----------------
 load.chip <- function(dir, boost.p300 = FALSE, CORE_TFS) {
   print("Reading ChIP files to create lists of TFs and genes.")
