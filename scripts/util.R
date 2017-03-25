@@ -32,8 +32,14 @@ load.zscores <- function(zscores.path) {
 }
 
 # Filters a table of genes by their z-score using the globally defined z.abs.cut
-filter.genes.by.zscore <- function(zscores.all) {
-  genes.final.idx <- which(abs(zscores.all) > GLOBAL[["z.abs.cut"]])
+filter.genes.by.zscore <- function(zscores.all, z.abs.cut) {
+  if(is.null(zscores.all)) {
+    stop("No zscores to filter.")
+  }
+  if(!is.numeric(z.abs.cut)) {
+    stop("zscore cut is not numeric.")
+  }
+  genes.final.idx <- which(abs(zscores.all) > z.abs.cut)
   genes.final <- rownames(zscores.all)[genes.final.idx]
   return(genes.final)
 }

@@ -64,3 +64,24 @@ test_that("zscores are successfully loaded", {
   expect_that(colnames(zscores.all), matches(c(score.col)))
   expect_that(is.numeric(zscores.all[score.col]), is_true())
 })
+
+context("Filtering genes by absolute zscore")
+test_that("Genes are correctly filtered by absolute zscore", {
+  vals <- c(-9.8, -2, 5.78, 0.0, 3.46, -12.7, -1.3, 3, 2.50, -2.50, 2.49, -2.51, -2.49, 2.51)
+  expected_out <- c("1", "3", "5", "6", "8", "12", "14") # indexes will be row names, so these are indexes bigger than z.abs.val
+  zscores <- matrix(vals, ncol = 1, nrow = length(vals))
+  rownames(zscores) <- as.character(c(1:length(vals)))
+  filtered.genes <- filter.genes.by.zscore(zscores, 2.5) 
+  expect_that(filtered.genes, is_identical_to(expected_out))
+})
+
+test_that("Incorrect input is handled correctly", {
+  vals <- c(-9.8, -2, 5.78, 0.0, 3.46, -12.7, -1.3, 3, 2.50, -2.50, 2.49, -2.51, -2.49, 2.51)
+  zscores <- matrix(vals, ncol = 1, nrow = length(vals))
+  
+  # character as zscore
+  expect_that(filter.genes.by.zscore(zscores, "2.5"), throws_error())
+  
+  # undefined zscores
+  expect_that(filter.genes.by.zscore(NULL, 2.5), throws_error())
+})
