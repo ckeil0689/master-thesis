@@ -39,13 +39,14 @@ test_that("writ.mat writes tab-delimited matrix file", {
   # test some problematic input
   expect_that(write.mat(outpath, prefix, suffix), throws_error())
   expect_that(write.mat(mat, prefix, suffix), throws_error())
-  expect_that(write.mat(mat, outpath, prefix), prints_text(paste("Writing matrix to file:", paste0(outpath, prefix, ".txt"))))
+  tmp_file <- paste0(prefix, ".txt")
+  expect_that(write.mat(mat, outpath, prefix), prints_text(paste("Writing matrix to file:", paste0(outpath, tmp_file))))
   expect_that(write.mat(), throws_error())
   expect_that(write.mat(outpath, prefix, suffix, mat), throws_error())
   
   # delete tmp file
   file.remove(filename)
-  expect_that(file.exists(filename), is_false())
+  file.remove(tmp_file)
 })
 
 context("Loading zscores")
