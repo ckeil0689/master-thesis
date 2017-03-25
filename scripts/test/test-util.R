@@ -84,4 +84,9 @@ test_that("Incorrect input is handled correctly", {
   
   # undefined zscores
   expect_that(filter.genes.by.zscore(NULL, 2.5), throws_error())
+  
+  # non-numeric score values
+  vals <- c("A", "B", "C", "D")
+  zscores <- matrix(vals, ncol = 1, nrow = length(vals))
+  expect_that(filter.genes.by.zscore(zscores, 2.5), throws_error())
 })
