@@ -92,7 +92,7 @@ print("--------------------------------------------------------------------")
 zscores.all <- load.zscores(zscores_filepath)
 
 # Z-scores may also be used for filtering of included genes
-genes.final <- filter.genes.by.zscore(zscores.all)
+genes.final <- filter.genes.by.zscore(zscores.all, GLOBAL[["z.abs.cut"]])
 print(paste("Total number of genes with z-scores:", length(rownames(zscores.all)), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
   
 ko.scores <- NULL

@@ -33,8 +33,8 @@ load.zscores <- function(zscores.path) {
 
 # Filters a table of genes by their z-score using the globally defined z.abs.cut
 filter.genes.by.zscore <- function(zscores.all, z.abs.cut) {
-  if(is.null(zscores.all)) {
-    stop("No zscores to filter.")
+  if(is.null(zscores.all) || is.null(z.abs.cut)) {
+    stop("A necessary parameter is missing. Cannot filter by zscores.")
   }
   if(!is.numeric(z.abs.cut)) {
     stop("zscore cut is not numeric.")

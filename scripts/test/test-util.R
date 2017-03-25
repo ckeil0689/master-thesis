@@ -89,4 +89,7 @@ test_that("Incorrect input is handled correctly", {
   vals <- c("A", "B", "C", "D")
   zscores <- matrix(vals, ncol = 1, nrow = length(vals))
   expect_that(filter.genes.by.zscore(zscores, 2.5), throws_error())
+  
+  # No score cut defined
+  expect_that(filter.genes.by.zscore(zscores), throws_error())
 })
