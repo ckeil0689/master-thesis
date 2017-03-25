@@ -1,14 +1,9 @@
 #!/usr/bin/env Rscript
 
 # Testing ChIP score matrix generation
-source(paste0(getwd(), "/../" , "chipExtract-fun.R"))
+source(paste0(getwd(), "/../" , "chipExtract-fun.R"), chdir = TRUE)
 
 CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2", "hif1a")
-
-# Experiment reference file from Cell paper website
-reflibfile <- paste0(getwd(), "/../../suppl/mmc4.csv")
-if(!file.exists(reflibfile)) {stop("Reference file does not exist, cannot load ChIP-files.")}
-ref.table <- read.table(reflibfile, sep=",", header=TRUE)
 
 context("Fixing TF names")
 
@@ -36,14 +31,20 @@ test_that("TF names are extracted correctly from reference table", {
   gibberish <- "ceverwrgwegrfr.txt"
   empty <- ""
   
-  expect_that(extract.tf.from.ref(rorc_th0, ref.table, boost.p300 = TRUE, CORE_TFS), is_identical_to("rorc-th0"))
-  expect_that(extract.tf.from.ref(maf_th0, ref.table, boost.p300 = TRUE, CORE_TFS), is_identical_to("maf-th0"))
-  expect_that(extract.tf.from.ref(batf_th17, ref.table, boost.p300 = TRUE, CORE_TFS), is_identical_to("batf-th17"))
-  expect_that(extract.tf.from.ref(stat3_th17, ref.table, boost.p300 = TRUE, CORE_TFS), is_identical_to("stat3-th17"))
-  expect_that(extract.tf.from.ref(p300_th0, ref.table, boost.p300 = TRUE, CORE_TFS), is_identical_to("p300-th0"))
-  expect_that(extract.tf.from.ref(p300_th17, ref.table, boost.p300 = TRUE, CORE_TFS), is_identical_to("p300-th17"))
-  expect_that(extract.tf.from.ref(non_existent, ref.table, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
-  expect_that(extract.tf.from.ref(gibberish, ref.table, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
-  expect_that(extract.tf.from.ref(empty, ref.table, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
-  expect_that(extract.tf.from.ref(NULL, ref.table, boost.p300 = TRUE, CORE_TFS), throws_error("No experiment passed. Stopping."))
+  expect_that(extract.tf.from.ref(rorc_th0, boost.p300 = TRUE, CORE_TFS), is_identical_to("rorc-th0"))
+  expect_that(extract.tf.from.ref(maf_th0, boost.p300 = TRUE, CORE_TFS), is_identical_to("maf-th0"))
+  expect_that(extract.tf.from.ref(batf_th17, boost.p300 = TRUE, CORE_TFS), is_identical_to("batf-th17"))
+  expect_that(extract.tf.from.ref(stat3_th17, boost.p300 = TRUE, CORE_TFS), is_identical_to("stat3-th17"))
+  expect_that(extract.tf.from.ref(p300_th0, boost.p300 = TRUE, CORE_TFS), is_identical_to("p300-th0"))
+  expect_that(extract.tf.from.ref(p300_th17, boost.p300 = TRUE, CORE_TFS), is_identical_to("p300-th17"))
+  expect_that(extract.tf.from.ref(non_existent, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
+  expect_that(extract.tf.from.ref(gibberish, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
+  expect_that(extract.tf.from.ref(empty, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
+  expect_that(extract.tf.from.ref(NULL, boost.p300 = TRUE, CORE_TFS), throws_error("No experiment passed. Stopping."))
+})
+
+context("Generating the ChIP-seq confidence score matrix")
+
+test_that("Skeleton matrix is created as expected", {
+  
 })
