@@ -1,6 +1,16 @@
 # Write a matrix to tab-delimited .txt-file
-write.mat <- function(mat, outpath, prefix, suffix) {
-  filename = paste0(outpath, prefix, "_", suffix, ".txt")
+write.mat <- function(mat, outpath, prefix, suffix = "") {
+  # some input checking
+  if(!(is.matrix(mat) || is.data.frame(mat) || is.table(mat))) {
+    stop("First argument is not a matrix, data frame, or table.")
+  } 
+  
+  if(!dir.exists(outpath)) {
+    stop(paste("Given output path is not a directory:", outpath))
+  }
+  
+  if(suffix != "") {suffix <- paste0("_", suffix)}
+  filename = paste0(outpath, prefix, suffix, ".txt")
   print(paste("Writing matrix to file:", filename))
   write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }
