@@ -170,6 +170,7 @@ load.chip <- function(dir, reflibfile, boost.p300 = FALSE, CORE_TFS) {
   if(!file.exists(reflibfile)) {stop("Reference file does not exist, cannot load ChIP-files.")}
   ref.table <- read.table(reflibfile, sep=",", header=TRUE)
   
+  # Define files to consider
   if(boost.p300) {
     print("ChIP-scores activator with p300 boost files.")
     all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_th0_chipfile, p300_th17_chipfile)
@@ -180,10 +181,12 @@ load.chip <- function(dir, reflibfile, boost.p300 = FALSE, CORE_TFS) {
   
   if(!file.exists(all_chipfiles)) {stop("Not all required ChIP files are present. Stopping.")}
   
+  # Get an empty skeleton matrix (to avoid dynamic memory reallocation in R...)
   thx_mat <- get.skel.matrix(all_chipfiles, boost.p300, ref.table, CORE_TFS)
   genes.unique <- rownames(thx_mat)
   tf.list <- colnames(thx_mat)
   
+  # Fill the matrix with Poisson model p-values as found in the files
   pois.mat <- get.pois.vals(thx_mat, all_chipfiles, boost.p300, ref.table, CORE_TFS)
   
   # debug only --- remove
@@ -195,56 +198,12 @@ load.chip <- function(dir, reflibfile, boost.p300 = FALSE, CORE_TFS) {
   tfs.list <- gsub("-(th0|th17)$", "", tf.list)
   tfs.list.unique <- sort(unique(tfs.list))
   
-  # Drop p300 - it was only needed for boosting
+  # Drop p300 - it was only needed for boosting (TODO: confirm if this is correct)
   if(boost.p300) {
     tfs.list.unique <- tfs.list.unique[tfs.list.unique !="p300"]
   }
   
-  # print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
-  # chipscores <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
-  # rownames(chipscores) <- genes.unique
-  # colnames(chipscores) <- tfs.list.unique
-  # 
-  # cols <- colnames(pois.mat)
-  # 
-  # if(boost.p300) {
-  #   p300.th17.col <- pois.mat[,"p300-th17"]
-  #   p300.th0.col <- pois.mat[,"p300-th0"]
-  #   p300.df <- data.frame(p300.th17.col, p300.th0.col)
-  #   p300.score.col <- (p300.df$p300.th17.col - p300.df$p300.th0.col)
-  # }
-  # 
-  # print("Calculate final ChIP-seq score matrix (cs = Th17 - Th0)...")
-  # #TODO incorporate p300 boost
-  # # The Th17 and Th0 column for each TF in pois.mat will be replaced with a single TF column
-  # # Th0 value will be substracted from Th17 to create the final chip score 
-  # for(i in tfs.list.unique) {
-  #   # patterns to match
-  #   p_th0 <- paste0(i, "-th0")
-  #   p_th17 <- paste0(i, "-th17")
-  #   
-  #   # Assumes one Th17 and one Th0 experiment for each TF
-  #   for(j in cols) {
-  #     if(grepl(p_th0, j)) {
-  #       th0_col <- pois.mat[,j]
-  #     } else if(grepl(p_th17, j)) {
-  #       th17_col <- pois.mat[,j]
-  #     } else {
-  #       next
-  #     }
-  #   }
-  #   
-  #   df <- data.frame(th17_col, th0_col)
-  #   
-  #   if(boost.p300) {
-  #     th.diff.col <- (df$th17_col - df$th0_col) + p300.score.col
-  #   } else {
-  #     th.diff.col <- (df$th17_col - df$th0_col)
-  #   }
-  #   
-  #   chipscores[,i] <- th.diff.col
-  # }
-  
+  # Get the final confidence score matrix for ChIP-seq data (if activator or repressor depends on p300 boost)
   chipscores <- calc.chipscores(pois.mat, genes.unique, tfs.list.unique, boost.p300)
   
   # remove all 0-only-rows
