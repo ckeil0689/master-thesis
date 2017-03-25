@@ -2,7 +2,7 @@
 /suppl/data/
 /papers/
 /scripts/external/
-
+/scripts/test/results/
 .Rhistory
 ~*
 .*#
