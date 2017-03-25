@@ -21,12 +21,37 @@ th17_chipfiles <- c("GSM1004787_SL3037_SL3036_genes.txt", # BATF wt
 p300_th0_chipfile <- "GSM1004842_SL1948_SL1947_genes.txt" # P300 Th0 wt
 p300_th17_chipfile <- "GSM1004851_SL3594_SL3592_genes.txt" # P300 Th17 rorc wt
 
-# correct for hyphens and underscores in TF names
+# Correct for hyphens and underscores in TF names
 fix.tf.name <- function(tf.name) {
   tf.name <- gsub("(-|_)", "", tolower(tf.name))
   tf.name <- gsub("cmaf", "maf", tf.name) # only these TF names are inconsistent all the time...
   tf.name <- gsub("rorg", "rorc", tf.name)
   return(tf.name)
+}
+
+# Use library name to get tf from reference for each condition
+# exp.name - the experiment name for lookup in ref.table
+extract.tf.from.ref <- function(exp.name, ref.table, boost.p300, CORE_TFS) {
+  libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(exp.name))
+  row <- match(libname, ref.table$Library_ID)
+  tf <- ref.table$Factor[row]
+  tf <- fix.tf.name(tf)
+  
+  # only use target TFs or p300 (when boosting)
+  if(!tf %in% CORE_TFS) {
+    if(!(boost.p300 && tf == "p300")) {
+      return(NULL)
+    }
+  }
+  
+  if(exp.name %in% th0_chipfiles || exp.name == p300_th0_chipfile) {
+    thx <- "th0" 
+  } else {
+    thx <- "th17"
+  }
+  
+  tf <- paste0(tf, "-", thx)
+  return(tf)
 }
 
 # Create unique, maximal list of tested TFs and genes with MACS peaks and form an empty matrix
@@ -37,26 +62,9 @@ get.skel.matrix <- function(all_chipfiles, boost.p300, ref.table, CORE_TFS) {
   
   print("Finding unique list of all genes tested in all ChIP files.")
   for(i in all_chipfiles) {
-    # use library name to get tf from reference for each condition
-    libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
-    row <- match(libname, ref.table$Library_ID)
-    tf <- ref.table$Factor[row]
-    tf <- fix.tf.name(tf)
+    tf <- extract.tf.from.ref(i, ref.table, boost.p300, CORE_TFS)
+    if(is.null(tf)) next
     
-    # only use target TFs or p300 (when boosting)
-    if(!tf %in% CORE_TFS) {
-      if(!(boost.p300 && tf == "p300")) {
-        next
-      }
-    }
-    
-    if(i %in% th0_chipfiles || i == p300_th0_chipfile) {
-      thx <- "th0" 
-    } else {
-      thx <- "th17"
-    }
-    
-    tf <- paste0(tf, "-", thx)
     tf.list <- c(tf.list, tf)
     
     # read in the data and extract the library name
@@ -69,41 +77,20 @@ get.skel.matrix <- function(all_chipfiles, boost.p300, ref.table, CORE_TFS) {
   # generate the empty Th17 and Th0 matrices for ChIP-seq
   genes.unique <- sort(unique(genes.all))
   
-  print(paste("Generate a zero-filled matrix skeleton.", "(genes =", length(genes.unique), ", TF columns =", length(tf.list), ")"))
-  # 0-initialized matrix  
+  print(paste0("Generate a zero-filled matrix skeleton.", " (genes = ", length(genes.unique), ", TF columns = ", length(tf.list), ")"))
   thx_mat <- matrix(0, nrow = length(genes.unique), ncol = length(tf.list))
-  # unique gene list makes up rows
   rownames(thx_mat) <- genes.unique
-  # unique transcription factor list makes up columns
   colnames(thx_mat) <- tf.list
   
   return(thx_mat)
 }
 
+# Extract and assign associated Poisson model p-values to a matrix
 get.pois.vals <- function(pois.mat, all_chipfiles, boost.p300, ref.table, CORE_TFS) {
   print("Extract Poisson model p-values from ChIP-seq files.")
-  # iteration 2: extract and assign associated Poisson model p-values to the matrix
   for(i in all_chipfiles) {
-    # get tf from reference for Thx/wt condition
-    libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*.txt$','\\1', basename(i))
-    row <- match(libname, ref.table$Library_ID)
-    tf <- ref.table$Factor[row]
-    tf <- fix.tf.name(tf)
-    
-    # only use target TFs or p300 (when boosting)
-    if(!tf %in% CORE_TFS) {
-      if(!(boost.p300 && tf == "p300")) {
-        next
-      }
-    }
-    
-    if(i %in% th0_chipfiles || i == p300_th0_chipfile) {
-      thx <- "th0" 
-    } else {
-      thx <- "th17"
-    }
-    
-    tf <- paste0(tf, "-", thx)
+    tf <- extract.tf.from.ref(i, ref.table, boost.p300, CORE_TFS)
+    if(is.null(tf)) next
     
     # order the genes, get index to also reorder Poisson model p-values
     cst <- read.table(i, sep="\t", header=TRUE, stringsAsFactors = FALSE)
@@ -116,51 +103,11 @@ get.pois.vals <- function(pois.mat, all_chipfiles, boost.p300, ref.table, CORE_T
       idx <- idx + 1
     }
   }
-  
   return(pois.mat)
 }
 
-# ----------------
-# Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
-# ----------------
-load.chip <- function(dir, reflibfile, boost.p300 = FALSE, CORE_TFS) {
-  print("Reading ChIP files to create lists of TFs and genes.")
-  if(!dir.exists(dir)) {stop("Cannot load ChIP-files because the directory does not exist.")}
-  setwd(dir)
-  
-  if(!file.exists(reflibfile)) {stop("Reference file does not exist, cannot load ChIP-files.")}
-  ref.table <- read.table(reflibfile, sep=",", header=TRUE)
-  
-  if(boost.p300) {
-    print("ChIP-scores activator with p300 boost files.")
-    all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_th0_chipfile, p300_th17_chipfile)
-  } else {
-    print("ChIP-scores repressor/absolute without p300 boost files.")
-    all_chipfiles <- c(th0_chipfiles, th17_chipfiles)
-  }
-  
-  if(!file.exists(all_chipfiles)) {stop("Not all required ChIP files are present. Stopping.")}
-  
-  thx_mat <- get.skel.matrix(all_chipfiles, boost.p300, ref.table, CORE_TFS)
-  genes.unique <- rownames(thx_mat)
-  tf.list <- colnames(thx_mat)
-  
-  pois.mat <- get.pois.vals(thx_mat, all_chipfiles, boost.p300, ref.table, CORE_TFS)
-  
-  # debug only --- remove
-  filename <- paste0(getwd(), "/../analysis/non-compressed-chip.txt")
-  write.table(pois.mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
-  
-  print("Create sorted, unique TF list from loaded files.")
-  # remove library suffix from transcription factor names and create a sorted, unique TF list
-  tfs.list <- gsub("-(th0|th17)$", "", tf.list)
-  tfs.list.unique <- sort(unique(tfs.list))
-  
-  # Drop p300 - it was only needed for boosting
-  if(boost.p300) {
-    tfs.list.unique <- tfs.list.unique[tfs.list.unique !="p300"]
-  }
-  
+# Calculate ChIP-scores: score = TF_Th17 - TF_Th0 (+ p300-score if activator)
+calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300) {
   print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
   chipscores <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
   rownames(chipscores) <- genes.unique
@@ -206,9 +153,99 @@ load.chip <- function(dir, reflibfile, boost.p300 = FALSE, CORE_TFS) {
     chipscores[,i] <- th.diff.col
   }
   
-  # finally let labels be capital letters
+  # finally make labels capital
   rownames(chipscores) <- toupper(genes.unique)
   colnames(chipscores) <- toupper(tfs.list.unique)
+  return(chipscores)
+}
+
+# ----------------
+# Load & process ChIP-seq data and return the confidence score matrix S(ChIP)
+# ----------------
+load.chip <- function(dir, reflibfile, boost.p300 = FALSE, CORE_TFS) {
+  print("Reading ChIP files to create lists of TFs and genes.")
+  if(!dir.exists(dir)) {stop("Cannot load ChIP-files because the directory does not exist.")}
+  setwd(dir)
+  
+  if(!file.exists(reflibfile)) {stop("Reference file does not exist, cannot load ChIP-files.")}
+  ref.table <- read.table(reflibfile, sep=",", header=TRUE)
+  
+  if(boost.p300) {
+    print("ChIP-scores activator with p300 boost files.")
+    all_chipfiles <- c(th0_chipfiles, th17_chipfiles, p300_th0_chipfile, p300_th17_chipfile)
+  } else {
+    print("ChIP-scores repressor/absolute without p300 boost files.")
+    all_chipfiles <- c(th0_chipfiles, th17_chipfiles)
+  }
+  
+  if(!file.exists(all_chipfiles)) {stop("Not all required ChIP files are present. Stopping.")}
+  
+  thx_mat <- get.skel.matrix(all_chipfiles, boost.p300, ref.table, CORE_TFS)
+  genes.unique <- rownames(thx_mat)
+  tf.list <- colnames(thx_mat)
+  
+  pois.mat <- get.pois.vals(thx_mat, all_chipfiles, boost.p300, ref.table, CORE_TFS)
+  
+  # debug only --- remove
+  filename <- paste0(getwd(), "/../analysis/non-compressed-chip.txt")
+  write.table(pois.mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+  
+  print("Create sorted, unique TF list from loaded files.")
+  # remove library suffix from transcription factor names and create a sorted, unique TF list
+  tfs.list <- gsub("-(th0|th17)$", "", tf.list)
+  tfs.list.unique <- sort(unique(tfs.list))
+  
+  # Drop p300 - it was only needed for boosting
+  if(boost.p300) {
+    tfs.list.unique <- tfs.list.unique[tfs.list.unique !="p300"]
+  }
+  
+  # print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
+  # chipscores <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
+  # rownames(chipscores) <- genes.unique
+  # colnames(chipscores) <- tfs.list.unique
+  # 
+  # cols <- colnames(pois.mat)
+  # 
+  # if(boost.p300) {
+  #   p300.th17.col <- pois.mat[,"p300-th17"]
+  #   p300.th0.col <- pois.mat[,"p300-th0"]
+  #   p300.df <- data.frame(p300.th17.col, p300.th0.col)
+  #   p300.score.col <- (p300.df$p300.th17.col - p300.df$p300.th0.col)
+  # }
+  # 
+  # print("Calculate final ChIP-seq score matrix (cs = Th17 - Th0)...")
+  # #TODO incorporate p300 boost
+  # # The Th17 and Th0 column for each TF in pois.mat will be replaced with a single TF column
+  # # Th0 value will be substracted from Th17 to create the final chip score 
+  # for(i in tfs.list.unique) {
+  #   # patterns to match
+  #   p_th0 <- paste0(i, "-th0")
+  #   p_th17 <- paste0(i, "-th17")
+  #   
+  #   # Assumes one Th17 and one Th0 experiment for each TF
+  #   for(j in cols) {
+  #     if(grepl(p_th0, j)) {
+  #       th0_col <- pois.mat[,j]
+  #     } else if(grepl(p_th17, j)) {
+  #       th17_col <- pois.mat[,j]
+  #     } else {
+  #       next
+  #     }
+  #   }
+  #   
+  #   df <- data.frame(th17_col, th0_col)
+  #   
+  #   if(boost.p300) {
+  #     th.diff.col <- (df$th17_col - df$th0_col) + p300.score.col
+  #   } else {
+  #     th.diff.col <- (df$th17_col - df$th0_col)
+  #   }
+  #   
+  #   chipscores[,i] <- th.diff.col
+  # }
+  
+  chipscores <- calc.chipscores(pois.mat, genes.unique, tfs.list.unique, boost.p300)
   
   # remove all 0-only-rows
   # chipscores <- chipscores[rowSums(abs(chipscores[, -1]))>(1e-10),]
