@@ -47,4 +47,96 @@ context("Generating the ChIP-seq confidence score matrix")
 
 test_that("Skeleton matrix is created as expected", {
   
+  # Files used as sample 
+  all.chipfiles.boost <- c("GSM1004785_SL3192_SL3190_genes.txt", # Th0 BATF wt
+                           "GSM1004824_SL1235_SL1234_genes.txt", # Th0 IRF4 wt
+                           "GSM1004787_SL3037_SL3036_genes.txt", # Th17 BATF wt
+                           "GSM1004833_SL2872_SL2876_genes.txt", # Th17 IRF4 rorc wt
+                           "GSM1004842_SL1948_SL1947_genes.txt", # P300 Th0 wt
+                           "GSM1004851_SL3594_SL3592_genes.txt") # P300 Th17 wt
+  
+  all.chipfiles.noboost <- c("GSM1004785_SL3192_SL3190_genes.txt", # Th0 BATF wt
+                           "GSM1004824_SL1235_SL1234_genes.txt", # Th0 IRF4 wt
+                           "GSM1004787_SL3037_SL3036_genes.txt", # Th17 BATF wt
+                           "GSM1004833_SL2872_SL2876_genes.txt") # Th17 IRF4 rorc wt
+  
+  skel.matrix.boost <- get.skel.matrix(all.chipfiles.boost, TRUE, CORE_TFS)
+  skel.matrix.noboost <- get.skel.matrix(all.chipfiles.noboost, FALSE, CORE_TFS)
+  
+  # Make sure the type is matrix
+  expect_that(skel.matrix.boost, is_a("matrix"))
+  expect_that(skel.matrix.noboost, is_a("matrix"))
+  
+  # Expected column names
+  exp.colnames.boost <- c("batf-th0", "irf4-th0", "batf-th17", "irf4-th17", "p300-th0", "p300-th17")
+  exp.colnames.noboost <- c("batf-th0", "irf4-th0", "batf-th17", "irf4-th17")
+  
+  # Make sure we have rownames defined and the column names exactly match the expected examples.
+  expect_that(length(rownames(skel.matrix.boost)) > 0, is_true())
+  expect_that(length(rownames(skel.matrix.noboost)) > 0, is_true())
+  expect_that(length(colnames(skel.matrix.boost)) == 6, is_true())
+  expect_that(length(colnames(skel.matrix.noboost)) == 4, is_true())
+  expect_that(rownames(skel.matrix.boost), is_a("character"))
+  expect_that(rownames(skel.matrix.noboost), is_a("character"))
+  expect_that(colnames(skel.matrix.boost), is_a("character"))
+  expect_that(colnames(skel.matrix.noboost), is_a("character"))
+  expect_that(colnames(skel.matrix.boost), is_identical_to(exp.colnames.boost))
+  expect_that(colnames(skel.matrix.noboost), is_identical_to(exp.colnames.noboost))
+})
+
+test_that("Skeleton matrix is filled with Poisson p-values as expected", {
+  
+  # Create a 3x3 skeleton dummy matrix
+  skel.mat.boost <- matrix(0, nrow = 3, ncol = 3)
+  colnames(skel.mat.boost) <- c("maf-th0", "batf-th17", "rorc-th0")
+  rownames(skel.mat.boost) <- c("g1", "g2", "g3")
+  
+  # Create 3 tmp files from which we will read the Poisson values
+  # File names, modified original file names by inserting '_tmp_' so library ID can still be extracted and TF name found in reference
+  maf.tmpfile <- "GSM1004798_SL4424_SL4425_tmp_genes.txt"
+  batf.tmpfile <- "GSM1004787_SL3037_SL3036_tmp_genes.txt"
+  rorc.tmpfile <- "GSM1004853_SL3779_SL3778_tmp_genes.txt"
+  tmp.chipfiles <- c(maf.tmpfile, # MAF Th0 wt
+                     batf.tmpfile, #BATF Th17 wt
+                     rorc.tmpfile) # RORC Th0 wt
+                     
+  # For MAF-th0
+  maf.tmp <- matrix(0, nrow = 2, ncol = 2)
+  colnames(maf.tmp) <- c("Gene_ID", "genewide_pois_model_pval")
+  maf.tmp[,"Gene_ID"] <- c("g1", "g2")
+  maf.tmp[,"genewide_pois_model_pval"] <- c(22.4198441743, 3.5005671754)
+  write.table(maf.tmp, file = maf.tmpfile, sep = "\t", row.names = TRUE, col.names = NA)
+  
+  # For BATF-th17
+  batf.tmp <- matrix(0, nrow = 2, ncol = 2)
+  colnames(batf.tmp) <- c("Gene_ID", "genewide_pois_model_pval")
+  batf.tmp[,"Gene_ID"] <- c("g1", "g3")
+  batf.tmp[,"genewide_pois_model_pval"] <- c(1.9055811328, 5.3287439411)
+  write.table(batf.tmp, file = batf.tmpfile, sep = "\t", row.names = TRUE, col.names = NA)
+  
+  # For RORC-th0
+  rorc.tmp <- matrix(0, nrow = 3, ncol = 2)
+  colnames(rorc.tmp) <- c("Gene_ID", "genewide_pois_model_pval")
+  rorc.tmp[,"Gene_ID"] <- c("g1", "g2", "g3")
+  rorc.tmp[,"genewide_pois_model_pval"] <- c(1.9957011261, 4.5485324703, 13.1669802036)
+  write.table(rorc.tmp, file = rorc.tmpfile, sep = "\t", row.names = TRUE, col.names = NA)
+  
+  # The final calculated matrix to compare to
+  expected.result <- matrix(0, nrow = 3, ncol = 3)
+  colnames(expected.result) <- c("maf-th0", "batf-th17", "rorc-th0")
+  rownames(expected.result) <- c("g1", "g2", "g3")
+  expected.result[,"maf-th0"] <- c(22.4198441743, 3.5005671754, 0)
+  expected.result[,"batf-th17"] <- c(1.9055811328, 0, 5.3287439411)
+  expected.result[,"rorc-th0"] <- c(1.9957011261, 4.5485324703, 13.1669802036)
+  
+  # Run the method
+  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE, CORE_TFS)
+  
+  # Test the results
+  expect_that(mat.pois.boost, is_a("matrix"))
+  expect_that(mat.pois.boost, is_identical_to(expected.result))
+  
+  file.remove(maf.tmpfile)
+  file.remove(batf.tmpfile)
+  file.remove(rorc.tmpfile)
 })
