@@ -2,7 +2,10 @@
 # ----------------
 # Constants
 # ----------------
-# Experiment-library reference table; assumes running from /scripts/ directory
+# ChIP-seq file directory relative to /scripts/
+chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
+
+# Experiment-library reference table; relative to /scripts/ directory
 reflibfile <- paste0(getwd(), "/../suppl/mmc4.csv")
 if(!file.exists(reflibfile)) stop(paste("Reference file does not exist, cannot load ChIP-files:", reflibfile))
 ref.table <- read.table(reflibfile, sep=",", header=TRUE)
@@ -68,12 +71,16 @@ extract.tf.from.ref <- function(exp.name, boost.p300, CORE_TFS) {
 
 # Create unique, maximal list of tested TFs and genes with MACS peaks and form an empty matrix
 get.skel.matrix <- function(all_chipfiles, boost.p300, CORE_TFS) {
+  # Ensure we are in correct directory
+  if(!dir.exists(chipdir)) stop("Cannot load ChIP-files because the directory does not exist.")
+  setwd(chipdir)
   # Vectors for row and column names of final Thx (x=0/=17) matrix
   genes.all <- c()
   tf.list <- c()
   
   print("Finding unique list of all genes tested in all ChIP files.")
   for(i in all_chipfiles) {
+    if(!file.exists(i)) stop("Not all required ChIP files are present. Stopping.")
     tf <- extract.tf.from.ref(i, boost.p300, CORE_TFS)
     if(is.null(tf)) next
     
@@ -101,6 +108,7 @@ get.skel.matrix <- function(all_chipfiles, boost.p300, CORE_TFS) {
 get.pois.vals <- function(pois.mat, all_chipfiles, boost.p300, CORE_TFS) {
   print("Extract Poisson model p-values from ChIP-seq files.")
   for(i in all_chipfiles) {
+    if(!file.exists(i)) stop("Not all required ChIP files are present. Stopping.")
     tf <- extract.tf.from.ref(i, boost.p300, CORE_TFS)
     if(is.null(tf)) next
     
@@ -173,10 +181,8 @@ calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300)
 # ----------------
 # Main function: load & process ChIP-seq data and return the confidence score matrix S(ChIP)
 # ----------------
-load.chip <- function(dir, boost.p300 = FALSE, CORE_TFS) {
+load.chip <- function(boost.p300 = FALSE, CORE_TFS) {
   print("Reading ChIP files to create lists of TFs and genes.")
-  if(!dir.exists(dir)) stop("Cannot load ChIP-files because the directory does not exist.")
-  setwd(dir)
   
   # Define files to consider
   if(boost.p300) {
@@ -185,11 +191,6 @@ load.chip <- function(dir, boost.p300 = FALSE, CORE_TFS) {
   } else {
     print("ChIP-scores repressor/absolute without p300 boost files.")
     all_chipfiles <- c(th0_chipfiles, th17_chipfiles)
-  }
-  
-  # Make sure we have all required files available
-  for(i in all_chipfiles) {
-    if(!file.exists(i)) {stop("Not all required ChIP files are present. Stopping.")}
   }
   
   # Get an empty skeleton matrix (to avoid dynamic memory reallocation in R...)

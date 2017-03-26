@@ -34,7 +34,7 @@ source("util.R")
 # Input file directories
 scriptdir <- getwd()
 deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
-chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
+# chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 rnaseqfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_RNAseq.txt")
 immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
 # ref_filepath <- paste0(getwd(), "/../suppl/mmc4.csv")
@@ -138,10 +138,10 @@ loadChIPData <- function(type) {
   source(paste0(getwd(), "/" , "chipExtract-fun.R"))
   print("Loading ChIP scores.")
   if(type == "activator") {
-    scores <- load.chip(dir = chipdir, boost.p300 = TRUE, CORE_TFS)
+    scores <- load.chip(boost.p300 = TRUE, CORE_TFS)
     if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "activator_smat")
   } else if(type == "repressor") {
-    scores <- load.chip(dir = chipdir, boost.p300 = FALSE, CORE_TFS)
+    scores <- load.chip(boost.p300 = FALSE, CORE_TFS)
     if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "repressor_smat")
   } else {
     stop("Unknown type when loading ChIP data.")
