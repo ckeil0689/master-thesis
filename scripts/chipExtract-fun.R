@@ -59,12 +59,7 @@ extract.tf.from.ref <- function(exp.name, boost.p300, CORE_TFS) {
     }
   }
   
-  if(exp.name %in% th0_chipfiles || exp.name == p300_th0_chipfile) {
-    thx <- "th0" 
-  } else {
-    thx <- "th17"
-  }
-  
+  thx <- tolower(ref.table$Condition[row])
   tf <- paste0(tf, "-", thx)
   return(tf)
 }
