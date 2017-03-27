@@ -105,16 +105,21 @@ get.pois.vals <- function(pois.mat, all_chipfiles, boost.p300, CORE_TFS) {
   for(i in all_chipfiles) {
     if(!file.exists(i)) stop("Not all required ChIP files are present. Stopping.")
     tf <- extract.tf.from.ref(i, boost.p300, CORE_TFS)
-    if(is.null(tf)) next
+    if(is.null(tf) || !(tf %in% colnames(pois.mat))) next
     
-    # order the genes, get index to also reorder Poisson model p-values
+    # Order the genes, get index to also reorder Poisson model p-values
     cst <- read.table(i, sep="\t", header=TRUE, stringsAsFactors = FALSE)
     genes <- cst$Gene_ID
     
-    # get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
+    # Get the Poisson p-values by iterating and accessing matrix via Gene_ID and TF-name
     idx <- 1
     for(j in genes) {
-      pois.mat[j, tf] <- cst$genewide_pois_model_pval[idx]
+      # There will be a warning if conversion produces an NA value (e.g. non-numeric string)
+      pois.val <- suppressWarnings(as.numeric(cst$genewide_pois_model_pval[idx]))
+      if(is.na(pois.val)) {
+        pois.val <- 0
+      }
+      pois.mat[j, tf] <- as.numeric(pois.val)
       idx <- idx + 1
     }
   }

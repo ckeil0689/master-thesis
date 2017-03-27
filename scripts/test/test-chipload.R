@@ -18,7 +18,6 @@ test_that("TF names are fixed to match conventional output (matching Cell author
 context("Extracting information from reference table")
 
 test_that("TF names are extracted correctly from reference table", {
-  
   # Files known as TF-Thx experiment
   rorc_th0 <- "GSM1004853_SL3779_SL3778_genes.txt"
   maf_th0 <- "GSM1004798_SL4424_SL4425_genes.txt"
@@ -46,7 +45,6 @@ test_that("TF names are extracted correctly from reference table", {
 context("Generating the ChIP-seq confidence score matrix")
 
 test_that("Skeleton matrix is created as expected", {
-  
   # Files used as sample 
   all.chipfiles.boost <- c("GSM1004785_SL3192_SL3190_genes.txt", # Th0 BATF wt
                            "GSM1004824_SL1235_SL1234_genes.txt", # Th0 IRF4 wt
@@ -85,7 +83,6 @@ test_that("Skeleton matrix is created as expected", {
 })
 
 test_that("Skeleton matrix is filled with Poisson p-values as expected", {
-  
   # Create a 3x3 skeleton dummy matrix
   skel.mat.boost <- matrix(0, nrow = 3, ncol = 3)
   colnames(skel.mat.boost) <- c("maf-th0", "batf-th17", "rorc-th0")
@@ -121,7 +118,7 @@ test_that("Skeleton matrix is filled with Poisson p-values as expected", {
   rorc.tmp[,"genewide_pois_model_pval"] <- c(1.9957011261, 4.5485324703, 13.1669802036)
   write.table(rorc.tmp, file = rorc.tmpfile, sep = "\t", row.names = TRUE, col.names = NA)
   
-  # The final calculated matrix to compare to
+  # 1) Normal test (skeleton matrix matches loaded ChIP-files)
   expected.result <- matrix(0, nrow = 3, ncol = 3)
   colnames(expected.result) <- c("maf-th0", "batf-th17", "rorc-th0")
   rownames(expected.result) <- c("g1", "g2", "g3")
@@ -129,13 +126,33 @@ test_that("Skeleton matrix is filled with Poisson p-values as expected", {
   expected.result[,"batf-th17"] <- c(1.9055811328, 0, 5.3287439411)
   expected.result[,"rorc-th0"] <- c(1.9957011261, 4.5485324703, 13.1669802036)
   
-  # Run the method
   mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE, CORE_TFS)
   
-  # Test the results
   expect_that(mat.pois.boost, is_a("matrix"))
   expect_that(mat.pois.boost, is_identical_to(expected.result))
   
+  # 2) Colnames in skeleton that do not occur in loaded files are skipped when filling pois.mat
+  colnames(skel.mat.boost) <- c("stat3-th0", "batf-th17", "rorc-th0")
+  colnames(expected.result)[[1]] <- "stat3-th0"
+  expected.result[,"stat3-th0"] <- c(0, 0, 0) # no match -> values never filled
+  
+  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE, CORE_TFS)
+  
+  expect_that(mat.pois.boost, is_a("matrix"))
+  expect_that(mat.pois.boost, is_identical_to(expected.result))
+  
+  # 3) Broken/ bad (non-numerical) input is added as zero value
+  rorc.tmp[,"genewide_pois_model_pval"] <- c("ghost", TRUE, 13.1669802036)
+  write.table(rorc.tmp, file = rorc.tmpfile, sep = "\t", row.names = TRUE, col.names = NA)
+  
+  expected.result[,"rorc-th0"] <- c(0, 0, 13.1669802036)
+  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE, CORE_TFS)
+  
+  print(mat.pois.boost)
+  expect_that(mat.pois.boost, is_a("matrix"))
+  expect_that(mat.pois.boost, is_identical_to(expected.result))
+  
+  # Clean tmp files
   file.remove(maf.tmpfile)
   file.remove(batf.tmpfile)
   file.remove(rorc.tmpfile)
