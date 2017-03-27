@@ -157,3 +157,49 @@ test_that("Skeleton matrix is filled with Poisson p-values as expected", {
   file.remove(batf.tmpfile)
   file.remove(rorc.tmpfile)
 })
+
+test_that("ChIP confidence scores are correctly calculated from Poisson p-value matrix", {
+  
+  genes.unique <- c("g1", "g2", "g3")
+  tfs.list.unique <- c("batf", "stat3")
+  
+  # Sample Poisson value matrix as it would come from get.pois.vals()
+  pois.mat <- matrix(0, nrow = 3, ncol= 6)
+  rownames(pois.mat) <- genes.unique
+  colnames(pois.mat) <- c("batf-th0", "batf-th17", "p300-th0", "p300-th17", "stat3-th0", "stat3-th17")
+  
+  # Fill with typicl data
+  batf.th17 <- c(1.9957011261, 4.5485324703, 13.1669802036)
+  batf.th0 <- c(0, 22.4198441743, 3.5005671754)
+  p300.th17 <- c(1.9055811328, 0, 5.3287439411)
+  p300.th0 <- c(0, 0, 13.1669802036)
+  stat3.th17 <- c(3.1876487024, 2.6303732467, 4.5760732998)
+  stat3.th0 <- c(7.5619903288, 2.4514891757, 1.1453294619)
+  pois.mat[, "batf-th17"] <- batf.th17
+  pois.mat[, "batf-th0"] <- batf.th0
+  pois.mat[, "p300-th17"] <- p300.th17
+  pois.mat[, "p300-th0"] <- p300.th0
+  pois.mat[, "stat3-th17"] <- stat3.th17
+  pois.mat[, "stat3-th0"] <- stat3.th0
+  
+  expected.scores.boost <- matrix(0, nrow = 3, ncol = 2)
+  rownames(expected.scores.boost) <- toupper(genes.unique)
+  colnames(expected.scores.boost) <- toupper(tfs.list.unique)
+  
+  boost.vals <- pois.mat[, "p300-th17"] - pois.mat[, "p300-th0"]
+  expected.scores.boost[,"batf"] <- pois.mat[, "batf-th17"] - pois.mat[, "batf-th0"] + boost.vals
+  expected.scores.boost[,"stat3"] <- pois.mat[, "stat3-th17"] - pois.mat[, "stat3-th0"] + boost.vals
+  
+  expected.scores.noboost <- matrix(0, nrow = 3, ncol = 2)
+  rownames(expected.scores.noboost) <- toupper(genes.unique)
+  colnames(expected.scores.noboost) <- toupper(tfs.list.unique)
+  
+  expected.scores.boost[,"batf"] <- pois.mat[, "batf-th17"] - pois.mat[, "batf-th0"]
+  expected.scores.boost[,"stat3"] <- pois.mat[, "stat3-th17"] - pois.mat[, "stat3-th0"]
+    
+  scores.boost <- calc.chipscores(pois.mat, genes.unique, tfs.list.unique, TRUE)
+  scores.noboost <- calc.chipscores(pois.mat, genes.unique, tfs.list.unique, FALSE)
+  
+  expect_that(scores.boost, is_identical_to(expected.scores.boost))
+  expect_that(scores.noboost, is_identical_to(expected.scores.noboost))
+})
