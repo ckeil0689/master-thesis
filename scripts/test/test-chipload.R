@@ -148,7 +148,6 @@ test_that("Skeleton matrix is filled with Poisson p-values as expected", {
   expected.result[,"rorc-th0"] <- c(0, 0, 13.1669802036)
   mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE, CORE_TFS)
   
-  print(mat.pois.boost)
   expect_that(mat.pois.boost, is_a("matrix"))
   expect_that(mat.pois.boost, is_identical_to(expected.result))
   
@@ -158,8 +157,38 @@ test_that("Skeleton matrix is filled with Poisson p-values as expected", {
   file.remove(rorc.tmpfile)
 })
 
+test_that("Data frame conversion to numerical columns works as expected", {
+  
+  # 1) Normal sample data frame (all character type convertible to numeric)
+  col1 <- c("1.5545", "2", "0.333")
+  col2 <- c("4", "0", "100000")
+  df <- data.frame(col1, col2)
+  
+  # The expected numeric output to compare to
+  col1.exp <- c(1.5545, 2, 0.333)
+  col2.exp <- c(4, 0, 100000)
+  expected.result <- data.frame(col1.exp, col2.exp)
+  df.convert <- convert.to.numeric(df)
+  
+  expect_that(df.convert, is_a("data.frame"))
+  expect_that(df.convert, is_identical_to(df.convert))
+  
+  # 2) Some data which is not convertible to numeric
+  col2 <- c("?", NA, 0)
+  df <- data.frame(col1, col2)
+  
+  col1.exp <- c(NA, NA, 0)
+  expected.result <- c(col1.exp, col2.exp)
+  
+  expect_that(df.convert <- convert.to.numeric(df), gives_warning())
+  
+  expect_that(df.convert, is_a("data.frame"))
+  expect_that(df.convert, is_identical_to(df.convert))
+})
+
 test_that("ChIP confidence scores are correctly calculated from Poisson p-value matrix", {
   
+  # Dimension names for sample matrices
   genes.unique <- c("g1", "g2", "g3")
   tfs.list.unique <- c("batf", "stat3")
   
@@ -168,7 +197,7 @@ test_that("ChIP confidence scores are correctly calculated from Poisson p-value 
   rownames(pois.mat) <- genes.unique
   colnames(pois.mat) <- c("batf-th0", "batf-th17", "p300-th0", "p300-th17", "stat3-th0", "stat3-th17")
   
-  # Fill with typicl data
+  # Fill with typical data
   batf.th17 <- c(1.9957011261, 4.5485324703, 13.1669802036)
   batf.th0 <- c(0, 22.4198441743, 3.5005671754)
   p300.th17 <- c(1.9055811328, 0, 5.3287439411)
@@ -182,24 +211,59 @@ test_that("ChIP confidence scores are correctly calculated from Poisson p-value 
   pois.mat[, "stat3-th17"] <- stat3.th17
   pois.mat[, "stat3-th0"] <- stat3.th0
   
+  # 1) Normal input test
+  # Matrix with p300 boost added (activator)
   expected.scores.boost <- matrix(0, nrow = 3, ncol = 2)
   rownames(expected.scores.boost) <- toupper(genes.unique)
   colnames(expected.scores.boost) <- toupper(tfs.list.unique)
   
-  boost.vals <- pois.mat[, "p300-th17"] - pois.mat[, "p300-th0"]
-  expected.scores.boost[,"batf"] <- pois.mat[, "batf-th17"] - pois.mat[, "batf-th0"] + boost.vals
-  expected.scores.boost[,"stat3"] <- pois.mat[, "stat3-th17"] - pois.mat[, "stat3-th0"] + boost.vals
+  boost.vals <- p300.th17 - p300.th0
+  expected.scores.boost[,"BATF"] <- batf.th17 - batf.th0 + boost.vals
+  expected.scores.boost[,"STAT3"] <- stat3.th17 - stat3.th0 + boost.vals
   
+  # Matrix without p300 boost added (repressor)
   expected.scores.noboost <- matrix(0, nrow = 3, ncol = 2)
   rownames(expected.scores.noboost) <- toupper(genes.unique)
   colnames(expected.scores.noboost) <- toupper(tfs.list.unique)
   
-  expected.scores.boost[,"batf"] <- pois.mat[, "batf-th17"] - pois.mat[, "batf-th0"]
-  expected.scores.boost[,"stat3"] <- pois.mat[, "stat3-th17"] - pois.mat[, "stat3-th0"]
-    
+  expected.scores.noboost[,"BATF"] <- batf.th17 - batf.th0
+  expected.scores.noboost[,"STAT3"] <- stat3.th17 - stat3.th0
+  
+  # Run the method
   scores.boost <- calc.chipscores(pois.mat, genes.unique, tfs.list.unique, TRUE)
   scores.noboost <- calc.chipscores(pois.mat, genes.unique, tfs.list.unique, FALSE)
   
+  # Compare results
+  expect_that(scores.boost, is_a("matrix"))
+  expect_that(scores.boost, is_identical_to(expected.scores.boost))
+  expect_that(scores.noboost, is_a("matrix"))
+  expect_that(scores.noboost, is_identical_to(expected.scores.noboost))
+  
+  # 2) Test bad input: modified BATF-th17 column with bad values
+  pois.mat[, "batf-th17"] <- c("?", NA, 0) # makes matrix non-numeric!
+  
+  batf.th17.faulty <- c(0, 0, 0)
+  expected.scores.boost[,"BATF"] <- batf.th17.faulty - batf.th0 + boost.vals
+  expected.scores.noboost[,"BATF"] <- batf.th17.faulty - batf.th0
+  
+  expect_that(scores.boost <- calc.chipscores(pois.mat, genes.unique, tfs.list.unique, TRUE), gives_warning())
+  expect_that(scores.noboost <- calc.chipscores(pois.mat, genes.unique, tfs.list.unique, FALSE), gives_warning())
+  
+  # At this point an error should be thrown, the program should stop in a controlled manner with a stop message
   expect_that(scores.boost, is_identical_to(expected.scores.boost))
   expect_that(scores.noboost, is_identical_to(expected.scores.noboost))
+})
+
+test_that("Integration test: ChIP-seq confidence score matrix generation process", {
+  
+  # Basic tests... very complicated to construct final matrix by hand to compare (input is always all GEO files)
+  chipscores <- load.chip(boost.p300 = TRUE, CORE_TFS)
+  
+  expect_that(chipscores, is_a("matrix"))
+  # No NA fields when matrix is generated
+  expect_that(length(chipscores[is.na(chipscores)]) == 0, is_true())
+  # Matrix was populated
+  expect_that(length(chipscores[chipscores != 0]) > 0, is_true())
+  expect_that(length(rownames(chipscores)) > 0, is_true())
+  expect_that(length(colnames(chipscores)) > 0, is_true())
 })

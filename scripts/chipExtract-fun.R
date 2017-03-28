@@ -126,6 +126,23 @@ get.pois.vals <- function(pois.mat, all_chipfiles, boost.p300, CORE_TFS) {
   return(pois.mat)
 }
 
+# Make sure all data in the data.frame is numeric - if not then abort
+convert.to.numeric <- function(df) {
+  for(i in 1:ncol(df)) {
+    tryCatch({
+      df[,i] <- as.numeric(as.character(df[,i]))
+    }, error = function(e) {
+      print(e)
+      stop("Error when converting data frame columns to numeric type.")
+    })
+  }
+  
+  # Convert NA values to 0 --> treated as no measured activity
+  df[is.na(df)] = 0
+  
+  return(df)
+}
+
 # Calculate ChIP-scores: score = TF_Th17 - TF_Th0 (+ p300-score if activator)
 calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300) {
   print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
@@ -139,6 +156,7 @@ calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300)
     p300.th17.col <- pois.mat[,"p300-th17"]
     p300.th0.col <- pois.mat[,"p300-th0"]
     p300.df <- data.frame(p300.th17.col, p300.th0.col)
+    p300.df <- convert.to.numeric(p300.df)
     p300.score.col <- (p300.df$p300.th17.col - p300.df$p300.th0.col)
   }
   
@@ -162,6 +180,7 @@ calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300)
     }
     
     df <- data.frame(th17_col, th0_col)
+    df <- convert.to.numeric(df)
     
     if(boost.p300) {
       th.diff.col <- (df$th17_col - df$th0_col) + p300.score.col
@@ -175,6 +194,7 @@ calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300)
   # finally make labels capital
   rownames(chipscores) <- toupper(genes.unique)
   colnames(chipscores) <- toupper(tfs.list.unique)
+  
   return(chipscores)
 }
 
