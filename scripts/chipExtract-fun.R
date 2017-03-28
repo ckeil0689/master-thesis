@@ -10,7 +10,7 @@ reflibfile <- paste0(getwd(), "/../suppl/mmc4.csv")
 if(!file.exists(reflibfile)) stop(paste("Reference file does not exist, cannot load ChIP-files:", reflibfile))
 ref.table <- read.table(reflibfile, sep=",", header=TRUE)
 
-# ChIP-seq results files from GEO (assumes local copy in chipdir)
+# Selection of ChIP-seq results files from GEO (assumes local copy in chipdir)
 # The chosen files here correspond with the ones which the original authors
 # have found to be qualitative superior results files. Each TF has one Th0 and one Th17 file.
 th0_chipfiles <- c("GSM1004785_SL3192_SL3190_genes.txt", # BATF wt

@@ -33,7 +33,7 @@ source("util.R")
 
 # Input file directories
 scriptdir <- getwd()
-deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
+# deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
 # chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 rnaseqfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_RNAseq.txt")
 immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
@@ -111,7 +111,7 @@ loadKOData <- function() {
   setwd(scriptdir)
   source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
   print("Generating knockout scores.")
-  scores <- load.deseq(dir = deseqdir, CORE_TFS)
+  scores <- load.deseq(CORE_TFS)
   k_sign_mat <- sign(as.data.frame(scores))
   if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "K", "smat")
   return(scores)
