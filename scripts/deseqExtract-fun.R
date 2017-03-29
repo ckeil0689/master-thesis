@@ -6,14 +6,21 @@ deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
 # Ensure we are in correct directory
 if(!dir.exists(deseqdir)) stop("Cannot load ChIP-files because the directory does not exist.")
 setwd(deseqdir)
+
+# We consider all DESeq result files (as opposed to selective ChIP-seq loading)
 deseqfiles <- list.files(getwd())
 
+# ----------------
+# Functions
+# ----------------
+# Extracts the TF target from a DESeq file according to their format
+# Assumes convention column name (e.g. Th17.batf.wt -> batf)
 extract.tf <- function(tfcol) {
-  # get TF name and add it to list
-  tf <- toupper(strsplit(tfcol, "[.]")[[1]][2]) # assumes convention column name (e.g. Th17.batf.wt -> batf)
+  tf <- toupper(strsplit(tfcol, "[.]")[[1]][2])
   return(tf)
 }
 
+# Scans DESeq files for genes and transcription factors (matching CORE_TFS) to generate a pre-allocated skeleton matrix
 get.skel.mat <- function() {
   print(paste("Reading", length(deseqfiles),"DESeq files to create complete list of genes."))
   
@@ -21,7 +28,6 @@ get.skel.mat <- function() {
   all.genes <- c()
   all.tfs <- c()
   
-  # Iteration 1: get list of all tested genes and TFs so a matrix can be pre-allocated
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
@@ -35,21 +41,19 @@ get.skel.mat <- function() {
     
     all.tfs <- c(all.tfs, tf)
     
-    # create full gene list by adding all genes from this file
+    # Collect all genes from this file
     file.genes <- as.character(cst$id)
     all.genes <- append(all.genes, file.genes)
   }
   
-  print("Generate zero-filled matrix skeleton.")
-  # generate the empty Th17 and Th0 matrices for ChIP-seq
+  print("Generating zero-filled KO-matrix skeleton.")
   all.genes.unique <- toupper(sort(unique(all.genes)))
+  all.tfs.unique <- toupper(sort(unique(all.tfs)))
   
   # 0-initialized matrix  
-  scores.empty <- matrix(0, nrow = length(all.genes.unique), ncol = length(all.tfs))
-  # unique gene list makes up rows
+  scores.empty <- matrix(0, nrow = length(all.genes.unique), ncol = length(all.tfs.unique))
   rownames(scores.empty) <- all.genes.unique
-  # unique transcription factor list makes up columns
-  colnames(scores.empty) <- toupper(all.tfs)
+  colnames(scores.empty) <- all.tfs.unique
   
   return(scores.empty)
 }
@@ -93,7 +97,9 @@ populate.ko.scores <- function(ko.scores) {
   return(ko.scores)
 }
 
-# Read a DEseq files from dir
+# ----------------
+# Main function: load & process DEseq data and return the confidence score matrix S(KO)
+# ----------------
 load.deseq <- function(CORE_TFS) {
   empty.scores <- get.skel.mat()
   ko.scores <- populate.ko.scores(empty.scores)
