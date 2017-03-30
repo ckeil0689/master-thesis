@@ -73,7 +73,7 @@ populate.ko.scores <- function(ko.scores) {
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
-    tf <- extract.tf(colnames(cst)[3])
+    tf <- extract.tf(colnames(cst))
     if(is.na(tf)) next
     
     # get the DESeq p-values by iterating and accessing matrix via id and TF-name (genes are not ordered by name in DESeq files!)

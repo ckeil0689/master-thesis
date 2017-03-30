@@ -70,4 +70,18 @@ context("Testing data population of empty KO-matrix from DESeq files")
 
 test_that("KO-skeleton matrix is populated with p-val*log2 data for every TF-gene pair as expected.", {
   
+  score.skel.mat <- get.skel.mat()
+  ko.scores <- populate.ko.scores(score.skel.mat)
+  
+  # Check basic attributes
+  expect_that(ko.scores, is_a("matrix"))
+  expect_that(length(ko.scores[is.infinite(ko.scores)]) == 0, is_true())
+  expect_that(length(ko.scores[is.na(ko.scores)]) == 0, is_true())
+  expect_that(length(rownames(ko.scores)) > 0, is_true())
+  expect_that(length(colnames(ko.scores)) > 0, is_true())
+  # Column names should all be part of CORE_TFS
+  expect_that(all(tolower(colnames(ko.scores)) %in% GLOBAL[["CORE_TFS"]]), is_true())
+  
+  # Compare samples to some hand-calculated results.
+  # expect_that(ko.scores[row, col], is_identical_to(num)) ...
 })
