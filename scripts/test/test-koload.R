@@ -82,7 +82,7 @@ test_that("KO-skeleton matrix is populated with p-val*log2 data for every TF-gen
   # Column names should all be part of CORE_TFS
   expect_that(all(tolower(colnames(ko.scores)) %in% GLOBAL[["CORE_TFS"]]), is_true())
   
-  # Compare samples to some hand-calculated results 
+  # Compare samples to some hand-calculated results --> -log10(pval) * sign(log2foldchange)
   expect_that(ko.scores["IKZF3", "BATF"], equals(0.1430428, tolerance = 1e-7))
   expect_that(ko.scores["CROCC", "BATF"], equals(0.1019569, tolerance = 1e-7))
   expect_that(ko.scores["ARL11", "BATF"], equals(0, tolerance = 1e-7))

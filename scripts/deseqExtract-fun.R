@@ -57,10 +57,7 @@ get.skel.mat <- function() {
   all.tfs.unique <- toupper(sort(unique(all.tfs)))
   
   # 0-initialized matrix  
-  scores.empty <- matrix(0, nrow = length(all.genes.unique), ncol = length(all.tfs.unique))
-  rownames(scores.empty) <- all.genes.unique
-  colnames(scores.empty) <- all.tfs.unique
-  
+  scores.empty <- matrix(0, nrow = length(all.genes.unique), ncol = length(all.tfs.unique), dimnames = list(all.genes.unique, all.tfs.unique))
   return(scores.empty)
 }
 
@@ -69,7 +66,6 @@ get.skel.mat <- function() {
 # score = pval * sign(log2(foldchange))
 populate.ko.scores <- function(ko.scores) {
   print("Extract DESeq non-adjusted p-values and log2(foldchange) from files.")
-  
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
@@ -85,7 +81,6 @@ populate.ko.scores <- function(ko.scores) {
   }
   
   # replace NA and Inf values in matrix with 0s (for later ranking procedure)
-  print("Replacing Inf and NA values with 0 KO-score.")
   ko.scores[ko.scores == Inf] <- 0
   ko.scores[is.na(ko.scores)] <- 0
   
@@ -102,7 +97,7 @@ populate.ko.scores <- function(ko.scores) {
 # Main function: load & process DEseq data and return the confidence score matrix S(KO)
 # ----------------
 load.deseq <- function() {
-  empty.scores <- get.skel.mat()
-  ko.scores <- populate.ko.scores(empty.scores)
+  empty.score.mat <- get.skel.mat()
+  ko.scores <- populate.ko.scores(empty.score.mat)
   return(ko.scores)
 }
