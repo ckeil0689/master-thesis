@@ -28,6 +28,9 @@ extract.tf <- function(tfcol) {
 
 # Scans DESeq files for genes and transcription factors (matching CORE_TFS) to generate a pre-allocated skeleton matrix
 get.skel.mat <- function() {
+  # Ensure we are in correct directory
+  if(!dir.exists(deseqdir)) stop("Cannot load ChIP-files because the directory does not exist.")
+  setwd(deseqdir)
   print(paste("Reading", length(deseqfiles),"DESeq files to create complete list of genes."))
   
   # Vectors for row and column names of final KO-matrix
@@ -38,12 +41,7 @@ get.skel.mat <- function() {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
     tf <- extract.tf(colnames(cst)[3])
-    
-    # only use target TFs
-    if(!tolower(tf) %in% GLOBAL[["CORE_TFS"]]) {
-      print(paste("Transcription factor not in target group:", tf, "(skipped)"))
-      next
-    }
+    if(is.na(tf)) next
     
     all.tfs <- c(all.tfs, tf)
     
@@ -74,12 +72,7 @@ populate.ko.scores <- function(ko.scores) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
     tf <- extract.tf(colnames(cst)[3])
-    
-    # only use target TFs
-    if(!tolower(tf) %in% GLOBAL[["CORE_TFS"]]) {
-      print(paste("Transcription factor not in target group:", tf, "(skipped)"))
-      next
-    }
+    if(is.na(tf)) next
     
     # get the DESeq p-values by iterating and accessing matrix via id and TF-name (genes are not ordered by name in DESeq files!)
     idx <- 1

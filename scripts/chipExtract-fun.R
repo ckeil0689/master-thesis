@@ -92,10 +92,7 @@ get.skel.matrix <- function(all_chipfiles, boost.p300) {
   genes.unique <- sort(unique(genes.all))
   
   print(paste0("Generate a zero-filled matrix skeleton.", " (genes = ", length(genes.unique), ", TF columns = ", length(tf.list), ")"))
-  thx_mat <- matrix(0, nrow = length(genes.unique), ncol = length(tf.list))
-  rownames(thx_mat) <- genes.unique
-  colnames(thx_mat) <- tf.list
-  
+  thx_mat <- matrix(0, nrow = length(genes.unique), ncol = length(tf.list), dimnames = list(genes.unique, tf.list))
   return(thx_mat)
 }
 
@@ -146,10 +143,7 @@ convert.to.numeric <- function(df) {
 # Calculate ChIP-scores: score = TF_Th17 - TF_Th0 (+ p300-score if activator)
 calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300) {
   print(paste("Generate a zero-filled confidence score matrix skeleton.", "(genes =", length(genes.unique), ", TFs (unique) =", length(tfs.list.unique), ")"))
-  chipscores <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique))
-  rownames(chipscores) <- genes.unique
-  colnames(chipscores) <- tfs.list.unique
-  
+  chipscores <- matrix(0, nrow = length(genes.unique), ncol = length(tfs.list.unique), dimnames = list(genes.unique, tfs.list.unique))
   cols <- colnames(pois.mat)
   
   if(boost.p300) {
