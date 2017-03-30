@@ -16,8 +16,9 @@ if(length(deseqfiles) == 0) stop(paste("No DESeq files found in: ", deseqdir, "S
 # ----------------
 # Extracts the TF target from a DESeq file according to their format
 # Assumes convention column name (e.g. Th17.batf.wt -> batf)
-extract.tf <- function(tfcol) {
-  splitcol <- strsplit(tfcol, "[.]")
+extract.tf <- function(deseq.cols) {
+  if(length(deseq.cols) < 3) stop("Got unusual DESeq file with too few columns. Stopping.")
+  splitcol <- strsplit(deseq.cols[3], "[.]")
   tf <- splitcol[[1]][2]
   # only use target TFs
   if(!tf %in% GLOBAL[["CORE_TFS"]]) {
@@ -41,7 +42,7 @@ get.skel.mat <- function() {
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
-    tf <- extract.tf(colnames(cst)[3])
+    tf <- extract.tf(colnames(cst))
     if(is.na(tf)) next
     
     all.tfs <- c(all.tfs, tf)
