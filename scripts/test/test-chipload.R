@@ -3,8 +3,6 @@
 # Testing ChIP score matrix generation
 source(paste0(getwd(), "/../" , "chipExtract-fun.R"), chdir = TRUE)
 
-CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2", "hif1a")
-
 context("Fixing TF names")
 
 test_that("TF names are fixed to match conventional output (matching Cell authors example matrices)", {
@@ -30,16 +28,16 @@ test_that("TF names are extracted correctly from reference table", {
   gibberish <- "ceverwrgwegrfr.txt"
   empty <- ""
   
-  expect_that(extract.tf.from.ref(rorc_th0, boost.p300 = TRUE, CORE_TFS), is_identical_to("rorc-th0"))
-  expect_that(extract.tf.from.ref(maf_th0, boost.p300 = TRUE, CORE_TFS), is_identical_to("maf-th0"))
-  expect_that(extract.tf.from.ref(batf_th17, boost.p300 = TRUE, CORE_TFS), is_identical_to("batf-th17"))
-  expect_that(extract.tf.from.ref(stat3_th17, boost.p300 = TRUE, CORE_TFS), is_identical_to("stat3-th17"))
-  expect_that(extract.tf.from.ref(p300_th0, boost.p300 = TRUE, CORE_TFS), is_identical_to("p300-th0"))
-  expect_that(extract.tf.from.ref(p300_th17, boost.p300 = TRUE, CORE_TFS), is_identical_to("p300-th17"))
-  expect_that(extract.tf.from.ref(non_existent, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
-  expect_that(extract.tf.from.ref(gibberish, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
-  expect_that(extract.tf.from.ref(empty, boost.p300 = TRUE, CORE_TFS), throws_error("No library match found."))
-  expect_that(extract.tf.from.ref(NULL, boost.p300 = TRUE, CORE_TFS), throws_error("No experiment passed. Stopping."))
+  expect_that(extract.tf.from.ref(rorc_th0, boost.p300 = TRUE), is_identical_to("rorc-th0"))
+  expect_that(extract.tf.from.ref(maf_th0, boost.p300 = TRUE), is_identical_to("maf-th0"))
+  expect_that(extract.tf.from.ref(batf_th17, boost.p300 = TRUE), is_identical_to("batf-th17"))
+  expect_that(extract.tf.from.ref(stat3_th17, boost.p300 = TRUE), is_identical_to("stat3-th17"))
+  expect_that(extract.tf.from.ref(p300_th0, boost.p300 = TRUE), is_identical_to("p300-th0"))
+  expect_that(extract.tf.from.ref(p300_th17, boost.p300 = TRUE), is_identical_to("p300-th17"))
+  expect_that(extract.tf.from.ref(non_existent, boost.p300 = TRUE), throws_error("No library match found."))
+  expect_that(extract.tf.from.ref(gibberish, boost.p300 = TRUE), throws_error("No library match found."))
+  expect_that(extract.tf.from.ref(empty, boost.p300 = TRUE), throws_error("No library match found."))
+  expect_that(extract.tf.from.ref(NULL, boost.p300 = TRUE), throws_error("No experiment passed. Stopping."))
 })
 
 context("Generating the ChIP-seq confidence score matrix")
@@ -58,8 +56,8 @@ test_that("Skeleton matrix is created as expected", {
                            "GSM1004787_SL3037_SL3036_genes.txt", # Th17 BATF wt
                            "GSM1004833_SL2872_SL2876_genes.txt") # Th17 IRF4 rorc wt
   
-  skel.matrix.boost <- get.skel.matrix(all.chipfiles.boost, TRUE, CORE_TFS)
-  skel.matrix.noboost <- get.skel.matrix(all.chipfiles.noboost, FALSE, CORE_TFS)
+  skel.matrix.boost <- get.skel.matrix(all.chipfiles.boost, TRUE)
+  skel.matrix.noboost <- get.skel.matrix(all.chipfiles.noboost, FALSE)
   
   # Make sure the type is matrix
   expect_that(skel.matrix.boost, is_a("matrix"))
@@ -126,7 +124,7 @@ test_that("Skeleton matrix is filled with Poisson p-values as expected", {
   expected.result[,"batf-th17"] <- c(1.9055811328, 0, 5.3287439411)
   expected.result[,"rorc-th0"] <- c(1.9957011261, 4.5485324703, 13.1669802036)
   
-  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE, CORE_TFS)
+  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE)
   
   expect_that(mat.pois.boost, is_a("matrix"))
   expect_that(mat.pois.boost, is_identical_to(expected.result))
@@ -136,7 +134,7 @@ test_that("Skeleton matrix is filled with Poisson p-values as expected", {
   colnames(expected.result)[[1]] <- "stat3-th0"
   expected.result[,"stat3-th0"] <- c(0, 0, 0) # no match -> values never filled
   
-  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE, CORE_TFS)
+  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE)
   
   expect_that(mat.pois.boost, is_a("matrix"))
   expect_that(mat.pois.boost, is_identical_to(expected.result))
@@ -146,7 +144,7 @@ test_that("Skeleton matrix is filled with Poisson p-values as expected", {
   write.table(rorc.tmp, file = rorc.tmpfile, sep = "\t", row.names = TRUE, col.names = NA)
   
   expected.result[,"rorc-th0"] <- c(0, 0, 13.1669802036)
-  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE, CORE_TFS)
+  mat.pois.boost <- get.pois.vals(skel.mat.boost, tmp.chipfiles, TRUE)
   
   expect_that(mat.pois.boost, is_a("matrix"))
   expect_that(mat.pois.boost, is_identical_to(expected.result))
@@ -257,7 +255,7 @@ test_that("ChIP confidence scores are correctly calculated from Poisson p-value 
 test_that("Integration test: ChIP-seq confidence score matrix generation process", {
   
   # Basic tests... very complicated to construct final matrix by hand to compare (input is always all GEO files)
-  chipscores <- load.chip(boost.p300 = TRUE, CORE_TFS)
+  chipscores <- load.chip(boost.p300 = TRUE)
   
   expect_that(chipscores, is_a("matrix"))
   # No NA fields when matrix is generated

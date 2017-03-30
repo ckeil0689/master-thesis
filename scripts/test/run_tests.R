@@ -20,6 +20,7 @@ if(!dir.exists(results.out)) {
 }
 
 # Run the tests
+source(paste0(getwd(), "/../setGlobalVars.R"))
 test_dir(test.dir, reporter="summary")
 
 print("Done testing.")

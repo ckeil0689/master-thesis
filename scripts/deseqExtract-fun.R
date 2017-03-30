@@ -16,8 +16,14 @@ deseqfiles <- list.files(getwd())
 # Extracts the TF target from a DESeq file according to their format
 # Assumes convention column name (e.g. Th17.batf.wt -> batf)
 extract.tf <- function(tfcol) {
-  tf <- toupper(strsplit(tfcol, "[.]")[[1]][2])
-  return(tf)
+  splitcol <- strsplit(tfcol, "[.]")
+  tf <- splitcol[[1]][2]
+  # only use target TFs
+  if(!tf %in% GLOBAL[["CORE_TFS"]]) {
+    warning(paste("Could not load DESeq file for:", tf, "(skipped)"))
+    return(NA)
+  }
+  return(toupper(tf))
 }
 
 # Scans DESeq files for genes and transcription factors (matching CORE_TFS) to generate a pre-allocated skeleton matrix
@@ -34,7 +40,7 @@ get.skel.mat <- function() {
     tf <- extract.tf(colnames(cst)[3])
     
     # only use target TFs
-    if(!tolower(tf) %in% CORE_TFS) {
+    if(!tolower(tf) %in% GLOBAL[["CORE_TFS"]]) {
       print(paste("Transcription factor not in target group:", tf, "(skipped)"))
       next
     }
@@ -70,7 +76,7 @@ populate.ko.scores <- function(ko.scores) {
     tf <- extract.tf(colnames(cst)[3])
     
     # only use target TFs
-    if(!tolower(tf) %in% CORE_TFS) {
+    if(!tolower(tf) %in% GLOBAL[["CORE_TFS"]]) {
       print(paste("Transcription factor not in target group:", tf, "(skipped)"))
       next
     }
@@ -100,7 +106,7 @@ populate.ko.scores <- function(ko.scores) {
 # ----------------
 # Main function: load & process DEseq data and return the confidence score matrix S(KO)
 # ----------------
-load.deseq <- function(CORE_TFS) {
+load.deseq <- function() {
   empty.scores <- get.skel.mat()
   ko.scores <- populate.ko.scores(empty.scores)
   return(ko.scores)

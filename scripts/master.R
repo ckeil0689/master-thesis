@@ -23,21 +23,15 @@ library(data.table)
 library(reshape2)
 # library(xlsx) // causes issues with rJava package installs which rely on specific Java dev kit installs --> unreliable mess
 
-# Set some global variables
-GLOBAL <- list()
-GLOBAL[["DEBUG"]] <- TRUE
-GLOBAL[["z.abs.cut"]] <- 0.00 # carried over from original Aviv Madar code
-
+# Load global variables
+source("setGlobalVars.R")
 # Load utility functions
 source("util.R")
 
 # Input file directories
 scriptdir <- getwd()
-# deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
-# chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 rnaseqfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_RNAseq.txt")
 immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
-# ref_filepath <- paste0(getwd(), "/../suppl/mmc4.csv")
 zscores_filepath <- paste0(getwd(), "/../suppl/mmc5.xls")
 
 # Debug output directory
@@ -76,10 +70,6 @@ if(length(args) == 1) {
   print("Newly generating the KC data.")
 }
 
-# Core target transcription factors
-# CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc")
-CORE_TFS <- c("batf", "irf4", "stat3", "maf", "rorc", "fosl2", "hif1a")
-
 # START OF PROCEDURE
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
@@ -111,7 +101,7 @@ loadKOData <- function() {
   setwd(scriptdir)
   source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
   print("Generating knockout scores.")
-  scores <- load.deseq(CORE_TFS)
+  scores <- load.deseq()
   k_sign_mat <- sign(as.data.frame(scores))
   if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "K", "smat")
   return(scores)
@@ -138,10 +128,10 @@ loadChIPData <- function(type) {
   source(paste0(getwd(), "/" , "chipExtract-fun.R"))
   print("Loading ChIP scores.")
   if(type == "activator") {
-    scores <- load.chip(boost.p300 = TRUE, CORE_TFS)
+    scores <- load.chip(boost.p300 = TRUE)
     if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "activator_smat")
   } else if(type == "repressor") {
-    scores <- load.chip(boost.p300 = FALSE, CORE_TFS)
+    scores <- load.chip(boost.p300 = FALSE)
     if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "repressor_smat")
   } else {
     stop("Unknown type when loading ChIP data.")
@@ -285,15 +275,15 @@ source(paste0(getwd(), "/" , "createCombinedMat-fun.R"))
 
 # KC
 kc.activator <- createCombinedMat(combo = "kc", type = "activator", ko_qmat = ko_qmat.activator, chip_qmat = chip_qmat.activator, 
-                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final, CORE_TFS)
+                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final)
 kc.repressor <- createCombinedMat(combo = "kc", type = "repressor", ko_qmat = ko_qmat.repressor, chip_qmat = chip_qmat.repressor, 
-                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final, CORE_TFS)
+                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final)
 
 # KCRI
 kcri.activator <- createCombinedMat(combo = "kcri", type = "activator", ko_qmat = ko_qmat.activator, chip_qmat = chip_qmat.activator, 
-                                    rna_qmat = rna_qmat.activator, immgen_qmat = immgen_qmat.activator, genes.final, CORE_TFS)
+                                    rna_qmat = rna_qmat.activator, immgen_qmat = immgen_qmat.activator, genes.final)
 kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko_qmat = ko_qmat.repressor, chip_qmat = chip_qmat.repressor, 
-                                    rna_qmat = rna_qmat.repressor, immgen_qmat = immgen_qmat.repressor, genes.final, CORE_TFS)
+                                    rna_qmat = rna_qmat.repressor, immgen_qmat = immgen_qmat.repressor, genes.final)
 
 # --------------
 # 6) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 

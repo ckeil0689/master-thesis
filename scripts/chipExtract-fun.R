@@ -43,7 +43,7 @@ fix.tf.name <- function(tf.name) {
 
 # Use library name to get tf from reference for each condition
 # exp.name - the experiment name for lookup in ref.table
-extract.tf.from.ref <- function(exp.name, boost.p300, CORE_TFS) {
+extract.tf.from.ref <- function(exp.name, boost.p300) {
   if(is.null(exp.name)) stop("No experiment passed. Stopping.")
   libname <- gsub('^GSM[0-9]*_(SL[0-9]{1,9})_.*_genes\\.txt$','\\1', basename(exp.name))
   row <- match(libname, ref.table$Library_ID)
@@ -53,7 +53,7 @@ extract.tf.from.ref <- function(exp.name, boost.p300, CORE_TFS) {
   if(tf == "") stop("Could not identify TF from given experiment file.")
   
   # only use target TFs or p300 (when boosting)
-  if(!tf %in% CORE_TFS) {
+  if(!tf %in% GLOBAL[["CORE_TFS"]]) {
     if(!(boost.p300 && tf == "p300")) {
       stop("TF not a core TF and not p300 while filling the ChIP-seq activator matrix.")
     }
@@ -65,7 +65,7 @@ extract.tf.from.ref <- function(exp.name, boost.p300, CORE_TFS) {
 }
 
 # Create unique, maximal list of tested TFs and genes with MACS peaks and form an empty matrix
-get.skel.matrix <- function(all_chipfiles, boost.p300, CORE_TFS) {
+get.skel.matrix <- function(all_chipfiles, boost.p300) {
   # Ensure we are in correct directory
   if(!dir.exists(chipdir)) stop("Cannot load ChIP-files because the directory does not exist.")
   setwd(chipdir)
@@ -76,7 +76,7 @@ get.skel.matrix <- function(all_chipfiles, boost.p300, CORE_TFS) {
   print("Finding unique list of all genes tested in all ChIP files.")
   for(i in all_chipfiles) {
     if(!file.exists(i)) stop("Not all required ChIP files are present. Stopping.")
-    tf <- extract.tf.from.ref(i, boost.p300, CORE_TFS)
+    tf <- extract.tf.from.ref(i, boost.p300)
     if(is.null(tf)) next
     
     tf.list <- c(tf.list, tf)
@@ -100,11 +100,11 @@ get.skel.matrix <- function(all_chipfiles, boost.p300, CORE_TFS) {
 }
 
 # Extract and assign associated Poisson model p-values to a matrix
-get.pois.vals <- function(pois.mat, all_chipfiles, boost.p300, CORE_TFS) {
+get.pois.vals <- function(pois.mat, all_chipfiles, boost.p300) {
   print("Extract Poisson model p-values from ChIP-seq files.")
   for(i in all_chipfiles) {
     if(!file.exists(i)) stop("Not all required ChIP files are present. Stopping.")
-    tf <- extract.tf.from.ref(i, boost.p300, CORE_TFS)
+    tf <- extract.tf.from.ref(i, boost.p300)
     if(is.null(tf) || !(tf %in% colnames(pois.mat))) next
     
     # Order the genes, get index to also reorder Poisson model p-values
@@ -201,7 +201,7 @@ calc.chipscores <- function(pois.mat, genes.unique, tfs.list.unique, boost.p300)
 # ----------------
 # Main function: load & process ChIP-seq data and return the confidence score matrix S(ChIP)
 # ----------------
-load.chip <- function(boost.p300 = FALSE, CORE_TFS) {
+load.chip <- function(boost.p300 = FALSE) {
   print("Reading ChIP files to create lists of TFs and genes.")
   
   # Define files to consider
@@ -214,12 +214,12 @@ load.chip <- function(boost.p300 = FALSE, CORE_TFS) {
   }
   
   # Get an empty skeleton matrix (to avoid dynamic memory reallocation in R...)
-  thx_mat <- get.skel.matrix(all_chipfiles, boost.p300, CORE_TFS)
+  thx_mat <- get.skel.matrix(all_chipfiles, boost.p300)
   genes.unique <- rownames(thx_mat)
   tf.list <- colnames(thx_mat)
   
   # Fill the matrix with Poisson model p-values as found in the files
-  pois.mat <- get.pois.vals(thx_mat, all_chipfiles, boost.p300, CORE_TFS)
+  pois.mat <- get.pois.vals(thx_mat, all_chipfiles, boost.p300)
   
   # debug only --- remove
   filename <- paste0(getwd(), "/../analysis/non-compressed-chip.txt")

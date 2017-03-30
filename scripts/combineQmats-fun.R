@@ -1,5 +1,5 @@
 # Combine previously generated Q-matrices into a single matrix
-combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
+combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
   
   qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
   
@@ -15,11 +15,11 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat, CORE_TFS) {
   print(paste("Unique genes (total):", length(final.genes)))
 
   # 0-initialized matrix  
-  combined_mat <- matrix(0, nrow = length(final.genes), ncol = length(CORE_TFS))
+  combined_mat <- matrix(0, nrow = length(final.genes), ncol = length(GLOBAL[["CORE_TFS"]]))
   # unique gene list makes up rows
   rownames(combined_mat) <- final.genes
   # unique transcription factor list makes up columns
-  colnames(combined_mat) <- toupper(sort(CORE_TFS))
+  colnames(combined_mat) <- toupper(sort(GLOBAL[["CORE_TFS"]]))
   
   # Performing Q-matrix addition to combine data types
   for(i in qmatlist) {
