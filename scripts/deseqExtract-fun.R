@@ -9,6 +9,7 @@ setwd(deseqdir)
 
 # We consider all DESeq result files (as opposed to selective ChIP-seq loading)
 deseqfiles <- list.files(getwd())
+if(length(deseqfiles) == 0) stop(paste("No DESeq files found in: ", deseqdir, "Stopping."))
 
 # ----------------
 # Functions

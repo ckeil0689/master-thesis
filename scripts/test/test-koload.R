@@ -7,6 +7,7 @@ context("Testing TF extraction")
 
 test_that("TF name is correctly extracted from DESeq file", {
   
+  # As expected
   batf <- "Th0.batf.wt"
   maf <- "Th17.maf.wt"
   
@@ -29,7 +30,7 @@ test_that("TF name is correctly extracted from DESeq file", {
 
 context("Testing setup of skeleton matrix")
 
-test_that("KO skeleton matrix is setup as expected", {
+test_that("DESeq files are correctly parsed and KO skeleton matrix is setup as expected", {
   
   expect_that(skel.mat <- get.skel.mat(), gives_warning()) # skips TF ikzf3 (not in CORE)
   expect_that(skel.mat, is_a("matrix"))
