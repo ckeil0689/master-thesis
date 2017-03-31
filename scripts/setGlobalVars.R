@@ -4,6 +4,7 @@
 
 GLOBAL <- list()
 GLOBAL[["DEBUG"]] <- TRUE
+GLOBAL[["use.nyu.rank"]] <- TRUE
 # Carried over from original Aviv Madar code
 GLOBAL[["z.abs.cut"]] <- 0.00
 # Core target transcription factors

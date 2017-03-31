@@ -180,91 +180,77 @@ i_sign_mat <- sign(as.data.frame(immgen.scores))
 # 2) Perform ranking on each confidence score matrix S
 # --------------
 print("--------------------------------------------------------------------")
-print(">>>>>>>>>>>>> 2) Perform ranking on each data set <<<<<<<<<<<<<<<<<<")
+print(">>>>>>>>>>>>> 2) Perform quantile ranking on each data set <<<<<<<<<<<<<<<<<<")
 print("--------------------------------------------------------------------")
 # Reset because previous functions may globally change working directory and source() breaks
 setwd(scriptdir)
-source(paste0(getwd(), "/" , "rankSmat-fun.R"))
 
 # Wrapper for performing ranking. Write ranked matrix if desired.
-do.rank <- function(mat, prefix) {
+do.quantile.rank <- function(mat, positiveOnly = FALSE, prefix) {
   if(!is.null(mat)) {
-    mat_ranked <- rank.smat(mat)
-    if(GLOBAL[["DEBUG"]]) write.mat(mat_ranked, outpath.debug, prefix, "ranked")
-    return(mat_ranked)
+    qmat <- calc.quantile.ranks(mat, positiveOnly = positiveOnly)
+    if(GLOBAL[["DEBUG"]]) write.mat(qmat, outpath.debug, prefix, "_qmat")
+    return(qmat)
   }
   return(NULL)
 }
 
-print("Creating rank matrices.")
-ko.scores_ranked <- do.rank(ko.scores, "K")
-chip.scores.activator_ranked <- do.rank(chip.scores.activator, "C_activator")
-chip.scores.repressor_ranked <- do.rank(chip.scores.repressor, "C_repressor")
-rna.scores_ranked <- do.rank(rna.scores, "R")
-immgen.scores_ranked <- do.rank(immgen.scores, "I")
-
-# --------------
-# 3) Calculate quantiles for each ranked matrix to obtain the Q-matrix.
-# --------------
-print("--------------------------------------------------------------------")
-print(">>>>>>>>>>>>>>> Calculating scores for Q-matrices <<<<<<<<<<<<<<<<<<")
-print("--------------------------------------------------------------------")
-# Reset because functions may globally change working directory and source() breaks
-setwd(scriptdir)
-source(paste0(getwd(), "/" , "qmat-fun.R"))
-
-# Wrapper for calculating quantile scores from ranked matrices.
-# @param mat - The original confidence score S-matrix for the data type
-do.qcalc <- function(scores, scores_ranked, prefix) {
-  if(!is.null(scores_ranked)) {
-    qmat <- calc.qmat(scores, scores_ranked)
-    if(GLOBAL[["DEBUG"]]) write.mat(qmat, outpath.debug, prefix, "qmat")
-    return(as.matrix(qmat))
-  }
-  return(NULL)
+if(GLOBAL[["use.nyu.rank"]]) {
+  print(">>>>>>>>>>>>>>>>> DEBUG: Calculating Aviv Madar's rank-score algorithm (in place of own ranking) <<<<<<<<<<<<<<<<<<<<<<")
+  # Utilizing ranking methods from AM for testing purposes
+  source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
+  
+  # KO scores
+  print("Ranking knockout scores.")
+  print(ko.scores[1:3,])
+  ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
+  ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
+  write.mat(ko_qmat.activator, outpath.debug, "K", "activator_nyu_qmat")
+  write.mat(ko_qmat.repressor, outpath.debug, "K", "repressor_nyu_qmat")
+  
+  # ChIP scores
+  print("Ranking ChIP scores.")
+  chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator)) # all values!
+  chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor)) # all values!
+  write.mat(chip_qmat.activator, outpath.debug, "C", "activator_nyu_qmat")
+  write.mat(chip_qmat.repressor, outpath.debug, "C", "repressor_nyu_qmat")
+  
+  # RNA compendium scores
+  print("Ranking RNA compendium scores.")
+  rna_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(rna.scores))
+  rna_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*rna.scores))
+  write.mat(rna_qmat.activator, outpath.debug, "R", "activator_nyu_qmat")
+  write.mat(rna_qmat.repressor, outpath.debug, "R", "repressor_nyu_qmat")
+  
+  # Immgen microarray scores
+  print("Ranking Immgen microarray scores.")
+  immgen_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(immgen.scores))
+  immgen_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*immgen.scores))
+  write.mat(immgen_qmat.activator, outpath.debug, "I", "activator_nyu_qmat")
+  write.mat(immgen_qmat.repressor, outpath.debug, "I", "repressor_nyu_qmat")
+  
+} else {
+  source(paste0(getwd(), "/" , "quantileRank-fun.R"))
+  print("Creating quantil rank matrices (Q).")
+  print("Ranking knockout scores.")
+  ko_qmat.activator <- do.quantile.rank(ko.scores, positiveOnly = TRUE, "K_activator") # positive only!
+  ko_qmat.repressor <-do.quantile.rank(-1*ko.scores, positiveOnly = TRUE, "K_repressor") # positive only!
+  
+  print("Ranking ChIP scores.")
+  chip_qmat.activator <- do.quantile.rank(chip.scores.activator, positiveOnly = FALSE, "C_activator")
+  chip_qmat.repressor <- do.quantile.rank(chip.scores.repressor, positiveOnly = FALSE, "C_repressor")
+  
+  print("Ranking RNA compendium scores.")
+  rna_qmat.activator <- do.quantile.rank(rna.scores, positiveOnly = TRUE, "R_activator") # positive only!
+  rna_qmat.repressor <- do.quantile.rank(-1*rna.scores, positiveOnly = TRUE, "R_repressor") # positive only!
+  
+  print("Ranking Immgen microarray scores.")
+  immgen_qmat.activator <- do.quantile.rank(immgen.scores, positiveOnly = TRUE, "I_activator") # positive only!
+  immgen_qmat.repressor <- do.quantile.rank(-1*immgen.scores, positiveOnly = TRUE, "I_repressor") # positive only!
 }
 
-print("Calculating Q-matrices.")
-# ko_qmat <- do.qcalc(ko.scores, ko.scores_ranked, "K")
-# chip_qmat <- do.qcalc(chip.scores, chip.scores_ranked, "C")
-# rna_qmat.activator <- do.qcalc(rna.scores, rna.scores_ranked, "R")
-# immgen_qmat.activator <- do.qcalc(immgen.scores, immgen.scores_ranked, "I")
-
-print(">>>>>>>>>>>>>>>>> DEBUG: Calculating Aviv Madar's rank-score algorithm (in place of own ranking) <<<<<<<<<<<<<<<<<<<<<<")
-# Utilizing ranking methods from AM for testing purposes
-source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
-
-# KO scores
-print("Ranking knockout scores.")
-print(ko.scores[1:3,])
-ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
-ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
-write.mat(ko_qmat.activator, outpath.debug, "K", "activator_nyu_qmat")
-write.mat(ko_qmat.repressor, outpath.debug, "K", "repressor_nyu_qmat")
-
-# ChIP scores
-print("Ranking ChIP scores.")
-chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator))
-chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor))
-write.mat(chip_qmat.activator, outpath.debug, "C", "activator_nyu_qmat")
-write.mat(chip_qmat.repressor, outpath.debug, "C", "repressor_nyu_qmat")
-
-# RNA compendium scores
-print("Ranking RNA compendium scores.")
-rna_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(rna.scores))
-rna_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*rna.scores))
-write.mat(rna_qmat.activator, outpath.debug, "R", "activator_nyu_qmat")
-write.mat(rna_qmat.repressor, outpath.debug, "R", "repressor_nyu_qmat")
-
-# Immgen microarray scores
-print("Ranking Immgen microarray scores.")
-immgen_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(immgen.scores))
-immgen_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*immgen.scores))
-write.mat(immgen_qmat.activator, outpath.debug, "I", "activator_nyu_qmat")
-write.mat(immgen_qmat.repressor, outpath.debug, "I", "repressor_nyu_qmat")
-
 # --------------
-# 4) Combine data according to various data type combinations
+# 3) Combine data according to various data type combinations
 # --------------
 print("--------------------------------------------------------------------")
 print(">>>>>>> Combining Q-matrices to a single interaction matrix <<<<<<<<")
@@ -286,7 +272,7 @@ kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko_qmat 
                                     rna_qmat = rna_qmat.repressor, immgen_qmat = immgen_qmat.repressor, genes.final)
 
 # --------------
-# 6) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
+# 4) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
 # --------------
 print("--------------------------------------------------------------------")
 print(">>>>>>>>>>>>>>>>>>>>> Writing z-score table <<<<<<<<<<<<<<<<<<<<<<<<")
@@ -295,7 +281,7 @@ print("Writing zscores from mmc5.")
 write.mat(zscores.all, outpath.cyt, "", "zscores")
 
 # --------------
-# 7) From combine data matrix, create a list of node-node-value interactions for Cytoscape
+# 5) From combine data matrix, create a list of node-node-value interactions for Cytoscape
 # --------------
 print("--------------------------------------------------------------------")
 print(">>>>>>>>> Writing interaction lists for Cytoscape network <<<<<<<<<<")
