@@ -16,12 +16,12 @@ test_that("Confidence score matrix is transformed to rank matrix as expected", {
   expected.result["g2",] <- c(3, 1, 4)
   expected.result["g3",] <- c(0, 5, 6)
   
-  rank.result <- rank.smat(mat)
+  func.result <- calc.quantile.ranks(mat, positiveOnly = FALSE)
   
-  expect_that(rank.result, is_a("matrix"))
+  expect_that(func.result, is_a("matrix"))
   # no NA values
-  expect_that(length(rank.result[is.na(rank.result)]) == 0, is_true())
+  expect_that(length(func.result[is.na(func.result)]) == 0, is_true())
   # no values outside of range
-  # expect_that(length(rank.result[rank.result > 1.0 || rank.result < 0.0]) == 0, is_true())
-  expect_that(rank.result, is_identical_to(expected.result))
+  expect_that(length(func.result[func.result > 1.0 || func.result < 0.0]) == 0, is_true())
+  expect_that(func.result, is_identical_to(expected.result))
 })

@@ -5,14 +5,12 @@
 # type - The type (activator or repressor)
 # *_qmat - The q-matrices (ranked and adjusted data to fit in range of [0-1] per data type)
 # genes.final - The genes to be included in the combined matrix (rows). These could, for example, have been filtered by z-scores.
-# CORE_TFS - The transcription factors to be included. RNA-seq compendium and Immgen could be up to 28 TFs.
-createCombinedMat <- function(combo, type, ko_qmat, chip_qmat, rna_qmat, immgen_qmat, genes.final, CORE_TFS) {
+createCombinedMat <- function(combo, type, ko_qmat, chip_qmat, rna_qmat, immgen_qmat, genes.final) {
   source(paste0(getwd(), "/" , "combineQmats-fun.R"))
   print("Combining Q-matrices to a single matrix.")
-  combined_mat <- combine.qmats(ko_qmat, chip_qmat, rna_qmat, immgen_qmat, CORE_TFS)
+  combined_mat <- combine.qmats(ko_qmat, chip_qmat, rna_qmat, immgen_qmat)
   
   print(paste("Combined Mat:", combo))
-  print(paste("Core TFs:", CORE_TFS))
   print(combined_mat[1:5,])
   
   # Filter the combined matrices by zscores from mmc5
