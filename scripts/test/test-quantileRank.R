@@ -5,16 +5,14 @@ source(paste0(getwd(), "/../" , "quantileRank-fun.R"), chdir = TRUE)
 
 context("Rank matrix creation")
 test_that("Confidence score matrix is transformed to rank matrix as expected", {
-  mat <- matrix(0, nrow = 3, ncol = 3, dimnames = list(c("g1", "g2", "g3"), c("BATF", "MAF", "RORC")))
-  mat["g1",] <- c(1.44583, NA, -13.98272)
-  mat["g2",] <- c(8.000, 21.500, -5.22111)
-  mat["g3",] <- c(0, -4.56320, 3.56708)
+  mat <- matrix(0, nrow = 2, ncol = 2, dimnames = list(c("g1", "g2"), c("BATF", "MAF")))
+  mat["g1",] <- c(1.44583, NA)
+  mat["g2",] <- c(8.000, 21.500)
   
   # Ranking is done on absolute values and in descending order
-  expected.result <- matrix(0, nrow = 3, ncol = 3, dimnames = list(c("g1", "g2", "g3"), c("BATF", "MAF", "RORC")))
-  expected.result["g1",] <- c(7, 0, 2)
-  expected.result["g2",] <- c(3, 1, 4)
-  expected.result["g3",] <- c(0, 5, 6)
+  expected.result <- matrix(0, nrow = 2, ncol = 2, dimnames = list(c("g1", "g2"), c("BATF", "MAF")))
+  expected.result["g1",] <- c(0.000, 0)
+  expected.result["g2",] <- c(0.333, 0.666)
   
   func.result <- calc.quantile.ranks(mat, positiveOnly = FALSE)
   
@@ -23,5 +21,5 @@ test_that("Confidence score matrix is transformed to rank matrix as expected", {
   expect_that(length(func.result[is.na(func.result)]) == 0, is_true())
   # no values outside of range
   expect_that(length(func.result[func.result > 1.0 || func.result < 0.0]) == 0, is_true())
-  expect_that(func.result, is_identical_to(expected.result))
+  expect_that(func.result, equals(expected.result, tolerance = 0.001))
 })
