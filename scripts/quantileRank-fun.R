@@ -14,6 +14,7 @@ calc.quantile.ranks <- function(smat, positiveOnly = FALSE) {
   # apply rank to absolute value of confidence scores (descending rank order --> negative sign before abs())
   ranked.mat <- matrix(rank(-abs(smat), na.last = "keep"), ncol=ncol(smat), dimnames = list(rownames(smat), colnames(smat)))
   # replace all NAs with zeroes again post-ranking
+  smat[is.na(smat)] <- 0
   ranked.mat[is.na(ranked.mat)] <- 0
   
   print("Done ranking.")
@@ -27,12 +28,15 @@ qscore <- function(rank, n_nonzero) {
   (1 - (rank/n_nonzero))
 }
 
-calc.qmat <- function(orig_mat, ranked.mat) {
+calc.qmat <- function(orig.mat, ranked.mat) {
   print("Applying quantile score function over ranked matrix.")
-  n_nonzero = sum(orig_mat != 0)
+  ix.zero <- which(orig.mat == 0)
+  n_nonzero = sum(orig.mat != 0)
   df <- as.data.frame(ranked.mat)
   qmat <- as.matrix(mapply(qscore, df, MoreArgs = list(n_nonzero)))
   qmat[is.na(qmat)] <- 0
-  rownames(qmat) <- rownames(orig_mat)
+  qmat[ix.zero] <- 0
+  rownames(qmat) <- rownames(orig.mat)
+  print(qmat)
   return(qmat)
 }
