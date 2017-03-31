@@ -31,7 +31,7 @@ test_that("Confidence score matrix is transformed to rank matrix as expected", {
   expected.result["g1",] <- c(0, 0)
   expected.result["g2",] <- c(0, 0)
   
-  func.result <- calc.quantile.ranks(mat, positiveOnly = FALSE)
+  expect_that(func.result <- calc.quantile.ranks(mat, positiveOnly = FALSE), gives_warning())
   
   expect_that(func.result, is_a("matrix"))
   # no NA values
