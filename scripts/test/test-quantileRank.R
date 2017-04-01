@@ -25,6 +25,7 @@ test_that("Confidence score matrix is transformed to rank matrix as expected", {
   expect_that(func.result, equals(expected.result, tolerance = 0.001))
   
   # Bad input
+  print("Testing bad input")
   mat["g1",] <- c("hello", NA)
   mat["g2",] <- c(NA, NA)
   
@@ -38,5 +39,6 @@ test_that("Confidence score matrix is transformed to rank matrix as expected", {
   expect_that(length(func.result[is.na(func.result)]) == 0, is_true())
   # no values outside of range
   expect_that(length(func.result[func.result > 1.0 || func.result < 0.0]) == 0, is_true())
+  print(typeof(func.result))
   expect_that(func.result, equals(expected.result, tolerance = 0.001))
 })

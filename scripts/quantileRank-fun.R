@@ -7,15 +7,28 @@
 calc.quantile.ranks <- function(smat, positiveOnly = FALSE) {
   # replace all zeroes or infinities with NA to exclude them from ranking
   if(positiveOnly) {
-    smat[smat <= 0] <- NA
+    smat[smat <= 0.0] <- NA
   } else {
-    smat[smat == 0] <- NA
+    smat[smat == 0.0] <- NA
   }
+  
+  # Squash bad input#apply
+  storage.mode(smat) <- "numeric"
+  
+  # This should only happen when ALL values are NAs at this point
+  # Return unranked matrix
+  if(!is.numeric(smat)) {
+    smat[is.na(smat)] <- 0.0
+    # Somehow we can be character type again here (???) so ensure numeric matrix
+    storage.mode(smat) <- "numeric"
+    return(smat)
+  }
+  
   # apply rank to absolute value of confidence scores (descending rank order --> negative sign before abs())
   ranked.mat <- matrix(rank(-abs(smat), na.last = "keep"), ncol=ncol(smat), dimnames = list(rownames(smat), colnames(smat)))
   # replace all NAs with zeroes again post-ranking
-  smat[is.na(smat)] <- 0
-  ranked.mat[is.na(ranked.mat)] <- 0
+  smat[is.na(smat)] <- 0.0
+  ranked.mat[is.na(ranked.mat)] <- 0.0
   
   print("Done ranking.")
   qmat <- calc.qmat(smat, ranked.mat)
@@ -34,9 +47,8 @@ calc.qmat <- function(orig.mat, ranked.mat) {
   n_nonzero = sum(orig.mat != 0)
   df <- as.data.frame(ranked.mat)
   qmat <- as.matrix(mapply(qscore, df, MoreArgs = list(n_nonzero)))
-  qmat[is.na(qmat)] <- 0
-  qmat[ix.zero] <- 0
+  qmat[is.na(qmat)] <- 0.0
+  qmat[ix.zero] <- 0.0
   rownames(qmat) <- rownames(orig.mat)
-  print(qmat)
   return(qmat)
 }
