@@ -3,8 +3,12 @@
 # Testing creation of rank matrix
 source(paste0(getwd(), "/../" , "quantileRank-fun.R"), chdir = TRUE)
 
-context("Rank matrix creation")
-test_that("Confidence score matrix is transformed to rank matrix as expected", {
+context("Calculating quantile rank matrix")
+test_that("Ranking the confidence score matrix works as expected", {
+  
+})
+
+test_that("Confidence score matrix is transformed to quantile rank matrix as expected", {
   # Typical matrix input
   mat <- matrix(0, nrow = 2, ncol = 2, dimnames = list(c("g1", "g2"), c("BATF", "MAF")))
   mat["g1",] <- c(1.44583, NA)
@@ -41,4 +45,37 @@ test_that("Confidence score matrix is transformed to rank matrix as expected", {
   expect_that(length(func.result[func.result > 1.0 || func.result < 0.0]) == 0, is_true())
   print(typeof(func.result))
   expect_that(func.result, equals(expected.result, tolerance = 0.001))
+})
+
+# According to mmc1 paper formula
+test_that("Qscore is calculated as expected", {
+  
+  # Easy case 1
+  n_nonzero <- 10
+  rank <- 1
+  qs <- qscore(rank, n_nonzero)
+  expected_qs <- 0.9
+  expect_that(qs, equals(expected_qs, tolerance = 0.0000001))
+  
+  # More complex case
+  n_nonzero <- 236
+  rank <- 78
+  qs <- qscore(rank, n_nonzero)
+  expected_qs <- 0.66949152542
+  expect_that(qs, equals(expected_qs, tolerance = 0.0000001))
+  
+  # Division by zero
+  n_nonzero <- 0
+  rank <- 78
+  qs <- qscore(rank, n_nonzero)
+  print(paste("Qscore:", qs))
+  expected_qs <- -Inf
+  expect_that(qs, is_identical_to(expected_qs))
+  
+  # No rank
+  n_nonzero <- 130
+  rank <- 0
+  qs <- qscore(rank, n_nonzero)
+  expected_qs <- 1.0
+  expect_that(qs, is_identical_to(expected_qs))
 })

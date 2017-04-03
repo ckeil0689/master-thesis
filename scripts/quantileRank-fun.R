@@ -47,8 +47,12 @@ calc.qmat <- function(orig.mat, ranked.mat) {
   n_nonzero = sum(orig.mat != 0)
   df <- as.data.frame(ranked.mat)
   qmat <- as.matrix(mapply(qscore, df, MoreArgs = list(n_nonzero)))
+  rownames(qmat) <- rownames(orig.mat)
+  
+  # No rank value means no confidence score
+  qmat[is.infinite(qmat)] <- 0.0
   qmat[is.na(qmat)] <- 0.0
   qmat[ix.zero] <- 0.0
-  rownames(qmat) <- rownames(orig.mat)
+
   return(qmat)
 }
