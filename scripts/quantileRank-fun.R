@@ -45,6 +45,11 @@ calc.qmat <- function(orig.mat, ranked.mat) {
   print("Applying quantile score function over ranked matrix.")
   ix.zero <- which(orig.mat == 0)
   n_nonzero = sum(orig.mat != 0)
+  
+  if(length(ranked.mat[ranked.mat > n_nonzero]) != 0) {
+    stop("No rank may be larger than the total amount of non-zero values in ranked matrix.")
+  }
+  
   df <- as.data.frame(ranked.mat)
   qmat <- as.matrix(mapply(qscore, df, MoreArgs = list(n_nonzero)))
   rownames(qmat) <- rownames(orig.mat)
