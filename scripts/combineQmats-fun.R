@@ -15,22 +15,19 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
   print(paste("Unique genes (total):", length(final.genes)))
 
   # 0-initialized matrix  
-  combined_mat <- matrix(0, nrow = length(final.genes), ncol = length(GLOBAL[["CORE_TFS"]]))
-  # unique gene list makes up rows
-  rownames(combined_mat) <- final.genes
-  # unique transcription factor list makes up columns
-  colnames(combined_mat) <- toupper(sort(GLOBAL[["CORE_TFS"]]))
+  combo.mat <- matrix(0, nrow = length(final.genes), ncol = length(GLOBAL[["CORE_TFS"]]), 
+                         dimnames = list(final.genes, toupper(sort(GLOBAL[["CORE_TFS"]]))))
   
   # Performing Q-matrix addition to combine data types
   for(i in qmatlist) {
     if(is.null(i)) next
     # from https://stackoverflow.com/questions/26042738/r-add-matrices-based-on-row-and-column-names
-    A_df=as.data.frame(as.table(combined_mat))
+    A_df=as.data.frame(as.table(combo.mat))
     B_df=as.data.frame(as.table(i))
     merged_df = rbind(A_df, B_df)
-    combined_mat = acast(merged_df, Var1 ~ Var2, sum)
+    combo.mat = acast(merged_df, Var1 ~ Var2, sum)
   }
   
   print("Finished integration of data.")
-  return(combined_mat)
+  return(combo.mat)
 }
