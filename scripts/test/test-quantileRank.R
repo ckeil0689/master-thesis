@@ -4,9 +4,6 @@
 source(paste0(getwd(), "/../" , "quantileRank-fun.R"), chdir = TRUE)
 
 context("Calculating quantile rank matrix")
-test_that("Ranking the confidence score matrix works as expected", {
-  
-})
 
 test_that("Confidence score matrix is transformed to quantile rank matrix as expected", {
   # Typical matrix input
@@ -68,7 +65,6 @@ test_that("Qscore is calculated as expected", {
   n_nonzero <- 0
   rank <- 78
   qs <- qscore(rank, n_nonzero)
-  print(paste("Qscore:", qs))
   expected_qs <- -Inf
   expect_that(qs, is_identical_to(expected_qs))
   
