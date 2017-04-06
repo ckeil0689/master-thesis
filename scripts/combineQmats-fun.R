@@ -9,6 +9,17 @@ get.genes <- function(qmatlist) {
   return(toupper(sort(unique(genes))))
 }
 
+get.tfs <- function(qmatlist) {
+  # Only keep non-NULL col names (tfs)
+  tfs <- c()
+  for(i in qmatlist) {
+    if(is.null(i)) next
+    tfs <- c(tfs, colnames(i))
+  }
+  if(length(tfs) == 0) stop("No transcription factors could be extracted from the Q-matrices. Stopping.")
+  return(toupper(sort(unique(tfs))))
+}
+
 # Combine previously generated Q-matrices into a single matrix
 combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
   
@@ -16,11 +27,13 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
   
   # Vectors for row and column names of final Thx (x=0/=17) matrix
   final.genes <- get.genes(qmatlist)
+  final.tfs <- get.tfs(qmatlist)
   print(paste("Unique genes (total):", length(final.genes)))
+  print(paste("Unique TFs (total):", length(final.tfs)))
 
   # 0-initialized matrix  
-  combo.mat <- matrix(0, nrow = length(final.genes), ncol = length(GLOBAL[["CORE_TFS"]]), 
-                         dimnames = list(final.genes, toupper(sort(GLOBAL[["CORE_TFS"]]))))
+  combo.mat <- matrix(0, nrow = length(final.genes), ncol = length(final.tfs), 
+                         dimnames = list(final.genes, toupper(sort(final.tfs))))
   
   # Performing Q-matrix addition to combine data types
   for(i in qmatlist) {

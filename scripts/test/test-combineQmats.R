@@ -7,16 +7,16 @@ context("Combination of Q-matrices")
 
 test_that("Rownames/genes are combined as expected", {
   
-  k_genes <- c("A", "B", "C", "D")
-  c_genes <- c("B", "D", "E", "J", "K", "O")
-  r_genes <- c("A", "B", "C",  "E", "J", "X", "S", "L")
-  i_genes <- c("B", "C",  "E", "J", "X", "W", "Q", "H")
+  k.genes <- c("A", "B", "C", "D")
+  c.genes <- c("B", "D", "E", "J", "K", "O")
+  r.genes <- c("A", "B", "C",  "E", "J", "X", "S", "L")
+  i.genes <- c("B", "C",  "E", "J", "X", "W", "Q", "H")
   
   # Test matrices
-  kqmat <- matrix(0, nrow = length(k_genes), ncol = length(GLOBAL[["CORE_TFS"]]), dimnames = list(k_genes, GLOBAL[["CORE_TFS"]]))
-  cqmat <- matrix(0, nrow = length(c_genes), ncol = length(GLOBAL[["CORE_TFS"]]), dimnames = list(c_genes, GLOBAL[["CORE_TFS"]]))
-  rqmat <- matrix(0, nrow = length(r_genes), ncol = length(GLOBAL[["CORE_TFS"]]), dimnames = list(r_genes, GLOBAL[["CORE_TFS"]]))
-  iqmat <- matrix(0, nrow = length(i_genes), ncol = length(GLOBAL[["CORE_TFS"]]), dimnames = list(i_genes, GLOBAL[["CORE_TFS"]]))
+  kqmat <- matrix(0, nrow = length(k.genes), ncol = length(GLOBAL[["CORE_TFS"]]), dimnames = list(k.genes, GLOBAL[["CORE_TFS"]]))
+  cqmat <- matrix(0, nrow = length(c.genes), ncol = length(GLOBAL[["CORE_TFS"]]), dimnames = list(c.genes, GLOBAL[["CORE_TFS"]]))
+  rqmat <- matrix(0, nrow = length(r.genes), ncol = length(GLOBAL[["CORE_TFS"]]), dimnames = list(r.genes, GLOBAL[["CORE_TFS"]]))
+  iqmat <- matrix(0, nrow = length(i.genes), ncol = length(GLOBAL[["CORE_TFS"]]), dimnames = list(i.genes, GLOBAL[["CORE_TFS"]]))
   
   # KCRI - normal
   qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
@@ -44,12 +44,51 @@ test_that("Rownames/genes are combined as expected", {
   expect_that(get.genes(qmatlist), throws_error())
 })
 
+test_that("Colnames/TFs are combined as expected", {
+  
+  k.tfs <- c("A", "B", "C", "D")
+  c.tfs <- c("B", "D", "E", "J", "K", "O")
+  r.tfs <- c("A", "B", "C",  "E", "J", "X", "S", "L")
+  i.tfs <- c("B", "C",  "E", "J", "X", "W", "Q", "H")
+  
+  # Test matrices - CORE TFs used as row names
+  kqmat <- matrix(0, nrow = length(GLOBAL[["CORE_TFS"]]), ncol = length(k.tfs), dimnames = list(GLOBAL[["CORE_TFS"]], k.tfs))
+  cqmat <- matrix(0, nrow = length(GLOBAL[["CORE_TFS"]]), ncol = length(c.tfs), dimnames = list(GLOBAL[["CORE_TFS"]], c.tfs))
+  rqmat <- matrix(0, nrow = length(GLOBAL[["CORE_TFS"]]), ncol = length(r.tfs), dimnames = list(GLOBAL[["CORE_TFS"]], r.tfs))
+  iqmat <- matrix(0, nrow = length(GLOBAL[["CORE_TFS"]]), ncol = length(i.tfs), dimnames = list(GLOBAL[["CORE_TFS"]], i.tfs))
+  
+  # KCRI - normal
+  qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
+  tfs <- get.tfs(qmatlist)
+  expected.result <- sort(c("A", "B", "C", "D", "E", "J", "K", "O", "X", "S", "L", "W", "Q", "H"))
+  expect_that(tfs, is_a("character"))
+  expect_that(tfs, is_identical_to(expected.result))
+  
+  # KC -normal
+  qmatlist <- list(kqmat, cqmat, NULL, NULL)
+  tfs <- get.tfs(qmatlist)
+  expected.result <- sort(c("A", "B", "C", "D", "E", "J", "K", "O"))
+  expect_that(tfs, is_a("character"))
+  expect_that(tfs, is_identical_to(expected.result))
+  
+  # Only one non-NULL
+  qmatlist <- list(kqmat, NULL, NULL, NULL)
+  tfs <- get.tfs(qmatlist)
+  expected.result <- sort(c("A", "B", "C", "D"))
+  expect_that(tfs, is_a("character"))
+  expect_that(tfs, is_identical_to(expected.result))
+  
+  # NULL input
+  qmatlist <- list(NULL, NULL, NULL, NULL)
+  expect_that(get.tfs(qmatlist), throws_error())
+})
+
 test_that("Q-score matrices are combined as expected", {
   
-  k_genes <- c("A", "B")
-  c_genes <- c("A", "B", "C")
-  r_genes <- c("C",  "E")
-  i_genes <- c("B", "J")
+  k.genes <- c("A", "B")
+  c.genes <- c("A", "B", "C")
+  r.genes <- c("C",  "E")
+  i.genes <- c("B", "J")
   
   test_tfs <- toupper(sort(c("maf", "stat3", "batf")))
   
@@ -67,32 +106,37 @@ test_that("Q-score matrices are combined as expected", {
                 0.722, 0.312, # ...
                 0.645, 0.000)
   
-  kqmat <- matrix(k_values, nrow = length(k_genes), ncol = length(test_tfs), dimnames = list(k_genes, test_tfs))
-  cqmat <- matrix(c_values, nrow = length(c_genes), ncol = length(test_tfs), dimnames = list(c_genes, test_tfs))
-  rqmat <- matrix(r_values, nrow = length(r_genes), ncol = length(test_tfs), dimnames = list(r_genes, test_tfs))
-  iqmat <- matrix(i_values, nrow = length(i_genes), ncol = length(test_tfs), dimnames = list(i_genes, test_tfs))
+  kqmat <- matrix(k_values, nrow = length(k.genes), ncol = length(test_tfs), dimnames = list(k.genes, test_tfs))
+  cqmat <- matrix(c_values, nrow = length(c.genes), ncol = length(test_tfs), dimnames = list(c.genes, test_tfs))
+  rqmat <- matrix(r_values, nrow = length(r.genes), ncol = length(test_tfs), dimnames = list(r.genes, test_tfs))
+  iqmat <- matrix(i_values, nrow = length(i.genes), ncol = length(test_tfs), dimnames = list(i.genes, test_tfs))
+  
+  print("MATRICES --------------------------")
+  print(kqmat)
+  print(cqmat)
+  print(rqmat)
+  print(iqmat)
   
   # KCRI
-  print("KCRI combo test")
-  genes <- toupper(sort(unique(c(k_genes, c_genes, r_genes, i_genes))))
+  genes <- toupper(sort(unique(c(k.genes, c.genes, r.genes, i.genes))))
   expected.result <- matrix(0, nrow = length(genes), ncol = length(test_tfs))
   
   combo.mat <- combine.qmats(kqmat, cqmat, rqmat, iqmat)
   expect_that(combo.mat, is_a("matrix"))
   expect_that(rownames(combo.mat), is_identical_to(genes))
-  print(paste("COMBO COLNAMES:", colnames(combo.mat)))
   expect_that(colnames(combo.mat), is_identical_to(test_tfs))
   expect_that(dim(combo.mat), is_identical_to(dim(expected.result)))
   
   # KC
-  print("KC combo test")
-  genes <- toupper(sort(unique(c(k_genes, c_genes))))
-  expected.result <- matrix(0, nrow = length(genes), ncol = length(test_tfs))
+  genes <- toupper(sort(unique(c(k.genes, c.genes))))
+  combo.vals <- c(1.807, 0.591, 0.555, # BATF | A B C
+                  1.154, 1,283, 0.514, # MAF | A B C
+                  0.900, 1,582, 0.119 )# STAT3 | A B C
+  expected.result <- matrix(combo.vals, nrow = length(genes), ncol = length(test_tfs))
   
   combo.mat <- combine.qmats(kqmat, cqmat, NULL, NULL)
   expect_that(combo.mat, is_a("matrix"))
   expect_that(rownames(combo.mat), is_identical_to(genes))
-  print(paste("COMBO COLNAMES:", colnames(combo.mat)))
   expect_that(colnames(combo.mat), is_identical_to(test_tfs))
   expect_that(dim(combo.mat), is_identical_to(dim(expected.result)))
   
