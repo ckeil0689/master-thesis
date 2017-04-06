@@ -1,17 +1,21 @@
-# Combine previously generated Q-matrices into a single matrix
-combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
-  
-  qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
-  
+get.genes <- function(qmatlist) {
   # Only keep non-NULL row names (genes)
   genes <- c()
   for(i in qmatlist) {
     if(is.null(i)) next
     genes <- c(genes, rownames(i))
   }
+  if(length(genes) == 0) stop("No genes could be extracted from the Q-matrices. Stopping.")
+  return(toupper(sort(unique(genes))))
+}
+
+# Combine previously generated Q-matrices into a single matrix
+combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
+  
+  qmatlist <- list(kqmat, cqmat, rqmat, iqmat)
   
   # Vectors for row and column names of final Thx (x=0/=17) matrix
-  final.genes <- toupper(sort(unique(genes)))
+  final.genes <- get.genes(qmatlist)
   print(paste("Unique genes (total):", length(final.genes)))
 
   # 0-initialized matrix  
