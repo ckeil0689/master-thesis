@@ -10,19 +10,8 @@
 #       R = Inferelator matrix (RNA-seq compendium - provided on GEO)
 #       I = Inferelator matrix (2011 Immgen microarray data - provided on GEO)
 
-# Perform some intial setups
-list.of.packages <- c("data.table", "reshape2")#, "xlsx")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-# install if missing
-if(length(new.packages)) {
-  print("Installing data.table package...")
-  install.packages(new.packages, repos="http://cran.rstudio.com/")
-}
-
-library(data.table)
-library(reshape2)
-# library(xlsx) // causes issues with rJava package installs which rely on specific Java dev kit installs --> unreliable mess
-
+# Add required libraries
+source("addLibraries.R")
 # Load global variables
 source("setGlobalVars.R")
 # Load utility functions

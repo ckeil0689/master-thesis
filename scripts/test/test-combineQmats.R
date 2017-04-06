@@ -46,4 +46,54 @@ test_that("Rownames/genes are combined as expected", {
 
 test_that("Q-score matrices are combined as expected", {
   
+  k_genes <- c("A", "B")
+  c_genes <- c("A", "B", "C")
+  r_genes <- c("C",  "E")
+  i_genes <- c("B", "J")
+  
+  test_tfs <- toupper(sort(c("maf", "stat3", "batf")))
+  
+  # Test matrices
+  k_values <- c(0.992, 0.346, # A, B
+                0.283, 0.625, # ...
+                0.526, 0.987)
+  c_values <- c(0.815, 0.245, 0.555, # A B C
+                0.871, 0.658, 0.514, # ...
+                0.374, 0.595, 0.119)
+  r_values <- c(0.000, 0.949, # C E
+                0.984, 0.566, # ...
+                0.254, 0.000)
+  i_values <- c(0.563, 0.000, # B J
+                0.722, 0.312, # ...
+                0.645, 0.000)
+  
+  kqmat <- matrix(k_values, nrow = length(k_genes), ncol = length(test_tfs), dimnames = list(k_genes, test_tfs))
+  cqmat <- matrix(c_values, nrow = length(c_genes), ncol = length(test_tfs), dimnames = list(c_genes, test_tfs))
+  rqmat <- matrix(r_values, nrow = length(r_genes), ncol = length(test_tfs), dimnames = list(r_genes, test_tfs))
+  iqmat <- matrix(i_values, nrow = length(i_genes), ncol = length(test_tfs), dimnames = list(i_genes, test_tfs))
+  
+  # KCRI
+  print("KCRI combo test")
+  genes <- toupper(sort(unique(c(k_genes, c_genes, r_genes, i_genes))))
+  expected.result <- matrix(0, nrow = length(genes), ncol = length(test_tfs))
+  
+  combo.mat <- combine.qmats(kqmat, cqmat, rqmat, iqmat)
+  expect_that(combo.mat, is_a("matrix"))
+  expect_that(rownames(combo.mat), is_identical_to(genes))
+  print(paste("COMBO COLNAMES:", colnames(combo.mat)))
+  expect_that(colnames(combo.mat), is_identical_to(test_tfs))
+  expect_that(dim(combo.mat), is_identical_to(dim(expected.result)))
+  
+  # KC
+  print("KC combo test")
+  genes <- toupper(sort(unique(c(k_genes, c_genes))))
+  expected.result <- matrix(0, nrow = length(genes), ncol = length(test_tfs))
+  
+  combo.mat <- combine.qmats(kqmat, cqmat, NULL, NULL)
+  expect_that(combo.mat, is_a("matrix"))
+  expect_that(rownames(combo.mat), is_identical_to(genes))
+  print(paste("COMBO COLNAMES:", colnames(combo.mat)))
+  expect_that(colnames(combo.mat), is_identical_to(test_tfs))
+  expect_that(dim(combo.mat), is_identical_to(dim(expected.result)))
+  
 })
