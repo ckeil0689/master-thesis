@@ -1,6 +1,7 @@
 # Filter the combined matrices by zscores from mmc5
 apply.zscore.filter <- function(combo.mat, genes.final, combo, type) {
   filtered.genes.idx <- which(rownames(combo.mat) %in% genes.final)
+  if(length(filtered.genes.idx) == 0) stop("When filtering genes by differential expression z-score, no genes were left.")
   filtered.genes <- rownames(combo.mat)[filtered.genes.idx]
   combo.mat.filtered <- combo.mat[filtered.genes.idx,]
   rownames(combo.mat.filtered) <- filtered.genes
@@ -8,7 +9,7 @@ apply.zscore.filter <- function(combo.mat, genes.final, combo, type) {
   return(combo.mat.filtered)
 }
 
-get.signed.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
+apply.sign.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
   print("Applying signs to matrix.")
   # Empty matrix with same dimension as combined matrix
   mat.sign <- matrix(0, nc=ncol(combo.mat.filtered), nr=nrow(combo.mat.filtered), dimnames=dimnames(combo.mat.filtered))
@@ -29,7 +30,6 @@ get.signed.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
     factor <- -1
   }
   
-  print("Applying sign matrix to combined activator matrix...")
   # Element-wise multiplication with sign matrix
   combo.mat.signed <- combo.mat.filtered * as.vector(mat.sign * factor)
   if(GLOBAL[["DEBUG"]])  write.mat(combo.mat.signed, outpath.debug, combo, paste0("_signed_", type))
@@ -41,21 +41,13 @@ get.signed.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
 # Arguments
 # combo - a String describing the data type combination (e.g. kc --> knockout and chip)
 # type - The type (activator or repressor)
-# *_qmat - The q-matrices (ranked and adjusted data to fit in range of [0-1] per data type)
+# *.qmat - The q-matrices (ranked and adjusted data to fit in range of [0-1] per data type)
 # genes.final - The genes to be included in the combined matrix (rows). These could, for example, have been filtered by z-scores.
-createCombinedMat <- function(combo, type, ko_qmat, chip_qmat, rna_qmat, immgen_qmat, genes.final) {
+createCombinedMat <- function(combo, type, ko.qmat, chip.qmat, rna.qmat, immgen.qmat, genes.final) {
   source(paste0(getwd(), "/" , "combineQmats-fun.R"))
   print("Combining Q-matrices to a single matrix.")
-  combo.mat <- combine.qmats(ko_qmat, chip_qmat, rna_qmat, immgen_qmat)
-  
-  print(paste("Combined Mat:", combo, "-", type))
-  print(combo.mat[1:5,])
-  
+  combo.mat <- combine.qmats(ko.qmat, chip.qmat, rna.qmat, immgen.qmat)
   combo.mat.filtered <- apply.zscore.filter(combo.mat, genes.final, combo, type)
-  
-  # --------------
-  # Apply sign matrix
-  # --------------
-  combo.mat.signed <- get.signed.mat(combo.mat.filtered, ko.scores, combo, type)
+  combo.mat.signed <- apply.sign.mat(combo.mat.filtered, ko.scores, combo, type)
   return(combo.mat.signed)
 }

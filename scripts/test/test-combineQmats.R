@@ -132,8 +132,8 @@ test_that("Q-score matrices are combined as expected", {
   # KC
   genes <- toupper(sort(unique(c(k.genes, c.genes))))
   combo.vals <- c(1.807, 0.591, 0.555, # BATF | A B C
-                  1.154, 1,283, 0.514, # MAF | A B C
-                  0.900, 1,582, 0.119 )# STAT3 | A B C
+                  1.154, 1.283, 0.514, # MAF | A B C
+                  0.900, 1.582, 0.119 )# STAT3 | A B C
   expected.result <- matrix(combo.vals, nrow = length(genes), ncol = length(test_tfs))
   
   combo.mat <- combine.qmats(kqmat, cqmat, NULL, NULL)
