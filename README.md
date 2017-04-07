@@ -7,4 +7,6 @@ Given the information provided on the Cell page as well as [available data on NC
 
 The pipeline follows the 'Computational Methods' described in Ciofani et al. [1] and adaptations in response to examination of source code provided by Aviv Madar. 
 
+[Project Trello board](https://trello.com/b/E6WcAF7I/th17-regulatory-networks)
+
 [1] Ciofani, Maria, Aviv Madar, Carolina Galan, MacLean Sellars, Kieran Mace, Florencia Pauli, Ashish Agarwal et al. "A validated regulatory network for Th17 cell specification." Cell 151, no. 2 (2012): 289-303.
