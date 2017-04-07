@@ -63,6 +63,7 @@ test_that("Sign matrix is applied as expected", {
                -0.566, 0.040)
   ko.scores <- matrix(ko.vals, nrow=length(ko.genes), ncol=length(ko.tfs), dimnames=list(ko.genes, ko.tfs))
   
+  # Normal data
   # activator
   expected.vals <- c(0.000, 0.949, -0.984, 
                      0.566, -0.254, 0.000)
@@ -82,5 +83,61 @@ test_that("Sign matrix is applied as expected", {
   
   expect_that(sign.mat.r, is_a("matrix"))
   expect_that(sign.mat.r, is_identical_to(expected.result.r))
+  
+  # ko.genes not found in combo matrix --> no signs applied
+  rownames(ko.scores) <- c("D", "E")
+  
+  expected.vals <- c(0.000, 0.949, 0.984, 
+                     0.566, 0.254, 0.000)
+  expected.result <- matrix(expected.vals, nrow=length(combo.genes), ncol=length(combo.tfs), dimnames=list(combo.genes, combo.tfs))
+  
+  sign.mat <- apply.sign.mat(combo.mat, ko.scores, "test", "activator")
+  
+  expect_that(sign.mat, is_a("matrix"))
+  expect_that(sign.mat, is_identical_to(expected.result))
+  
+})
+
+# Integration
+test_that("Complete system of combining Q-matrices works as expected", {
+  
+  # KC
+  chip.genes <- c("A", "B", "C")
+  chip.tfs <- c("BATF", "MAF")
+  chip.vals <- c(0.000, 0.949, 0.984, 
+                  0.566, 0.254, 0.000)
+  chip.qmat <- matrix(chip.vals, nrow=length(chip.genes), ncol=length(chip.tfs), dimnames=list(chip.genes, chip.tfs))
+  
+  ko.genes <- c("B", "C")
+  ko.tfs <- c("BATF", "MAF")
+  ko.vals <- c(0.980, 0.563, 
+               0.298, 0.098)
+  ko.qmat <- matrix(ko.vals, nrow=length(ko.genes), ncol=length(ko.tfs), dimnames=list(ko.genes, ko.tfs))
+  
+  ko.score.vals <- c(-14.897, -8.987,
+                     0.765, 2.123)
+  ko.scores <- matrix(ko.score.vals, nrow=length(ko.genes), ncol=length(ko.tfs), dimnames=list(ko.genes, ko.tfs))
+  
+  genes.final <- c("A", "C")
+  combo.tfs <- c("BATF", "MAF")
+  
+  # activator
+  expected.vals <- c(0.000, -1.547,
+                     0.566, 0.098)
+  expected.result <- matrix(expected.vals, nrow=length(genes.final), ncol=length(combo.tfs), dimnames=list(genes.final, combo.tfs))
+  
+  combo.mat <- createCombinedMat("kc", "activator", ko.qmat, chip.qmat, NULL, NULL, genes.final, ko.scores)
+  
+  expect_that(combo.mat, is_a("matrix"))
+  expect_that(combo.mat, is_identical_to(expected.result))
+  
+  # repressor
+  expected.vals.r <- c(0.000, 1.547,
+                     -0.566, -0.098)
+  expected.result.r <- matrix(expected.vals.r, nrow=length(genes.final), ncol=length(combo.tfs), dimnames=list(genes.final, combo.tfs))
+  combo.mat.r <- createCombinedMat("kc", "repressor", ko.qmat, chip.qmat, NULL, NULL, genes.final, ko.scores)
+  
+  expect_that(combo.mat.r, is_a("matrix"))
+  expect_that(combo.mat.r, is_identical_to(expected.result.r))
   
 })

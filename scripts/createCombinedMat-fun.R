@@ -43,9 +43,11 @@ apply.sign.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
 # type - The type (activator or repressor)
 # *.qmat - The q-matrices (ranked and adjusted data to fit in range of [0-1] per data type)
 # genes.final - The genes to be included in the combined matrix (rows). These could, for example, have been filtered by z-scores.
-createCombinedMat <- function(combo, type, ko.qmat, chip.qmat, rna.qmat, immgen.qmat, genes.final) {
-  source(paste0(getwd(), "/" , "combineQmats-fun.R"))
+createCombinedMat <- function(combo, type, ko.qmat, chip.qmat, rna.qmat, immgen.qmat, genes.final, ko.scores) {
   print("Combining Q-matrices to a single matrix.")
+  if((length(ko.scores[is.na(ko.scores)]) + length(ko.scores[is.infinite(ko.scores)])) > 0) {
+    stop("NA or Inf values found in knockout score matrix. Stopping.")
+  }
   combo.mat <- combine.qmats(ko.qmat, chip.qmat, rna.qmat, immgen.qmat)
   combo.mat.filtered <- apply.zscore.filter(combo.mat, genes.final, combo, type)
   combo.mat.signed <- apply.sign.mat(combo.mat.filtered, ko.scores, combo, type)

@@ -74,9 +74,9 @@ zscores.all <- load.zscores(zscores_filepath)
 genes.final <- filter.genes.by.zscore(zscores.all, GLOBAL[["z.abs.cut"]])
 print(paste("Total number of genes with z-scores:", length(rownames(zscores.all)), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
   
-ko.scores <- NULL
 chip.scores.activator <- NULL
 chip.scores.repressor <- NULL
+ko.scores <- NULL
 rna.scores <- NULL
 immgen.scores <- NULL
 
@@ -247,18 +247,19 @@ print("--------------------------------------------------------------------")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createCombinedMat-fun.R"))
+source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 # KC
 kc.activator <- createCombinedMat(combo = "kc", type = "activator", ko_qmat = ko_qmat.activator, chip_qmat = chip_qmat.activator, 
-                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final)
+                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final, ko.scores)
 kc.repressor <- createCombinedMat(combo = "kc", type = "repressor", ko_qmat = ko_qmat.repressor, chip_qmat = chip_qmat.repressor, 
-                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final)
+                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final, ko.scores)
 
 # KCRI
 kcri.activator <- createCombinedMat(combo = "kcri", type = "activator", ko_qmat = ko_qmat.activator, chip_qmat = chip_qmat.activator, 
-                                    rna_qmat = rna_qmat.activator, immgen_qmat = immgen_qmat.activator, genes.final)
+                                    rna_qmat = rna_qmat.activator, immgen_qmat = immgen_qmat.activator, genes.final, ko.scores)
 kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko_qmat = ko_qmat.repressor, chip_qmat = chip_qmat.repressor, 
-                                    rna_qmat = rna_qmat.repressor, immgen_qmat = immgen_qmat.repressor, genes.final)
+                                    rna_qmat = rna_qmat.repressor, immgen_qmat = immgen_qmat.repressor, genes.final, ko.scores)
 
 # --------------
 # 4) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
