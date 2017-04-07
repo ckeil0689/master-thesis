@@ -28,8 +28,6 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
   # Vectors for row and column names of final Thx (x=0/=17) matrix
   final.genes <- get.genes(qmatlist)
   final.tfs <- get.tfs(qmatlist)
-  print(paste("Unique genes (total):", length(final.genes)))
-  print(paste("Unique TFs (total):", length(final.tfs)))
 
   # 0-initialized matrix  
   combo.mat <- matrix(0, nrow = length(final.genes), ncol = length(final.tfs), 

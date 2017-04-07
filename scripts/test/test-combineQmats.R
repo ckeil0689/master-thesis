@@ -78,8 +78,12 @@ test_that("Colnames/TFs are combined as expected", {
   expect_that(tfs, is_a("character"))
   expect_that(tfs, is_identical_to(expected.result))
   
-  # NULL input
+  # All NULL matrices input
   qmatlist <- list(NULL, NULL, NULL, NULL)
+  expect_that(get.tfs(qmatlist), throws_error())
+  
+  # List NULL input
+  qmatlist <- NULL
   expect_that(get.tfs(qmatlist), throws_error())
 })
 
@@ -111,15 +115,13 @@ test_that("Q-score matrices are combined as expected", {
   rqmat <- matrix(r_values, nrow = length(r.genes), ncol = length(test_tfs), dimnames = list(r.genes, test_tfs))
   iqmat <- matrix(i_values, nrow = length(i.genes), ncol = length(test_tfs), dimnames = list(i.genes, test_tfs))
   
-  print("MATRICES --------------------------")
-  print(kqmat)
-  print(cqmat)
-  print(rqmat)
-  print(iqmat)
-  
   # KCRI
   genes <- toupper(sort(unique(c(k.genes, c.genes, r.genes, i.genes))))
-  expected.result <- matrix(0, nrow = length(genes), ncol = length(test_tfs))
+  combo.vals <- c(1.807, 1.154, 0.555, 0.949, 0.000, # BATF | A B C E J
+                  1.154, 1.595, 1.498, 0.566, 0.312, # MAF | A B C E J
+                  0.900, 1.582, 0.373, 0.000, 0.000) # STAT3 | A B C E J
+    
+  expected.result <- matrix(combo.vals, nrow = length(genes), ncol = length(test_tfs))
   
   combo.mat <- combine.qmats(kqmat, cqmat, rqmat, iqmat)
   expect_that(combo.mat, is_a("matrix"))
@@ -140,4 +142,19 @@ test_that("Q-score matrices are combined as expected", {
   expect_that(colnames(combo.mat), is_identical_to(test_tfs))
   expect_that(dim(combo.mat), is_identical_to(dim(expected.result)))
   
+  # K
+  genes <- toupper(sort(unique(k.genes)))
+  combo.vals <- c(0.992, 0.346, # BATF | A B
+                  0.283, 0.625, # MAF | A B
+                  0.526, 0.987) # STAT3 | A B
+  expected.result <- matrix(combo.vals, nrow = length(genes), ncol = length(test_tfs))
+  
+  combo.mat <- combine.qmats(kqmat, NULL, NULL, NULL)
+  expect_that(combo.mat, is_a("matrix"))
+  expect_that(rownames(combo.mat), is_identical_to(genes))
+  expect_that(colnames(combo.mat), is_identical_to(test_tfs))
+  expect_that(dim(combo.mat), is_identical_to(dim(expected.result)))
+  
+  # All NULL
+  expect_that(combine.qmats(NULL, NULL, NULL, NULL), throws_error())
 })
