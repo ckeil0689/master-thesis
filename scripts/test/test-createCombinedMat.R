@@ -101,7 +101,7 @@ test_that("Sign matrix is applied as expected", {
 # Integration
 test_that("Complete system of combining Q-matrices works as expected", {
   
-  # KC
+  # KC ------------------------
   chip.genes <- c("A", "B", "C")
   chip.tfs <- c("BATF", "MAF")
   chip.vals <- c(0.000, 0.949, 0.984, 
@@ -140,6 +140,35 @@ test_that("Complete system of combining Q-matrices works as expected", {
   expect_that(combo.mat.r, is_a("matrix"))
   expect_that(combo.mat.r, is_identical_to(expected.result.r))
   
-  # TODO: KCRI and some exceptional cases
+  # KCRI -----------------------
+  rna.genes <- c("A", "C", "D")
+  rna.tfs <- c("BATF", "MAF", "RORC", "STAT3")
+  rna.vals <- c(0.893, 0.000, 0.415,
+                0.935, 0.000, 0.999,
+                0.734, 0.239, 0.256,
+                0.000, 0.000, 0.300)
+  rna.qmat <- matrix(rna.vals, nrow=length(rna.genes), ncol=length(rna.tfs), dimnames=list(rna.genes, rna.tfs))
   
+  immgen.genes <- c("A", "B", "D")
+  immgen.tfs <- c("BATF", "MAF", "RORC", "STAT3")
+  immgen.vals <- c(0.429, 0.448, 0.000,
+                   0.735, 0.087, 0.567,
+                   0.846, 0.000, 0.855,
+                   0.253, 0.000, 0.628)
+  immgen.qmat <- matrix(immgen.vals, nrow=length(immgen.genes), ncol=length(immgen.tfs), dimnames=list(immgen.genes, immgen.tfs))
+  
+  genes.final <- c("A", "B", "C", "D")
+  combo.tfs <- c("BATF", "MAF", "RORC", "STAT3")
+  
+  # activator
+  expected.vals <- c(1.322, 2.377, 1.547, 0.415, #BATF
+                     2.236, 0.639, 0.098, 1.566, #MAF
+                     1.580, 0.000, 0.239, 1.111, #RORC
+                     0.253, 0.000, 0.000, 0.928) #STAT3
+  expected.result <- matrix(expected.vals, nrow=length(genes.final), ncol=length(combo.tfs), dimnames=list(genes.final, combo.tfs))
+  
+  combo.mat <- createCombinedMat("kcri", "activator", ko.qmat, chip.qmat, rna.qmat, immgen.qmat, genes.final, ko.scores)
+  
+  expect_that(combo.mat, is_a("matrix"))
+  expect_that(combo.mat, is_identical_to(expected.result))
 })

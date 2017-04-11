@@ -3,6 +3,7 @@
 # Test script for unit testing the single functions & components used in the project
 source(paste0(getwd(), "/../addLibraries.R"))
 
+# Turn verbose testing on or leave it quiet
 quiet <- TRUE
 args = commandArgs(trailingOnly=TRUE)
 if(length(args) == 1 && args[1] == "verbose") {
