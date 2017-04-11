@@ -19,7 +19,7 @@ apply.sign.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
   # The knockout values will give us signs, everything else treated as positive (ChIP!)
   mat.sign <- sign(mat.sign)
   mat.sign[which(mat.sign==0)] <- 1
-  if(GLOBAL[["DEBUG"]]) write.mat(mat.sign, outpath.debug, combo, paste0("_", type, "_signmat"))
+  if(GLOBAL[["DEBUG"]]) write.mat(mat.sign, outpath.debug, combo, paste0(type, "_signmat"))
   
   if(!identical(dim(mat.sign), dim(combo.mat.filtered))) {
     stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
@@ -32,7 +32,7 @@ apply.sign.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
   
   # Element-wise multiplication with sign matrix
   combo.mat.signed <- combo.mat.filtered * as.vector(mat.sign * factor)
-  if(GLOBAL[["DEBUG"]])  write.mat(combo.mat.signed, outpath.debug, combo, paste0("_signed_", type))
+  if(GLOBAL[["DEBUG"]])  write.mat(combo.mat.signed, outpath.debug, combo, paste0("signed_", type))
   return(combo.mat.signed)
 }
 

@@ -191,7 +191,6 @@ if(GLOBAL[["use.nyu.rank"]]) {
   
   # KO scores
   println("Ranking knockout scores.")
-  println(ko.scores[1:3,])
   ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
   ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
   write.mat(ko_qmat.activator, outpath.debug, "K", "activator_nyu_qmat")
@@ -250,16 +249,14 @@ source(paste0(getwd(), "/" , "createCombinedMat-fun.R"))
 source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 # KC
-kc.activator <- createCombinedMat(combo = "kc", type = "activator", ko_qmat = ko_qmat.activator, chip_qmat = chip_qmat.activator, 
-                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final, ko.scores)
-kc.repressor <- createCombinedMat(combo = "kc", type = "repressor", ko_qmat = ko_qmat.repressor, chip_qmat = chip_qmat.repressor, 
-                                  rna_qmat = NULL, immgen_qmat = NULL, genes.final, ko.scores)
+kc.activator <- createCombinedMat(combo = "kc", type = "activator", ko.qmat = ko_qmat.activator, chip.qmat = chip_qmat.activator, rna.qmat = NULL, immgen.qmat = NULL, genes.final, ko.scores)
+kc.repressor <- createCombinedMat(combo = "kc", type = "repressor", ko.qmat = ko_qmat.repressor, chip.qmat = chip_qmat.repressor, rna.qmat = NULL, immgen.qmat = NULL, genes.final, ko.scores)
 
 # KCRI
-kcri.activator <- createCombinedMat(combo = "kcri", type = "activator", ko_qmat = ko_qmat.activator, chip_qmat = chip_qmat.activator, 
-                                    rna_qmat = rna_qmat.activator, immgen_qmat = immgen_qmat.activator, genes.final, ko.scores)
-kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko_qmat = ko_qmat.repressor, chip_qmat = chip_qmat.repressor, 
-                                    rna_qmat = rna_qmat.repressor, immgen_qmat = immgen_qmat.repressor, genes.final, ko.scores)
+kcri.activator <- createCombinedMat(combo = "kcri", type = "activator", ko.qmat = ko_qmat.activator, chip.qmat = chip_qmat.activator,
+                                    rna.qmat = rna_qmat.activator, immgen.qmat = immgen_qmat.activator, genes.final, ko.scores)
+kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko.qmat = ko_qmat.repressor, chip.qmat = chip_qmat.repressor,
+                                    rna.qmat = rna_qmat.repressor, immgen.qmat = immgen_qmat.repressor, genes.final, ko.scores)
 
 # --------------
 # 4) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
