@@ -81,7 +81,6 @@ rna.scores <- NULL
 immgen.scores <- NULL
 
 # ChIP always has positive values
-k_sign_mat <- NULL
 r_sign_mat <- NULL
 i_sign_mat <- NULL
 
@@ -91,7 +90,6 @@ loadKOData <- function() {
   source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
   println("Generating knockout scores.")
   scores <- load.deseq()
-  k_sign_mat <- sign(as.data.frame(scores))
   if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "K", "smat")
   return(scores)
 }
@@ -104,7 +102,6 @@ if(shouldRegenerateKCData) {
   if(file.exists(ko.file)) {
     println("Found knockout matrix file.")
     ko.scores <- as.matrix(read.table(ko.file, sep="\t", header=TRUE, row.names = 1))
-    k_sign_mat <- sign(ko.scores)
   } else {
     println("Could not find knockout data matrix. Generating new matrix.")
     ko.scores <- loadKOData()
