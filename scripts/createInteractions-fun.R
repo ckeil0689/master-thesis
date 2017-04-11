@@ -16,7 +16,7 @@ create.empty.table <- function(total.edge.num) {
 }
 
 # Fill edge table for Cytoscape with TF-gene interaction values from the combined matrix
-select.edges <- function(combo.mat, cyt.table, used.cut) {
+select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
   listrow <- 1
   # Iterate over TFs (columns)
   for (i in 1:ncol(combo.mat)) {
@@ -67,7 +67,7 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   println(paste0(tot, " [", pos.edge, "]"))
   
   cyt.table.empty <- create.empty.table(tot)
-  cyt.table.full <- select.edges(combomat, cyt.table.empty, used.cut)
+  cyt.table.full <- select.edges(combomat, cyt.table.empty, used.cut, pos.edge, neg.edge)
   
   write.mat(cyt.table.full, outpath, combo, type, used.cut, append)
   println("Done creating data table for Cytoscape.")
