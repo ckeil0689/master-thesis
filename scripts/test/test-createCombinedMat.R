@@ -132,8 +132,7 @@ test_that("Complete system of combining Q-matrices works as expected", {
   expect_that(combo.mat, is_identical_to(expected.result))
   
   # repressor
-  expected.vals.r <- c(0.000, 1.547,
-                     -0.566, -0.098)
+  expected.vals.r <- -1*expected.vals
   expected.result.r <- matrix(expected.vals.r, nrow=length(genes.final), ncol=length(combo.tfs), dimnames=list(genes.final, combo.tfs))
   combo.mat.r <- createCombinedMat("kc", "repressor", ko.qmat, chip.qmat, NULL, NULL, genes.final, ko.scores)
   
@@ -161,7 +160,7 @@ test_that("Complete system of combining Q-matrices works as expected", {
   combo.tfs <- c("BATF", "MAF", "RORC", "STAT3")
   
   # activator
-  expected.vals <- c(1.322, 2.377, 1.547, 0.415, #BATF
+  expected.vals <- c(1.322, -2.377, -1.547, 0.415, #BATF
                      2.236, 0.639, 0.098, 1.566, #MAF
                      1.580, 0.000, 0.239, 1.111, #RORC
                      0.253, 0.000, 0.000, 0.928) #STAT3
@@ -170,5 +169,16 @@ test_that("Complete system of combining Q-matrices works as expected", {
   combo.mat <- createCombinedMat("kcri", "activator", ko.qmat, chip.qmat, rna.qmat, immgen.qmat, genes.final, ko.scores)
   
   expect_that(combo.mat, is_a("matrix"))
-  expect_that(combo.mat, is_identical_to(expected.result))
+  expect_that(dimnames(combo.mat),is_identical_to(dimnames(expected.result)))
+  expect_that(combo.mat, equals(expected.result, tolerance = 0.00001)) # floating point calc --> not using is_identical_to()
+  
+  # repressor
+  expected.vals.r <- -1*expected.vals
+  expected.result.r <- matrix(expected.vals.r, nrow=length(genes.final), ncol=length(combo.tfs), dimnames=list(genes.final, combo.tfs))
+  
+  combo.mat <- createCombinedMat("kcri", "repressor", ko.qmat, chip.qmat, rna.qmat, immgen.qmat, genes.final, ko.scores)
+  
+  expect_that(combo.mat, is_a("matrix"))
+  expect_that(dimnames(combo.mat),is_identical_to(dimnames(expected.result.r)))
+  expect_that(combo.mat, equals(expected.result.r, tolerance = 0.00001)) # floating point calc --> not using is_identical_to()
 })
