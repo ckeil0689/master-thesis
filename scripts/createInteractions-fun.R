@@ -1,29 +1,26 @@
 # Load confidence score matrices by option
+# Overwrites util.R write.mat!
 write.mat <- function(mat, outpath, combo, type, used.cut, append = FALSE) {
   filename = paste0(outpath, combo, "_", type, "_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
-  print(paste("Writing matrix to file:", filename))
+  println(paste("Writing matrix to file:", filename))
   # no column names when appending (otherwise it will be treated as random data entry by Cytoscape)
   write.table(mat, file = filename, append = append, sep = ",", row.names = FALSE, col.names = !append)
 }
 
 # Takes a combined matrix file and transforms it to a list of node-node interactions that can be loaded into Cytoscape
 create.interactions <- function(combomat, outpath, combo, type, pos.edge = "positive", neg.edge = "negative", append = FALSE) {
-  print("Transforming matrix to node-node-value list.")
+  println("Transforming matrix to node-node-value list.")
   
   # Select top 20% of edges from signed combined matrix
   m.cut <- quantile(combomat, probs=.97)
   
-  # This value was apparently used in the KC.cys example file. It is an alternative to m.cut
-  cs.cut <- 1.65
-  
-  # Set which cut value is used (quantile or defined confidence score cut)
-  used.cut = cs.cut
-  print(paste("Using absolute confidence score cut:", used.cut))
+  # Set which cut value is used (quantile m.cut or defined cs.abs.cut)
+  used.cut = GLOBAL[["cs.abs.cut"]]
+  println(paste("Using absolute confidence score cut:", used.cut))
   
   # Info about the total number of edges
-  print(combomat[1:5,])
   tot <- length(combomat[abs(combomat) > used.cut])
-  print(paste0(tot, " [", pos.edge, "]"))
+  println(paste0(tot, " [", pos.edge, "]"))
   
   # Pre-allocate data table since final dimensions are known - performance is much better than dynamic resize
   cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), 
@@ -37,7 +34,7 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
     # Per TF, only look at genes with absolute interaction value over the cutoff
     target.genes <- which(abs(combomat[,i]) > used.cut)
     if(length(target.genes) == 0) {
-      print(paste("No targets found. Skipping", colnames(combomat)[i]))
+      println(paste("No targets found. Skipping", colnames(combomat)[i]))
       next
     }
     for (j in 1:length(target.genes)) {
@@ -62,5 +59,5 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   }
   cat("\n")
   write.mat(cyt.table, outpath, combo, type, used.cut, append)
-  print("Done creating data table for Cytoscape.")
+  println("Done creating data table for Cytoscape.")
 }

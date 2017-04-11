@@ -10,7 +10,7 @@ apply.zscore.filter <- function(combo.mat, genes.final, combo, type) {
 }
 
 apply.sign.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
-  print("Applying signs to matrix.")
+  println("Applying signs to matrix.")
   # Empty matrix with same dimension as combined matrix
   mat.sign <- matrix(0, nc=ncol(combo.mat.filtered), nr=nrow(combo.mat.filtered), dimnames=dimnames(combo.mat.filtered))
   # Only set values which also appear in KO matrix (TF-target gene pairs)
@@ -44,7 +44,7 @@ apply.sign.mat <- function(combo.mat.filtered, ko.scores, combo, type) {
 # *.qmat - The q-matrices (ranked and adjusted data to fit in range of [0-1] per data type)
 # genes.final - The genes to be included in the combined matrix (rows). These could, for example, have been filtered by z-scores.
 createCombinedMat <- function(combo, type, ko.qmat, chip.qmat, rna.qmat, immgen.qmat, genes.final, ko.scores) {
-  print("Combining Q-matrices to a single matrix.")
+  println("Combining Q-matrices to a single matrix.")
   if((length(ko.scores[is.na(ko.scores)]) + length(ko.scores[is.infinite(ko.scores)])) > 0) {
     stop("NA or Inf values found in knockout score matrix. Stopping.")
   }

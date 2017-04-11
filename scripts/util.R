@@ -1,3 +1,8 @@
+# A wrapper for normal print to reduce code clutter
+println <- function(string) {
+  if(!GLOBAL[["TEST"]]) print(string)
+}
+
 # Write a matrix to tab-delimited .txt-file
 write.mat <- function(mat, outpath, prefix, suffix = "") {
   # some input checking
@@ -11,7 +16,7 @@ write.mat <- function(mat, outpath, prefix, suffix = "") {
   
   if(suffix != "") {suffix <- paste0("_", suffix)}
   filename = paste0(outpath, prefix, suffix, ".txt")
-  print(paste("Writing matrix to file:", filename))
+  print(paste("Writing matrix to file:", filename)) # do not use println() here --> test will fail, output is wanted
   write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
 }
 
@@ -26,8 +31,8 @@ load.zscores <- function(zscores.path) {
     colnames(zscores.all) <- "Th17_vs_Th0_Zscores" # matches name used in Cytoscape Style for example KC.cys
     return(zscores.all)
   }
-  print(paste("Z-score table not found at: ", zscores.path))
-  print("Returning NULL.")
+  println(paste("Z-score table not found at: ", zscores.path))
+  println("Returning NULL.")
   return(NULL)
 }
 

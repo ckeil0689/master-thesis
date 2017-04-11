@@ -43,6 +43,6 @@ combine.qmats <- function(kqmat, cqmat, rqmat, iqmat) {
     combo.mat = acast(merged_df, Var1 ~ Var2, sum)
   }
   
-  print("Finished integration of data.")
+  println("Finished integration of data.")
   return(combo.mat)
 }

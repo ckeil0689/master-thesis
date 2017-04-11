@@ -51,28 +51,28 @@ shouldRegenerateKCData <- TRUE
 if(length(args) == 1) {
   if(args[[1]] == "noload") {
     shouldRegenerateKCData <- FALSE
-    print("Attemtpting to use existing data for knockout and ChIP data.")
+    println("Attemtpting to use existing data for knockout and ChIP data.")
   } else {
     stop("Option not recognized. Available options: noload")
   }
 } else {
-  print("Newly generating the KC data.")
+  println("Newly generating the KC data.")
 }
 
 # START OF PROCEDURE
 # --------------
 # 1) Load data from each selected data type to create confidence score matrix S
 # --------------
-print("--------------------------------------------------------------------")
-print(">>>>>>>>>>>>>>>>> 1) Loading all initial data <<<<<<<<<<<<<<<<<<<<<<")
-print("--------------------------------------------------------------------")
+println("--------------------------------------------------------------------")
+println(">>>>>>>>>>>>>>>>> 1) Loading all initial data <<<<<<<<<<<<<<<<<<<<<<")
+println("--------------------------------------------------------------------")
 # Load z-scores from SAM stored in mmc5 table of original authors (available on the Cell page, link on top of this script). 
 # Z-scores provide a color scheme for nodes in Cytoscape which shows differential expression Th17 vs Th0 after 48h.
 zscores.all <- load.zscores(zscores_filepath)
 
 # Z-scores may also be used for filtering of included genes
 genes.final <- filter.genes.by.zscore(zscores.all, GLOBAL[["z.abs.cut"]])
-print(paste("Total number of genes with z-scores:", length(rownames(zscores.all)), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
+println(paste("Total number of genes with z-scores:", length(rownames(zscores.all)), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
   
 chip.scores.activator <- NULL
 chip.scores.repressor <- NULL
@@ -89,7 +89,7 @@ i_sign_mat <- NULL
 loadKOData <- function() {
   setwd(scriptdir)
   source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
-  print("Generating knockout scores.")
+  println("Generating knockout scores.")
   scores <- load.deseq()
   k_sign_mat <- sign(as.data.frame(scores))
   if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "K", "smat")
@@ -99,14 +99,14 @@ loadKOData <- function() {
 if(shouldRegenerateKCData) {
   ko.scores <- loadKOData()
 } else {
-  print("Looking for existing knockout data matrix.")
+  println("Looking for existing knockout data matrix.")
   ko.file <- paste0(outpath.debug, "K_smat.txt")
   if(file.exists(ko.file)) {
-    print("Found knockout matrix file.")
+    println("Found knockout matrix file.")
     ko.scores <- as.matrix(read.table(ko.file, sep="\t", header=TRUE, row.names = 1))
     k_sign_mat <- sign(ko.scores)
   } else {
-    print("Could not find knockout data matrix. Generating new matrix.")
+    println("Could not find knockout data matrix. Generating new matrix.")
     ko.scores <- loadKOData()
   }
 }
@@ -115,7 +115,7 @@ if(shouldRegenerateKCData) {
 loadChIPData <- function(type) {
   setwd(scriptdir)
   source(paste0(getwd(), "/" , "chipExtract-fun.R"))
-  print("Loading ChIP scores.")
+  println("Loading ChIP scores.")
   if(type == "activator") {
     scores <- load.chip(boost.p300 = TRUE)
     if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "C", "activator_smat")
@@ -133,44 +133,44 @@ if(shouldRegenerateKCData) {
   chip.scores.repressor <- loadChIPData("repressor")
 } else {
   # Activator
-  print("Looking for existing ChIP activator data matrix.")
+  println("Looking for existing ChIP activator data matrix.")
   chip.activator.file <- paste0(outpath.debug, "C_activator_smat.txt")
   if(file.exists(chip.activator.file)) {
-    print("Found ChIP activator matrix file.")
+    println("Found ChIP activator matrix file.")
     chip.scores.activator <- as.matrix(read.table(chip.activator.file, sep="\t", header=TRUE, row.names = 1))
   } else {
-    print("Could not find ChIP activator data matrix. Generating new matrix.")
+    println("Could not find ChIP activator data matrix. Generating new matrix.")
     chip.scores.activator <- loadChIPData("activator")
   }
   
   # Repressor
-  print("Looking for existing ChIP repressor data matrix.")
+  println("Looking for existing ChIP repressor data matrix.")
   chip.repressor.file <- paste0(outpath.debug, "C_repressor_smat.txt")
   if(file.exists(chip.repressor.file)) {
-    print("Found ChIP repressor matrix file.")
+    println("Found ChIP repressor matrix file.")
     chip.scores.repressor <- as.matrix(read.table(chip.repressor.file, sep="\t", header=TRUE, row.names = 1))
   } else {
-    print("Could not find ChIP repressor data matrix. Generating new matrix.")
+    println("Could not find ChIP repressor data matrix. Generating new matrix.")
     chip.scores.repressor <- loadChIPData("repressor")
   }
 }
 
 # Load RNA-compendium Inferelator scores - directly provided on GEO
-print("Loading RNA-seq inferelator scores.")
+println("Loading RNA-seq inferelator scores.")
 rna.scores <- as.matrix(read.table(rnaseqfile, sep="\t", header=TRUE, row.names = 1))
 r_sign_mat <- sign(as.data.frame(rna.scores))
 
 # Load Immgen microarray Inferelator scores - directly provided on GEO 
-print("Loading Immgen microarray inferelator scores.")
+println("Loading Immgen microarray inferelator scores.")
 immgen.scores <- as.matrix(read.table(immgenfile, sep="\t", header=TRUE, row.names = 1))
 i_sign_mat <- sign(as.data.frame(immgen.scores))
 
 # --------------
 # 2) Perform ranking on each confidence score matrix S
 # --------------
-print("--------------------------------------------------------------------")
-print(">>>>>>>>>>>>> 2) Perform quantile ranking on each data set <<<<<<<<<<<<<<<<<<")
-print("--------------------------------------------------------------------")
+println("--------------------------------------------------------------------")
+println(">>>>>>>>>>>>> 2) Perform quantile ranking on each data set <<<<<<<<<<<<<<<<<<")
+println("--------------------------------------------------------------------")
 # Reset because previous functions may globally change working directory and source() breaks
 setwd(scriptdir)
 
@@ -185,34 +185,34 @@ do.quantile.rank <- function(mat, positiveOnly = FALSE, prefix) {
 }
 
 if(GLOBAL[["use.nyu.rank"]]) {
-  print(">>>>>>>>>>>>>>>>> DEBUG: Calculating Aviv Madar's rank-score algorithm (in place of own ranking) <<<<<<<<<<<<<<<<<<<<<<")
+  println(">>>>>>>>>>>>>>>>> DEBUG: Calculating Aviv Madar's rank-score algorithm (in place of own ranking) <<<<<<<<<<<<<<<<<<<<<<")
   # Utilizing ranking methods from AM for testing purposes
   source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
   
   # KO scores
-  print("Ranking knockout scores.")
-  print(ko.scores[1:3,])
+  println("Ranking knockout scores.")
+  println(ko.scores[1:3,])
   ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
   ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
   write.mat(ko_qmat.activator, outpath.debug, "K", "activator_nyu_qmat")
   write.mat(ko_qmat.repressor, outpath.debug, "K", "repressor_nyu_qmat")
   
   # ChIP scores
-  print("Ranking ChIP scores.")
+  println("Ranking ChIP scores.")
   chip_qmat.activator <- abs(convert.scores.to.relative.ranks(chip.scores.activator)) # all values!
   chip_qmat.repressor <- abs(convert.scores.to.relative.ranks(chip.scores.repressor)) # all values!
   write.mat(chip_qmat.activator, outpath.debug, "C", "activator_nyu_qmat")
   write.mat(chip_qmat.repressor, outpath.debug, "C", "repressor_nyu_qmat")
   
   # RNA compendium scores
-  print("Ranking RNA compendium scores.")
+  println("Ranking RNA compendium scores.")
   rna_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(rna.scores))
   rna_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*rna.scores))
   write.mat(rna_qmat.activator, outpath.debug, "R", "activator_nyu_qmat")
   write.mat(rna_qmat.repressor, outpath.debug, "R", "repressor_nyu_qmat")
   
   # Immgen microarray scores
-  print("Ranking Immgen microarray scores.")
+  println("Ranking Immgen microarray scores.")
   immgen_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(immgen.scores))
   immgen_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*immgen.scores))
   write.mat(immgen_qmat.activator, outpath.debug, "I", "activator_nyu_qmat")
@@ -220,20 +220,20 @@ if(GLOBAL[["use.nyu.rank"]]) {
   
 } else {
   source(paste0(getwd(), "/" , "quantileRank-fun.R"))
-  print("Creating quantil rank matrices (Q).")
-  print("Ranking knockout scores.")
+  println("Creating quantil rank matrices (Q).")
+  println("Ranking knockout scores.")
   ko_qmat.activator <- do.quantile.rank(ko.scores, positiveOnly = TRUE, "K_activator") # positive only!
   ko_qmat.repressor <-do.quantile.rank(-1*ko.scores, positiveOnly = TRUE, "K_repressor") # positive only!
   
-  print("Ranking ChIP scores.")
+  println("Ranking ChIP scores.")
   chip_qmat.activator <- do.quantile.rank(chip.scores.activator, positiveOnly = FALSE, "C_activator")
   chip_qmat.repressor <- do.quantile.rank(chip.scores.repressor, positiveOnly = FALSE, "C_repressor")
   
-  print("Ranking RNA compendium scores.")
+  println("Ranking RNA compendium scores.")
   rna_qmat.activator <- do.quantile.rank(rna.scores, positiveOnly = TRUE, "R_activator") # positive only!
   rna_qmat.repressor <- do.quantile.rank(-1*rna.scores, positiveOnly = TRUE, "R_repressor") # positive only!
   
-  print("Ranking Immgen microarray scores.")
+  println("Ranking Immgen microarray scores.")
   immgen_qmat.activator <- do.quantile.rank(immgen.scores, positiveOnly = TRUE, "I_activator") # positive only!
   immgen_qmat.repressor <- do.quantile.rank(-1*immgen.scores, positiveOnly = TRUE, "I_repressor") # positive only!
 }
@@ -241,9 +241,9 @@ if(GLOBAL[["use.nyu.rank"]]) {
 # --------------
 # 3) Combine data according to various data type combinations
 # --------------
-print("--------------------------------------------------------------------")
-print(">>>>>>> Combining Q-matrices to a single interaction matrix <<<<<<<<")
-print("--------------------------------------------------------------------")
+println("--------------------------------------------------------------------")
+println(">>>>>>> Combining Q-matrices to a single interaction matrix <<<<<<<<")
+println("--------------------------------------------------------------------")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createCombinedMat-fun.R"))
@@ -264,18 +264,18 @@ kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko_qmat 
 # --------------
 # 4) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 
 # --------------
-print("--------------------------------------------------------------------")
-print(">>>>>>>>>>>>>>>>>>>>> Writing z-score table <<<<<<<<<<<<<<<<<<<<<<<<")
-print("--------------------------------------------------------------------")
-print("Writing zscores from mmc5.")
+println("--------------------------------------------------------------------")
+println(">>>>>>>>>>>>>>>>>>>>> Writing z-score table <<<<<<<<<<<<<<<<<<<<<<<<")
+println("--------------------------------------------------------------------")
+println("Writing zscores from mmc5.")
 write.mat(zscores.all, outpath.cyt, "", "zscores")
 
 # --------------
 # 5) From combine data matrix, create a list of node-node-value interactions for Cytoscape
 # --------------
-print("--------------------------------------------------------------------")
-print(">>>>>>>>> Writing interaction lists for Cytoscape network <<<<<<<<<<")
-print("--------------------------------------------------------------------")
+println("--------------------------------------------------------------------")
+println(">>>>>>>>> Writing interaction lists for Cytoscape network <<<<<<<<<<")
+println("--------------------------------------------------------------------")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)
 source(paste0(getwd(), "/" , "createInteractions-fun.R"))
@@ -285,22 +285,22 @@ source(paste0(getwd(), "/" , "createInteractions-fun.R"))
 # naming very inconvenient and confusing. If there is time, I will change this.
 
 # KC
-print("Writing KC interactions as single list...")
+println("Writing KC interactions as single list...")
 create.interactions(kc.activator, outpath.cyt, "kc", "single", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
 create.interactions(kc.repressor, outpath.cyt, "kc", "single", pos.edge= "negative_KC", neg.edge = "positive_KC", append = TRUE)
 
-print("Writing KC interactions as separate lists...")
+println("Writing KC interactions as separate lists...")
 create.interactions(kc.activator, outpath.cyt, "kc", "activator", pos.edge= "positive_KC", neg.edge = "negative_KC", append = FALSE)
 create.interactions(kc.repressor, outpath.cyt, "kc", "repressor", pos.edge= "negative_KC", neg.edge = "positive_KC", append = FALSE)
 
 # KCRI
-print("Writing KCRI interactions as single list...")
+println("Writing KCRI interactions as single list...")
 create.interactions(kcri.activator, outpath.cyt, "kcri", "single", pos.edge= "positive_KCRI", neg.edge = "negative_KCRI", append = FALSE)
 create.interactions(kcri.repressor, outpath.cyt, "kcri", "single", pos.edge= "negative_KCRI", neg.edge = "positive_KC", append = TRUE)
 
-print("Writing KCRI interactions as separate lists...")
+println("Writing KCRI interactions as separate lists...")
 create.interactions(kcri.activator, outpath.cyt, "kcri", "activator", pos.edge= "positive_KCRI", neg.edge = "negative_KCRI", append = FALSE)
 create.interactions(kcri.repressor, outpath.cyt, "kcri", "repressor", pos.edge= "negative_KCRI", neg.edge = "positive_KCRI", append = FALSE)
 
-print("---------------------")
-print("Done. Now files can be loaded into Cytoscape.")
+println("---------------------")
+println("Done. Now files can be loaded into Cytoscape.")

@@ -33,7 +33,7 @@ get.skel.mat <- function() {
   # Ensure we are in correct directory
   if(!dir.exists(deseqdir)) stop("Cannot load ChIP-files because the directory does not exist.")
   setwd(deseqdir)
-  print(paste("Reading", length(deseqfiles),"DESeq files to create complete list of genes."))
+  println(paste("Reading", length(deseqfiles),"DESeq files to create complete list of genes."))
   
   # Vectors for row and column names of final KO-matrix
   all.genes <- c()
@@ -52,7 +52,7 @@ get.skel.mat <- function() {
     all.genes <- append(all.genes, file.genes)
   }
   
-  print("Generating zero-filled KO-matrix skeleton.")
+  println("Generating zero-filled KO-matrix skeleton.")
   all.genes.unique <- toupper(sort(unique(all.genes)))
   all.tfs.unique <- toupper(sort(unique(all.tfs)))
   
@@ -65,7 +65,7 @@ get.skel.mat <- function() {
 # fill pre-allocated confidence score matrix according to formula in Computational Methods:
 # score = pval * sign(log2(foldchange))
 populate.ko.scores <- function(ko.scores) {
-  print("Extract DESeq non-adjusted p-values and log2(foldchange) from files.")
+  println("Extract DESeq non-adjusted p-values and log2(foldchange) from files.")
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
@@ -85,10 +85,10 @@ populate.ko.scores <- function(ko.scores) {
   ko.scores[is.na(ko.scores)] <- 0
   
   # drop 0-only-rows
-  # print(dim(ko.scores))
+  # println(dim(ko.scores))
   # ko.scores <- ko.scores[rowSums(abs(ko.scores[, -1]))>(1e-10),]
-  # print("DROPPED---------------------------------------")
-  # print(dim(ko.scores))
+  # println("DROPPED---------------------------------------")
+  # println(dim(ko.scores))
   
   return(ko.scores)
 }

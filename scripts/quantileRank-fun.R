@@ -30,7 +30,7 @@ calc.quantile.ranks <- function(smat, positiveOnly = FALSE) {
   smat[is.na(smat)] <- 0.0
   ranked.mat[is.na(ranked.mat)] <- 0.0
   
-  print("Done ranking.")
+  println("Done ranking.")
   qmat <- calc.qmat(smat, ranked.mat)
   return(qmat)
 }
@@ -42,7 +42,7 @@ qscore <- function(rank, n_nonzero) {
 }
 
 calc.qmat <- function(orig.mat, ranked.mat) {
-  print("Applying quantile score function over ranked matrix.")
+  println("Applying quantile score function over ranked matrix.")
   ix.zero <- which(orig.mat == 0)
   n_nonzero = sum(orig.mat != 0)
   

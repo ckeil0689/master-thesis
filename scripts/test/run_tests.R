@@ -13,7 +13,8 @@ if(!dir.exists(results.out)) {
 # Run the tests
 source(paste0(getwd(), "/../setGlobalVars.R"))
 GLOBAL[["DEBUG"]] <- FALSE # turn off for testing if it is enabled in setGlobalVars.R
-source(paste0(getwd(), "/../util.R")) # for write.mat()
+GLOBAL[["TEST"]] <- TRUE # turn off for testing if it is enabled in setGlobalVars.R
+source(paste0(getwd(), "/../util.R")) # for write.mat() & println()
 test_dir(test.dir, reporter="summary")
 
 print("Done testing.")

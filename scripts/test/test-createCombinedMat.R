@@ -140,4 +140,6 @@ test_that("Complete system of combining Q-matrices works as expected", {
   expect_that(combo.mat.r, is_a("matrix"))
   expect_that(combo.mat.r, is_identical_to(expected.result.r))
   
+  # TODO: KCRI and some exceptional cases
+  
 })
