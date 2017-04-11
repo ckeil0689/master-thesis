@@ -7,6 +7,50 @@ write.mat <- function(mat, outpath, combo, type, used.cut, append = FALSE) {
   write.table(mat, file = filename, append = append, sep = ",", row.names = FALSE, col.names = !append)
 }
 
+# Pre-allocates data table since final dimensions are known - performance is much better than dynamic resize during edge selection
+create.empty.table <- function(total.edge.num) {
+  # 4-column table: nodeA | nodeB | interaction | confidence_score
+  empty.table <- data.table("nodeA"=as.character(rep(NA, total.edge.num)), "interaction"=as.character(rep("neutral", total.edge.num)), 
+                          "nodeB"=as.character(rep(NA, total.edge.num)), "confidence_score"=as.double(rep(0, total.edge.num)))
+  return(empty.table)
+}
+
+# Fill edge table for Cytoscape with TF-gene interaction values from the combined matrix
+select.edges <- function(combo.mat, cyt.table, used.cut) {
+  listrow <- 1
+  # Iterate over TFs (columns)
+  for (i in 1:ncol(combo.mat)) {
+    if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(combo.mat)), digits = 0), "%"))
+    # Per TF, only look at genes with absolute interaction value over the cutoff
+    target.genes <- which(abs(combo.mat[,i]) > used.cut)
+    if(length(target.genes) == 0) {
+      println(paste("No targets found. Skipping", colnames(combo.mat)[i]))
+      next
+    }
+    for (j in 1:length(target.genes)) {
+      gene <- target.genes[j]
+      val <- combo.mat[gene, i]
+      
+      if(abs(val) > used.cut) {
+        edge.type <- pos.edge
+      } else if(abs(val) < used.cut) {
+        edge.type <- neg.edge
+      } else {
+        next # do not set any edge (list size limited to 'tot')
+      }
+      
+      set(cyt.table, as.integer(listrow), "nodeA", colnames(combo.mat)[i])
+      set(cyt.table, as.integer(listrow), "interaction", edge.type)
+      set(cyt.table, as.integer(listrow), "nodeB", rownames(combo.mat)[gene])
+      set(cyt.table, as.integer(listrow), "confidence_score", val)
+      
+      listrow <- listrow + 1
+    }
+  }
+  cat("\n")
+  return(cyt.table)
+}
+
 # Takes a combined matrix file and transforms it to a list of node-node interactions that can be loaded into Cytoscape
 create.interactions <- function(combomat, outpath, combo, type, pos.edge = "positive", neg.edge = "negative", append = FALSE) {
   println("Transforming matrix to node-node-value list.")
@@ -22,42 +66,9 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   tot <- length(combomat[abs(combomat) > used.cut])
   println(paste0(tot, " [", pos.edge, "]"))
   
-  # Pre-allocate data table since final dimensions are known - performance is much better than dynamic resize
-  cyt.table <- data.table("nodeA"=as.character(rep(NA, tot)), "interaction"=as.character(rep("neutral", tot)), 
-                          "nodeB"=as.character(rep(NA, tot)), "confidence_score"=as.double(rep(0, tot)))
+  cyt.table.empty <- create.empty.table(tot)
+  cyt.table.full <- select.edges(combomat, cyt.table.empty, used.cut)
   
-  # Fill table with values from the combined matrix
-  listrow <- 1
-  # Iterate over TFs (columns)
-  for (i in 1:ncol(combomat)) {
-    if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(combomat)), digits = 0), "%"))
-    # Per TF, only look at genes with absolute interaction value over the cutoff
-    target.genes <- which(abs(combomat[,i]) > used.cut)
-    if(length(target.genes) == 0) {
-      println(paste("No targets found. Skipping", colnames(combomat)[i]))
-      next
-    }
-    for (j in 1:length(target.genes)) {
-      gene <- target.genes[j]
-      val <- combomat[gene, i]
-      
-      if(abs(val) > used.cut) {
-        edge.type <- pos.edge
-      } else if(abs(val) < used.cut) {
-        edge.type <- neg.edge
-      } else {
-        next # do not set any edge (list size limited to 'tot')
-      }
-      
-      set(cyt.table, as.integer(listrow), "nodeA", colnames(combomat)[i])
-      set(cyt.table, as.integer(listrow), "interaction", edge.type)
-      set(cyt.table, as.integer(listrow), "nodeB", rownames(combomat)[gene])
-      set(cyt.table, as.integer(listrow), "confidence_score", val)
-      
-      listrow <- listrow + 1
-    }
-  }
-  cat("\n")
-  write.mat(cyt.table, outpath, combo, type, used.cut, append)
+  write.mat(cyt.table.full, outpath, combo, type, used.cut, append)
   println("Done creating data table for Cytoscape.")
 }
