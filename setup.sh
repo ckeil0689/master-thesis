@@ -39,6 +39,8 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
        # Move DESeq and Inferelator files
        mv $tmpDir/GSE40918_Th17*.wt.vs.Th17*ko_*.txt $dataDir/deseq/
        mv $tmpDir/GSE40918_Inferelator*.txt $dataDir/inferelator/
+       # Move README to /suppl/
+       mv $tmpDir/GSE40918_README_supplementary_files.txt $supplDir
        # delete tmp folder and all of its contents
        #rm -rf $parentDir/geotmp/
        echo "Would delete $tmpDir"
