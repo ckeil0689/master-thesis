@@ -17,17 +17,16 @@ if [ ! -f $supplDir/mmc4.csv ]; then
          echo "Problem when attempting to download experiment library reference table (mmc4.xlsx). Stopping."
          exit 1
       fi
-   else
-      echo "Attempting to convert mmc4.xlsx to CSV-file using LibreOffice."
-      libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
-      if [ $? -ne 0 ]; then
-         echo "Failed to convert mmc4.xlsx to mmc4.csv. Please convert manually (e.g. using spreadsheet software --> 'Save As'"
-         echo "When converted, run the setup script again. Stopping because mmc4 is required in CSV format."
-         exit 1
-      else
-         echo "Successfully converted mmc4.xlsx to mmc4.csv"
-      fi 
    fi
+   echo "Attempting to convert mmc4.xlsx to CSV-file using LibreOffice."
+   libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
+   if [ $? -ne 0 ]; then
+      echo "Failed to convert mmc4.xlsx to mmc4.csv. Please convert manually (e.g. using spreadsheet software --> 'Save As'"
+      echo "When converted, run the setup script again. Stopping because mmc4 is required in CSV format."
+      exit 1
+   else
+      echo "Successfully converted mmc4.xlsx to mmc4.csv"
+   fi 
 fi
 
 echo "Checking the presence of GEO GSE40918 data."
