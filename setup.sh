@@ -23,7 +23,7 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     mkdir geotmp
-    wget -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
+    wget --spider -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
     # Extract
     filepath="$parentDir/geotmp/GSE40918_RAW.tar"
     rawDataDir="$parentDir/geotmp/GSE40918_RAW/"
