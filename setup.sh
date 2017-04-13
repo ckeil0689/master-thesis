@@ -26,12 +26,12 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
     #wget --spider -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
     wget -nc -l1 --directory-prefix="$parentDir/geotmp" "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl/*"
     # Extract
-    tmpDir="$parentDir/geotmp/"
+    tmpDir="$parentDir/geotmp"
     filepath="$tmpDir/GSE40918_RAW.tar"
-    rawDataDir="$tmpDir/GSE40918_RAW/"
+    rawDataDir="$tmpDir/GSE40918_RAW"
     if [ -f $filepath ]; then
        echo "Extracting and moving ChIP-seq and RNA-seq files..."
-       tar -xvf $filepath
+       tar -xvf $filepath -C $rawDataDir
        gunzip -k $rawDataDir/*.gz
        # move all files ending in '_genes.txt' to /data/chipseq/
        mv $rawDataDir/*_genes.txt $dataDir/chipseq/
