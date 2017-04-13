@@ -10,7 +10,7 @@ mkdir -p $dataDir/{chipseq,deseq,inferelator,rnaseq}
 
 # Download mmc4 table (experiment library reference). TODO remove mmc5 and create code to extract it from DESeq files
 echo "Checking experiment library reference table (mmc4.xlsx) from Cell."
-wget -nc --directory-prefix=$supplDir http://www.cell.com/cms/attachment/2007961119/2030652145/mmc4.xlsx
+wget -nc --directory-prefix=$supplDir "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc4.xlsx"
 if [ $? -ne 0 ];
 then
   echo "Problem when attempting to download experiment library reference table (mmc4.xlsx). Stopping."
@@ -23,7 +23,7 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     mkdir geotmp
-    wget -nc --directory-prefix="$parentDir/geotmp" https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file
+    wget -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
     # Extract
     filepath="$parentDir/geotmp/GSE40918_RAW.tar"
     rawDataDir="$parentDir/geotmp/GSE40918_RAW/"
