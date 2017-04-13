@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Ensuring all required data from NCBI GEO GSE40918 is present."
-# Check if in correct environment (setup.sh could have been moved)
-if [ ! `git rev-parse --git-dir` ];
-then
-  echo "Not in git repository."
-  exit 1
-fi
-
+echo "Ensuring expected directory structure and that all required data from NCBI GEO GSE40918 is present."
 # Create all sub-dirs, make no noise if they exist.
 parentDir=$(pwd)
 supplDir="$parentDir/suppl"
@@ -26,7 +19,7 @@ fi
 
 echo "Checking the presence of GEO GSE40918 data."
 if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
-  read -p "No ChIP-seq or DESeq data from GEO found. Would you like to download it (ca. 133MB)? " -n 1 -r
+  read -p "No ChIP-seq or DESeq data from GEO found. Would you like to download it (~133MB)? [y/n]" -n 1 -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     mkdir geotmp
@@ -45,6 +38,9 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
        # delete tmp folder and all of its contents
        #rm -rf $parentDir/geotmp/
        echo "Would delete $parentDir/geotmp/"
+    else
+       echo "Setup not completed, no GEO data available."
+       exit 1
     fi
   fi
 else
