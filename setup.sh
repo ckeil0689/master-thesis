@@ -38,10 +38,10 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
        # delete tmp folder and all of its contents
        #rm -rf $parentDir/geotmp/
        echo "Would delete $parentDir/geotmp/"
-    else
-       echo "Setup not completed, no GEO data available."
-       exit 1
     fi
+  else
+    echo "Setup not completed, no GEO data available."
+    exit 1
   fi
 else
   echo "Files present in /data/chipseq/ and /data/deseq/. Not downloading anything."
