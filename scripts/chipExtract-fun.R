@@ -6,9 +6,9 @@
 chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 
 # Experiment-library reference table; relative to /scripts/ directory
-reflibfile <- paste0(getwd(), "/../suppl/mmc4.xlsx")
+reflibfile <- paste0(getwd(), "/../suppl/mmc4.csv")
 if(!file.exists(reflibfile)) stop(paste("Reference file does not exist, cannot load ChIP-files:", reflibfile))
-ref.table <- read.table(reflibfile, sep="\t", header=TRUE)
+ref.table <- read.table(reflibfile, sep=",", header=TRUE)
 
 # Selection of ChIP-seq results files from GEO (assumes local copy in chipdir)
 # The chosen files here correspond with the ones which the original authors

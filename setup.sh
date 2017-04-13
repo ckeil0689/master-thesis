@@ -9,12 +9,25 @@ mkdir -p $dataDir
 mkdir -p $dataDir/{chipseq,deseq,inferelator,rnaseq}
 
 # Download mmc4 table (experiment library reference). TODO remove mmc5 and create code to extract it from DESeq files
-echo "Checking experiment library reference table (mmc4.xlsx) from Cell."
-wget -nc --directory-prefix=$supplDir "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc4.xlsx"
-if [ $? -ne 0 ];
-then
-  echo "Problem when attempting to download experiment library reference table (mmc4.xlsx). Stopping."
-  exit 1
+echo "Checking experiment library reference table (mmc4.xlsx/.csv) from Cell."
+if [ ! -f $supplDir/mmc4.csv ]; then
+   if [ ! -f $supplDir/mmc4.xlsx ]; then
+      wget -nc --directory-prefix=$supplDir "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc4.xlsx"
+      if [ $? -ne 0 ]; then
+         echo "Problem when attempting to download experiment library reference table (mmc4.xlsx). Stopping."
+         exit 1
+      fi
+   else
+      echo "Attempting to convert mmc4.xlsx to CSV-file using LibreOffice."
+      libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
+      if [ $? -ne 0 ]; then
+         echo "Failed to convert mmc4.xlsx to mmc4.csv. Please convert manually (e.g. using spreadsheet software --> 'Save As'"
+         echo "When converted, run the setup script again. Stopping because mmc4 is required in CSV format."
+         exit 1
+      else
+         echo "Successfully converted mmc4.xlsx to mmc4.csv"
+      fi 
+   fi
 fi
 
 echo "Checking the presence of GEO GSE40918 data."
