@@ -19,26 +19,34 @@ fi
 
 echo "Checking the presence of GEO GSE40918 data."
 if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
-  read -p "No ChIP-seq or DESeq data from GEO found. Would you like to download it (~133MB)? [y/n]" -n 1 -r
+  read -p "No ChIP-seq or DESeq data from GEO found. Would you like to download it (~133MB)? [y/n] " -n 1 -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     mkdir geotmp
-    wget --spider -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
+    #wget --spider -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
+    wget -nc -l1 --directory-prefix="$parentDir/geotmp" "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl/"
     # Extract
-    filepath="$parentDir/geotmp/GSE40918_RAW.tar"
-    rawDataDir="$parentDir/geotmp/GSE40918_RAW/"
+    tmpDir="$parentDir/geotmp/"
+    filepath="$tmpDir/GSE40918_RAW.tar"
+    rawDataDir="$tmpDir/GSE40918_RAW/"
     if [ -f $filepath ]; then
-       echo "Extracting ChIP-seq and DESeq files..."
+       echo "Extracting and moving ChIP-seq and RNA-seq files..."
        tar -xvf $filepath
        gunzip -k $rawDataDir/*.gz
        # move all files ending in '_genes.txt' to /data/chipseq/
        mv $rawDataDir/*_genes.txt $dataDir/chipseq/
-       # move all files ending in '_genes.expr.txt' to /data/deseq/
-       mv $rawDataDir/*_genes.expr.txt $dataDir/deseq/
+       # move all files ending in '_genes.expr.txt' to /data/rnaseq/
+       mv $rawDataDir/*_genes.expr.txt $dataDir/rnaseq/
+       # Extract DESeq and Inferelator files
+       gunzip -k $tmpDir/*.gz
+       mv $tmpDir/"GSE40918_Th17*.wt.vs.Th17*ko.*.txt" $dataDir/deseq/
+       mv $tmpDir/"GSE40918_Inferelator*.txt" $dataDir/inferelator/
        # delete tmp folder and all of its contents
        #rm -rf $parentDir/geotmp/
-       echo "Would delete $parentDir/geotmp/"
-    fi
+       echo "Would delete $tmpDir"
+    else
+      echo "Could not find GSE40918_RAW.tar. Download did not finish as expected. Stopping."
+      exit 1
   else
     echo "Setup not completed, no GEO data available."
     exit 1
