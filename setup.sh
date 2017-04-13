@@ -37,7 +37,7 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
        # move all files ending in '_genes.expr.txt' to /data/rnaseq/
        mv $tmpDir/*_genes.expr.txt $dataDir/rnaseq/
        # Move DESeq and Inferelator files
-       mv $tmpDir/GSE40918_Th17*.wt.vs.Th17*ko.*.txt $dataDir/deseq/
+       mv $tmpDir/GSE40918_Th17*.wt.vs.Th17*ko_*.txt $dataDir/deseq/
        mv $tmpDir/GSE40918_Inferelator*.txt $dataDir/inferelator/
        # delete tmp folder and all of its contents
        #rm -rf $parentDir/geotmp/
