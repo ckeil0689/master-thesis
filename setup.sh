@@ -28,17 +28,15 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
     # Extract
     tmpDir="$parentDir/geotmp"
     filepath="$tmpDir/GSE40918_RAW.tar"
-    rawDataDir="$tmpDir/GSE40918_RAW"
     if [ -f $filepath ]; then
        echo "Extracting and moving ChIP-seq and RNA-seq files..."
        tar -xvf $filepath -C $tmpDir
-       gunzip -k $rawDataDir/*.gz
-       # move all files ending in '_genes.txt' to /data/chipseq/
-       mv $rawDataDir/*_genes.txt $dataDir/chipseq/
-       # move all files ending in '_genes.expr.txt' to /data/rnaseq/
-       mv $rawDataDir/*_genes.expr.txt $dataDir/rnaseq/
-       # Extract DESeq and Inferelator files
        gunzip -k $tmpDir/*.gz
+       # move all files ending in '_genes.txt' to /data/chipseq/
+       mv $tmpDir/*_genes.txt $dataDir/chipseq/
+       # move all files ending in '_genes.expr.txt' to /data/rnaseq/
+       mv $tmpDir/*_genes.expr.txt $dataDir/rnaseq/
+       # Move DESeq and Inferelator files
        mv $tmpDir/"GSE40918_Th17*.wt.vs.Th17*ko.*.txt" $dataDir/deseq/
        mv $tmpDir/"GSE40918_Inferelator*.txt" $dataDir/inferelator/
        # delete tmp folder and all of its contents
