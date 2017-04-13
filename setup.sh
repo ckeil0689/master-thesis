@@ -31,7 +31,7 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
     rawDataDir="$tmpDir/GSE40918_RAW"
     if [ -f $filepath ]; then
        echo "Extracting and moving ChIP-seq and RNA-seq files..."
-       tar -xvf $filepath -C $rawDataDir
+       tar -xvf $filepath -C $tmpDir
        gunzip -k $rawDataDir/*.gz
        # move all files ending in '_genes.txt' to /data/chipseq/
        mv $rawDataDir/*_genes.txt $dataDir/chipseq/
