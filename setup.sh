@@ -42,8 +42,7 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
        # Move README to /suppl/
        mv $tmpDir/GSE40918_README_supplementary_files.txt $supplDir
        # delete tmp folder and all of its contents
-       #rm -rf $parentDir/geotmp/
-       echo "Would delete $tmpDir"
+       rm -rf $tmpDir
     else
       echo "Could not find GSE40918_RAW.tar. Download did not finish as expected. Stopping."
       exit 1
