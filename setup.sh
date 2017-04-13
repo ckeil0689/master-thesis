@@ -47,6 +47,7 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
     else
       echo "Could not find GSE40918_RAW.tar. Download did not finish as expected. Stopping."
       exit 1
+    fi
   else
     echo "Setup not completed, no GEO data available."
     exit 1
