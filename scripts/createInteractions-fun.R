@@ -23,7 +23,7 @@ select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
     # Per TF, only look at genes with absolute interaction value over the cutoff
     target.genes <- which(abs(combo.mat[,i]) > used.cut)
     if(length(target.genes) == 0) {
-      println(paste("No targets found. Skipping", colnames(combo.mat)[i]))
+      # println(paste("No targets found. Skipping", colnames(combo.mat)[i]))
       next
     }
     for (j in 1:length(target.genes)) {
@@ -51,22 +51,22 @@ select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
 }
 
 # Takes a combined matrix file and transforms it to a list of node-node interactions that can be loaded into Cytoscape
-create.interactions <- function(combomat, outpath, combo, type, pos.edge = "positive", neg.edge = "negative", append = FALSE) {
+create.interactions <- function(combo.mat, outpath, combo, type, pos.edge = "positive", neg.edge = "negative", append = FALSE) {
   println("Transforming matrix to node-node-value list.")
   
   # Select top 20% of edges from signed combined matrix
-  m.cut <- quantile(combomat, probs=.97)
+  m.cut <- quantile(combo.mat, probs=.97)
   
   # Set which cut value is used (quantile m.cut or defined cs.abs.cut)
   used.cut = GLOBAL[["cs.abs.cut"]]
   println(paste("Using absolute confidence score cut:", used.cut))
   
   # Info about the total number of edges
-  tot <- length(combomat[abs(combomat) > used.cut])
+  tot <- length(combo.mat[abs(combo.mat) > used.cut])
   println(paste0(tot, " [", pos.edge, "]"))
   
   cyt.table.empty <- create.empty.table(tot)
-  cyt.table.full <- select.edges(combomat, cyt.table.empty, used.cut, pos.edge, neg.edge)
+  cyt.table.full <- select.edges(combo.mat, cyt.table.empty, used.cut, pos.edge, neg.edge)
   
   write.interactions(cyt.table.full, outpath, combo, type, used.cut, append)
   println("Done creating data table for Cytoscape.")

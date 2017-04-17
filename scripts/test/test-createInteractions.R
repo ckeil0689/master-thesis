@@ -116,3 +116,7 @@ test_that("Writing of the interaction list works as expected", {
   # delete tmp files
   file.remove(expected.filename)
 })
+
+test_that("Integrated generation of interactions list works as expected (main method)", {
+  
+})

@@ -5,7 +5,7 @@
 GLOBAL <- list()
 GLOBAL[["DEBUG"]] <- TRUE
 GLOBAL[["TEST"]] <- FALSE # is set to TRUE in run-tests.R so no print statements are made when testing other than from testthat
-GLOBAL[["use.nyu.rank"]] <- TRUE
+GLOBAL[["use.nyu.rank"]] <- FALSE
 # Carried over from original Aviv Madar code
 GLOBAL[["z.abs.cut"]] <- 0.00
 # Confidence score cut, first inferred from KC.cys example file (1.50), then altered --> optimize?
