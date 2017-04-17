@@ -27,25 +27,37 @@ test_that("Edges are selected as expected", {
     cs.mat <- matrix(vals, nrow=length(genes), ncol=length(tfs), dimnames = list(genes, tfs))
     used.cut <- GLOBAL[["cs.abs.cut"]]
     total.edge.num <- length(cs.mat[abs(cs.mat) > used.cut])
-    expected.filename <- paste0("kc_activator_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
     empty.table <- create.empty.table(total.edge.num)
     
+    # activator (pos.edge = positive_KC)
     cyt.table <- select.edges(cs.mat, empty.table, used.cut, "positive_KC", "negative_KC")
     
     expect_that(dim(cyt.table), equals(dim(empty.table)))
     expect_that(length(which(is.na(cyt.table[,"nodeA"]))) == 0, is_true())
     expect_that(length(which(is.na(cyt.table[,"nodeB"]))) == 0, is_true())
     
-    # activator (pos.edge = positive_KC)
     expected.table <- create.empty.table(total.edge.num)
     expected.table[, "nodeA"] <- c("BATF", "BATF", "MAF", "MAF", "RORC")
     expected.table[, "interaction"] <- c("positive_KC", "negative_KC", "negative_KC", "positive_KC", "positive_KC")
     expected.table[, "nodeB"] <- c("A", "D", "A", "D", "B")
     expected.table[, "confidence_score"] <- c(1.845, -1.762, -1.998, 1.856, 1.651)
-    
-    print(expected.table)
-    print(cyt.table)
+
+    # identical?
     expect_that(cyt.table, is_identical_to(expected.table))
+    
+    # repressor (pos.edge = negative_KC) --> interactions should be switched
+    cyt.table <- select.edges(cs.mat, empty.table, used.cut, "negative_KC", "positive_KC")
+    expected.table[, "interaction"] <- c("negative_KC", "positive_KC", "positive_KC", "negative_KC", "negative_KC")
+    expect_that(cyt.table, is_identical_to(expected.table))
+    
+    # If all matrix vals are zero
+    cs.mat.zero <- matrix(0, nrow=length(genes), ncol=length(tfs), dimnames = list(genes, tfs))
+    total.edge.num <- length(cs.mat[abs(cs.mat.zero) > used.cut])
+    empty.table <- create.empty.table(total.edge.num)
+    expect_that(is.null(empty.table), is_false()) # dont want NULL! -- zero length table
+    cyt.table <- select.edges(cs.mat.zero, empty.table, used.cut, "negative_KC", "positive_KC")
+    expect_that(is.null(cyt.table), is_false())
+    expect_that(dim(cyt.table), equals(c(0, 4)))
 })
 
 # test_that("Writing of the interaction list works as expected", {
