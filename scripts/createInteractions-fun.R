@@ -1,6 +1,5 @@
 # Load confidence score matrices by option
-# Overwrites util.R write.mat!
-write.mat <- function(mat, outpath, combo, type, used.cut, append = FALSE) {
+write.interactions <- function(mat, outpath, combo, type, used.cut, append = FALSE) {
   filename = paste0(outpath, combo, "_", type, "_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
   println(paste("Writing matrix to file:", filename))
   # no column names when appending (otherwise it will be treated as random data entry by Cytoscape)
@@ -69,6 +68,6 @@ create.interactions <- function(combomat, outpath, combo, type, pos.edge = "posi
   cyt.table.empty <- create.empty.table(tot)
   cyt.table.full <- select.edges(combomat, cyt.table.empty, used.cut, pos.edge, neg.edge)
   
-  write.mat(cyt.table.full, outpath, combo, type, used.cut, append)
+  write.interactions(cyt.table.full, outpath, combo, type, used.cut, append)
   println("Done creating data table for Cytoscape.")
 }
