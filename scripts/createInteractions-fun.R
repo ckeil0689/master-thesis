@@ -14,7 +14,7 @@ create.empty.table <- function(total.edge.num) {
   return(empty.table)
 }
 
-# Fill edge table for Cytoscape with TF-gene interaction values from the combined matrix
+# Fill edge table for Cytoscape with TF-gene interaction values from the combined matrix (edge selection logic adapted from Aviv Madar)
 select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
   listrow <- 1
   # Iterate over TFs (columns)
@@ -30,9 +30,9 @@ select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
       gene <- target.genes[j]
       val <- combo.mat[gene, i]
       
-      if(abs(val) > used.cut) {
+      if(val > used.cut) {
         edge.type <- pos.edge
-      } else if(abs(val) < used.cut) {
+      } else if(val < used.cut) {
         edge.type <- neg.edge
       } else {
         next # do not set any edge (list size limited to 'tot')
