@@ -1,4 +1,4 @@
-# Reproducable methods for network analysis of high-throughpot genomic data
+# [Master thesis] Reproducable methods for network analysis of high-throughpot genomic data
 ## A reimplementation of a Regulatory Network for Th17 Cell Specification
 [Reference method source on Cell](http://www.cell.com/cell/abstract/S0092-8674(12)01123-3)
 
