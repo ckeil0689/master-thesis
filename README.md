@@ -4,7 +4,7 @@
 
 This project is part of my master thesis at the Center for Bionformatics, University of Hamburg, and the University Medical Center (UKE) in Hamburg.
 
-Given the information provided on the Cell page as well as [available data on NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE40918), I am building a personal version of the described pipeline.
+Given the information provided on the Cell page as well as [available data on NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE40918), I am building a similar version which adapts methods of the described pipeline.
 
 The pipeline follows the 'Computational Methods' described in Ciofani et al. [1] and adaptations in response to examination of source code provided by Aviv Madar. 
 
