@@ -12,9 +12,11 @@ test_that("Master script finishes with directory structure as expected", {
 })
 
 test_that("Master script finishes with all files generated as expected", {
-  # output paths
-  outpath.debug <- paste0(getwd(), "/../suppl/data/analysis/debug/")
-  outpath.cyt <- paste0(getwd(), "/../suppl/data/analysis/cyt/")
+  # output paths relative from /test/
+  outpath.debug <- paste0(getwd(), "/../../suppl/data/analysis/debug/")
+  outpath.cyt <- paste0(getwd(), "/../../suppl/data/analysis/cyt/")
+  
+  print(outpath.cyt)
   
   # files in debug
   k.smat <- paste0(outpath.debug, "K_smat.txt")
