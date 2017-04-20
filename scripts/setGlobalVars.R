@@ -4,9 +4,10 @@
 
 GLOBAL <- list()
 GLOBAL[["DEBUG"]] <- TRUE
-GLOBAL[["TEST"]] <- FALSE # is set to TRUE in run-tests.R so no print statements are made when testing other than from testthat
+GLOBAL[["TEST"]] <- FALSE # don't change; it is set to TRUE in run-tests.R so no print statements are made when testing other than from testthat
+# at the moment, Aviv Madar's ranking method is included as an option (originally for comparison reasons when implementing the ranking from 'Computational Methods')
 GLOBAL[["use.nyu.rank"]] <- FALSE
-# Carried over from original Aviv Madar code
+# Carried over from original Aviv Madar code / z-score cut which selects genes from DESeq data based on Th0/Th17 differential expression
 GLOBAL[["z.abs.cut"]] <- 0.00
 # Confidence score cut, first inferred from KC.cys example file (1.50), then altered --> optimize?
 GLOBAL[["cs.abs.cut"]] <- 1.65
