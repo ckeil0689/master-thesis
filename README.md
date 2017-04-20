@@ -2,7 +2,6 @@
 # Reproducable methods for network analysis of high-throughpot genomic data
 #### A reimplementation of a Regulatory Network for Th17 Cell Specification
 [Reference method source on Cell](http://www.cell.com/cell/abstract/S0092-8674(12)01123-3)
----
 
 This project is part of my master thesis at the Center for Bionformatics, University of Hamburg, and the University Medical Center (UKE) in Hamburg.
 
