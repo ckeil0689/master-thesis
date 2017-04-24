@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-isMacOS=false 
-if [[ "$OSTYPE" == "darwin"* ]]; then
-     isMacOS=true
-fi     
-
 echo "Ensuring expected directory structure and that all required data from NCBI GEO GSE40918 is present."
 # Create all sub-dirs, make no noise if they exist.
 parentDir=$(pwd)
@@ -23,7 +18,7 @@ if [ ! -f $supplDir/mmc4.csv ]; then
       fi
    fi
    echo "Attempting to convert mmc4.xlsx to CSV-file using LibreOffice."
-   if [ $isMacOS ] && [ hash soffice 2>/dev/null ]; then
+   if [ hash soffice 2>/dev/null ]; then
       # if soffice command is set up on OSX with LibreOffice
       soffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
    elif [ hash libreoffice 2>/dev/null ]; then
@@ -47,17 +42,27 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     mkdir geotmp
-    if [ $isMacOS ]; then
-         curl -o "$parentDir/geotmp" "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl/*"
+    tmpDir="$parentDir/geotmp"
+    ftpDir="ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl"
+    if [ hash wget 2>/dev/null ]; then
+       #wget --spider -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
+       wget -nc -l1 --directory-prefix="$tmpDir/" "$ftpdir/*"
     else
-	#wget --spider -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
-        wget -nc -l1 --directory-prefix="$parentDir/geotmp" "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl/*"
+       filelist=$(curl -i -l "$ftpDir/") 
+       for i in $filelist; do 
+	   echo $ftpDir/${i}
+	   curl -o "$tmpDir/" $ftpDir/${i} 
+       done
+    fi
+    echo "Exit code: $?"
+    if [ $? -ne "0" ]; then
+	echo "Download of GEO files failed. Stopping."
+        exit 1
     fi	
     # Extract
-    tmpDir="$parentDir/geotmp"
+    echo "Extracting and moving ChIP-seq and RNA-seq files..."
     filepath="$tmpDir/GSE40918_RAW.tar"
     if [ -f $filepath ]; then
-       echo "Extracting and moving ChIP-seq and RNA-seq files..."
        tar -xvf $filepath -C $tmpDir
        gunzip -k $tmpDir/*.gz
        # move all files ending in '_genes.txt' to /data/chipseq/
