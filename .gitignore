@@ -16,4 +16,5 @@ GSE40918_README_supplementary_files.txt
 *genes.txt
 *expr.txt
 .Rproj.user
+.DS_Store
 scripts.Rproj
