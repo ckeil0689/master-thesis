@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+isMacOS=false 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+     isMacOS=true
+fi     
 
 echo "Ensuring expected directory structure and that all required data from NCBI GEO GSE40918 is present."
 # Create all sub-dirs, make no noise if they exist.
@@ -12,17 +16,25 @@ mkdir -p $dataDir/{chipseq,deseq,inferelator,rnaseq}
 echo "Checking experiment library reference table (mmc4.xlsx/.csv) from Cell."
 if [ ! -f $supplDir/mmc4.csv ]; then
    if [ ! -f $supplDir/mmc4.xlsx ]; then
-      wget -nc --directory-prefix=$supplDir "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc4.xlsx"
+      curl -o "$supplDir/mmc4.xlsx" "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc4.xlsx"
       if [ $? -ne 0 ]; then
          echo "Problem when attempting to download experiment library reference table (mmc4.xlsx). Stopping."
          exit 1
       fi
    fi
    echo "Attempting to convert mmc4.xlsx to CSV-file using LibreOffice."
-   libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
-   if [ $? -ne 0 ]; then
-      echo "Failed to convert mmc4.xlsx to mmc4.csv. Please convert manually (e.g. using spreadsheet software --> 'Save As'"
-      echo "When converted, run the setup script again. Stopping because mmc4 is required in CSV format."
+   if [ $isMacOS ] && [ hash soffice 2>/dev/null ]; then
+      # if soffice command is set up on OSX with LibreOffice
+      soffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
+   elif [ hash libreoffice 2>/dev/null ]; then
+      # linux with libreoffice install works here     
+      libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
+   else 
+      echo "No LibreOffice command found for conversion of XLSX-files to CSV format."
+   fi   
+   if [ ! -f $supplDir/mmc4.csv ]; then
+      echo "Failed to convert mmc4.xlsx to mmc4.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
+      echo "When converted, run the setup script again. Stopping because mmc4 is required in CSV format. File is located at: $supplDir/mmc4.xlsx"
       exit 1
    else
       echo "Successfully converted mmc4.xlsx to mmc4.csv"
@@ -35,8 +47,12 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     mkdir geotmp
-    #wget --spider -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
-    wget -nc -l1 --directory-prefix="$parentDir/geotmp" "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl/*"
+    if [ $isMacOS ]; then
+         curl -o "$parentDir/geotmp" "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl/*"
+    else
+	#wget --spider -nc --directory-prefix="$parentDir/geotmp" "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE40918&format=file"
+        wget -nc -l1 --directory-prefix="$parentDir/geotmp" "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl/*"
+    fi	
     # Extract
     tmpDir="$parentDir/geotmp"
     filepath="$tmpDir/GSE40918_RAW.tar"
