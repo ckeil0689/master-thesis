@@ -1,5 +1,0 @@
--  add normalization for immgen data to create the matrix we use (i.e. if we get a new matrix as immgen data gets bigger)? 
--- add time stamp for runs
---- make time stamp and zscore global for run of main (and rm date.is from all daughter scripts)
----- avg immgen over replicates: yes? no?
------
