@@ -1,9 +1,14 @@
 # !/usr/bin/env Rscript
 
 # Integration test for master script all tests focus on K + C data types as R + I have been abandoned for this project!
-source(paste0(getwd(), "/../" , "master.R"), chdir = TRUE)
+context("Running master script")
+test_that("Master script completes a full run without errors", {
+  # For master.R the source() call is wrapped in a test function because it will immediately run when sourcing
+  # A main function would change that but it would have to be called every time in the command line
+  source(paste0(getwd(), "/../" , "master.R"), chdir = TRUE)
+})
 
-context("Master script")
+context("Results from master script")
 test_that("Master script finishes with directory structure as expected", {
   outpath.debug <- paste0(getwd(), "/../suppl/data/analysis/debug/")
   outpath.cyt <- paste0(getwd(), "/../suppl/data/analysis/cyt/")

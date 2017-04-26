@@ -51,7 +51,7 @@ if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
        filelist=$(curl -i -l "$ftpDir/") 
        for i in $filelist; do 
 	   echo $ftpDir/${i}
-	   curl -o "$tmpDir/" $ftpDir/${i} 
+	   curl -o "$tmpDir/${i}" $ftpDir/${i} 
        done
     fi
     echo "Exit code: $?"

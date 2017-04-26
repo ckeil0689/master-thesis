@@ -214,11 +214,7 @@ load.chip <- function(boost.p300 = FALSE) {
   
   # Fill the matrix with Poisson model p-values as found in the files
   pois.mat <- get.pois.vals(thx_mat, all_chipfiles, boost.p300)
-  
-  # debug only --- remove
-  filename <- paste0(getwd(), "/../analysis/non-compressed-chip.txt")
-  write.table(pois.mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
-  
+
   println("Create sorted, unique TF list from loaded files.")
   # remove library suffix from transcription factor names and create a sorted, unique TF list
   tfs.list <- gsub("-(th0|th17)$", "", tf.list)

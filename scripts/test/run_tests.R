@@ -10,18 +10,12 @@ if(length(args) == 1 && args[1] == "verbose") {
   quiet <- FALSE
 }
 
-# Test directory paths
-test.dir <- getwd()
-results.out <- paste0(test.dir, "/results/")
-if(!dir.exists(results.out)) {
-  dir.create(results.out)
-}
-
 # Run the tests
+print("Beginning tests. Some tests may take a while because they load and parse large amounts of data!")
 source(paste0(getwd(), "/../setGlobalVars.R"))
 GLOBAL[["DEBUG"]] <- FALSE # turn off for testing if it is enabled in setGlobalVars.R
 GLOBAL[["TEST"]] <- quiet # if TRUE, no output from functions will be printed in addition to testthat output
 source(paste0(getwd(), "/../util.R")) # for write.mat() & println()
-test_dir(test.dir, reporter="summary")
+test_dir(getwd(), reporter="summary")
 
 print("Done testing.")

@@ -23,6 +23,12 @@ scriptdir <- getwd()
 # immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
 zscores_filepath <- paste0(getwd(), "/../suppl/mmc5.xls")
 
+# All output goes into /analysis/
+analysis.dir <- paste0(getwd(), "/../suppl/data/analysis/")
+if(!dir.exists(analysis.dir)) {
+  dir.create(analysis.dir)
+}
+
 # Debug output directory
 outpath.debug <- paste0(getwd(), "/../suppl/data/analysis/debug/")
 if(!dir.exists(outpath.debug)) {

@@ -19,7 +19,7 @@ select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
   listrow <- 1
   # Iterate over TFs (columns)
   for (i in 1:ncol(combo.mat)) {
-    if(i%%100==0) cat("\r", paste0("Progress: ", round((i*100/nrow(combo.mat)), digits = 0), "%"))
+    if(i%%100==0 && !GLOBAL[["TEST"]]) cat("\r", paste0("Progress: ", round((i*100/nrow(combo.mat)), digits = 0), "%"))
     # Per TF, only look at genes with absolute interaction value over the cutoff
     target.genes <- which(abs(combo.mat[,i]) > used.cut)
     if(length(target.genes) == 0) {
@@ -46,7 +46,7 @@ select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
       listrow <- listrow + 1
     }
   }
-  cat("\n")
+  if(!GLOBAL[["TEST"]]) cat("\n")
   return(cyt.table)
 }
 
