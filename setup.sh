@@ -36,6 +36,18 @@ if [ ! -f $supplDir/mmc4.csv ]; then
    fi 
 fi
 
+echo "Checking z-score reference table (mmc5.xls) from Cell."
+if [ ! -f $supplDir/mmc5.xls ]; then
+   curl -o "$supplDir/mmc5.xls" "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc5.xls"
+   if [ ! -f $supplDir/mmc5.xls ]; then
+      echo "Failed to download mmc5.xls from Cell. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
+      echo "Stopping because the z-score table in mmc5 is required to display differential expression based on RNA-seq data (Th17 vs Th0 at 48h)."
+      exit 1
+   else
+      echo "Successfully downloaded the z-score table mmc5.xls"
+   fi
+fi
+
 echo "Checking the presence of GEO GSE40918 data."
 if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
   read -p "No ChIP-seq or DESeq data from GEO found. Would you like to download it (~133MB)? [y/n] " -n 1 -r
