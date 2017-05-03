@@ -7,7 +7,7 @@ dataDir="$supplDir/data"
 mkdir -p $dataDir
 mkdir -p $dataDir/{chipseq,deseq,inferelator,rnaseq}
 
-# Download mmc4 table (experiment library reference). TODO remove mmc5 and create code to extract it from DESeq files
+# Download mmc4 table (experiment library reference). 
 echo "Checking experiment library reference table (mmc4.xlsx/.csv) from Cell."
 if [ ! -f $supplDir/mmc4.csv ]; then
    if [ ! -f $supplDir/mmc4.xlsx ]; then
@@ -36,17 +36,35 @@ if [ ! -f $supplDir/mmc4.csv ]; then
    fi 
 fi
 
+# Download mmc5 table (z-score reference). TODO remove mmc5 and create code to extract it from DESeq files
 echo "Checking z-score reference table (mmc5.xls) from Cell."
-if [ ! -f $supplDir/mmc5.xls ]; then
-   curl -o "$supplDir/mmc5.xls" "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc5.xls"
+if [ ! -f $supplDir/mmc5.csv ]; then
    if [ ! -f $supplDir/mmc5.xls ]; then
-      echo "Failed to download mmc5.xls from Cell. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
-      echo "Stopping because the z-score table in mmc5 is required to display differential expression based on RNA-seq data (Th17 vs Th0 at 48h)."
+      curl -o "$supplDir/mmc5.xls" "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc5.xls"
+      if [ $? -ne 0 ]; then
+         echo "Problem when attempting to download z-score reference table (mmc5.xls). Stopping."
+         exit 1
+      fi
+   fi
+   echo "Attempting to convert mmc5.xls to CSV-file using LibreOffice."
+   if [ hash soffice 2>/dev/null ]; then
+      # if soffice command is set up on OSX with LibreOffice
+      soffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
+   elif [ hash libreoffice 2>/dev/null ]; then
+      # linux with libreoffice install works here     
+      libreoffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
+   else 
+      echo "No LibreOffice command found for conversion of XLSX-files to CSV format."
+   fi   
+   if [ ! -f $supplDir/mmc5.csv ]; then
+      echo "Failed to convert mmc5.xls to mmc5.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
+      echo "Stopping because the z-score table in mmc5 is required to display differential expression based on RNA-seq data (Th17 vs Th0 at 48h). File is located at: $supplDir/mmc5.xls"
       exit 1
    else
-      echo "Successfully downloaded the z-score table mmc5.xls"
-   fi
+      echo "Successfully converted mmc5.xls to mmc5.csv"
+   fi 
 fi
+
 
 echo "Checking the presence of GEO GSE40918 data."
 if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then

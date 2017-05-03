@@ -2,7 +2,7 @@
 
 # Testing utility functions in util.R
 # util.R should be located in dir above /test/
-source(paste0(getwd(), "/../" , "util.R"), chdir = TRUE)
+source(paste0(getwd(), "/../" , "utility.R"), chdir = TRUE)
 
 context("Utility functions")
 # write.mat function
@@ -51,17 +51,20 @@ test_that("writ.mat writes tab-delimited matrix file", {
 
 # Loading z-score table mmc5
 test_that("zscores are successfully loaded", {
-  zscores.path <- paste0(getwd(), "/../../suppl/mmc5.xls" )
-  expect_that(file.exists(zscores.path), is_true())
+  zscores.path <- paste0(getwd(), "/../../suppl/mmc5.csv" )
+  zscores.exist <- file.exists(zscores.path)
+  expect_that(zscores.exist, is_true())
   
-  # Load the scores using the function
-  zscores.all <- load.zscores(zscores.path)
-  
-  # Check if the scores are as expected
-  score.col <- "Th17_vs_Th0_Zscores"
-  expect_that(zscores.all, is_a("matrix"))
-  expect_that(colnames(zscores.all), matches(c(score.col)))
-  expect_that(is.numeric(zscores.all[score.col]), is_true())
+  if(zscores.exist) {
+    # Load the scores using the function
+    zscores.all <- load.zscores(zscores.path)
+    
+    # Check if the scores are as expected
+    score.col <- "Th17_vs_Th0_Zscores"
+    expect_that(zscores.all, is_a("matrix"))
+    expect_that(colnames(zscores.all), matches(c(score.col)))
+    expect_that(is.numeric(zscores.all[score.col]), is_true())
+  }
 })
 
 test_that("Genes are correctly filtered by absolute zscore", {

@@ -10,18 +10,14 @@ test_that("Master script completes a full run without errors", {
 
 context("Results from master script")
 test_that("Master script finishes with directory structure as expected", {
-  outpath.debug <- paste0(getwd(), "/../suppl/data/analysis/debug/")
-  outpath.cyt <- paste0(getwd(), "/../suppl/data/analysis/cyt/")
+  # relative to /test/ from here
+  outpath.debug <- paste0(getwd(), "/../../suppl/data/analysis/debug/")
+  outpath.cyt <- paste0(getwd(), "/../../suppl/data/analysis/cyt/")
   expect_that(dir.exists(outpath.debug), is_true())
   expect_that(dir.exists(outpath.cyt), is_true())
 })
 
 test_that("Master script finishes with all files generated as expected", {
-  # output paths relative from /test/
-  outpath.debug <- paste0(getwd(), "/../../suppl/data/analysis/debug/")
-  outpath.cyt <- paste0(getwd(), "/../../suppl/data/analysis/cyt/")
-  
-  print(outpath.cyt)
   
   # files in debug
   k.smat <- paste0(outpath.debug, "K_smat.txt")

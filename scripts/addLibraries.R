@@ -2,7 +2,7 @@
 
 # Checks for and if needed installs required R-packages
 # Perform some intial setups
-list.of.packages <- c("data.table", "reshape2", "testthat")#, "xlsx")
+list.of.packages <- c("data.table", "reshape2", "testthat") #, "xlsx")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # install if missing
 if(length(new.packages)) {

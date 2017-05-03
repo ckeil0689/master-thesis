@@ -4,6 +4,8 @@
 # Aviv Madar has provided R-scripts from the original project. Some procedures have been taken and/or adapted 
 # from his code.
 #
+# All data found on NCBI GEO FTP Server: ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE40nnn/GSE40918/suppl/
+#
 # Input: 
 #       C = customized MACS output (ChIP-seq - provided on GEO) 
 #       K = DEseq files for core TFs (RNA-seq KO - provided on GEO but should be exchangeable) 
@@ -15,13 +17,16 @@ source("addLibraries.R")
 # Load global variables
 source("setGlobalVars.R")
 # Load utility functions
-source("util.R")
+source("utility.R")
 
 # Input file directories
 scriptdir <- getwd()
 # rnaseqfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_RNAseq.txt")
 # immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
-zscores_filepath <- paste0(getwd(), "/../suppl/mmc5.xls")
+
+# Check if the file for z-scores exists, since they are not calculated at the moment, but taken from a reference (mmc5.xls)
+zscores_filepath <- paste0(getwd(), "/../suppl/mmc5.csv")
+if(!file.exists(zscores_filepath)) stop(paste("Z-score table file does not exist, cannot load z-scores:", zscores_filepath))
 
 # All output goes into /analysis/
 analysis.dir <- paste0(getwd(), "/../suppl/data/analysis/")
@@ -72,14 +77,7 @@ if(length(args) == 1) {
 println("--------------------------------------------------------------------")
 println(">>>>>>>>>>>>>>>>> 1) Loading all initial data <<<<<<<<<<<<<<<<<<<<<<")
 println("--------------------------------------------------------------------")
-# Load z-scores from SAM stored in mmc5 table of original authors (available on the Cell page, link on top of this script). 
-# Z-scores provide a color scheme for nodes in Cytoscape which shows differential expression Th17 vs Th0 after 48h.
-zscores.all <- load.zscores(zscores_filepath)
 
-# Z-scores may also be used for filtering of included genes
-genes.final <- filter.genes.by.zscore(zscores.all, GLOBAL[["z.abs.cut"]])
-println(paste("Total number of genes with z-scores:", length(rownames(zscores.all)), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
-  
 chip.scores.activator <- NULL
 chip.scores.repressor <- NULL
 ko.scores <- NULL
@@ -168,6 +166,18 @@ if(shouldRegenerateKCData) {
 # immgen.scores <- as.matrix(read.table(immgenfile, sep="\t", header=TRUE, row.names = 1))
 # i_sign_mat <- sign(as.data.frame(immgen.scores))
 
+# Load z-scores from SAM stored in mmc5 table of original authors (available on the Cell page, link on top of this script). 
+# Z-scores provide a color scheme for nodes in Cytoscape which shows differential expression Th17 vs Th0 after 48h.
+zscores.all <- load.zscores(zscores_filepath)
+if(is.null(zscores.all)) {
+  println("Genes were not filtered because z-score table was not available.")
+  genes.final <- sort(unique(c(rownames(chip.scores.activator), rownames(chip.scores.repressor), rownames(ko.scores))))
+} else {
+  # Z-scores may also be used for filtering of included genes
+  genes.final <- filter.genes.by.zscore(zscores.all, GLOBAL[["z.abs.cut"]])
+  println(paste("Total number of genes with z-scores:", length(rownames(zscores.all)), "--- Genes with abs(zscore) > 2.50:", length(genes.final)))
+}
+
 # --------------
 # 2) Perform ranking on each confidence score matrix S
 # --------------
@@ -222,7 +232,7 @@ if(GLOBAL[["use.nyu.rank"]]) {
   
 } else {
   source(paste0(getwd(), "/" , "quantileRank-fun.R"))
-  println("Creating quantil rank matrices (Q).")
+  println("Creating quantile rank matrices (Q).")
   println("Ranking knockout scores.")
   ko_qmat.activator <- do.quantile.rank(ko.scores, positiveOnly = TRUE, "K_activator") # positive only!
   ko_qmat.repressor <-do.quantile.rank(-1*ko.scores, positiveOnly = TRUE, "K_repressor") # positive only!
@@ -244,7 +254,7 @@ if(GLOBAL[["use.nyu.rank"]]) {
 # 3) Combine data according to various data type combinations
 # --------------
 println("--------------------------------------------------------------------")
-println(">>>>>>> Combining Q-matrices to a single interaction matrix <<<<<<<<")
+println(">>>>>>> 3) Combining Q-matrices to a single interaction matrix <<<<<<<<")
 println("--------------------------------------------------------------------")
 # Reset because functions may globally change working directory and source() breaks
 setwd(scriptdir)

@@ -11,15 +11,35 @@ setwd(deseqdir)
 deseqfiles <- list.files(getwd())
 if(length(deseqfiles) == 0) stop(paste("No DESeq files found in: ", deseqdir, "Stopping."))
 
-# ----------------
-# Functions
-# ----------------
+# If no column name can be extracted from DESeq files, a generic name is used (DESeq1, DESeq2...)
+# Temporary solution to prevent failure with typical DESeq files. The files provided by NCBI GEO GSE40918
+# have been customized by scripts and contain columns which yield the target transcription factor name.
+file.count <- 1
+
 # Extracts the TF target from a DESeq file according to their format
 # Assumes convention column name (e.g. Th17.batf.wt -> batf)
 extract.tf <- function(deseq.cols) {
-  if(length(deseq.cols) < 3) stop("Got unusual DESeq file with too few columns. Stopping.")
-  splitcol <- strsplit(deseq.cols[3], "[.]")
-  tf <- splitcol[[1]][2]
+  # regex looks for a sring of the pattern 'pre.string.suf' where string will be the extracted tf 
+  # this will extract the name from the specific DESeq files in GSE40918 (e.g. th17.batf.wt) and allow anyone
+  # to add custom names
+  tf.col <- grep(c("(.*\\.(?!.*rpkm).+\\..*)($|\n)"), deseq.cols, ignore.case = TRUE, perl = TRUE, value = TRUE)
+  
+  if(length(tf.col) > 0) {
+    splitcol <- strsplit(tf.col[[1]][1], "[.]")
+    tf <- splitcol[[1]][2]
+  } else {
+    # no name column with correct pattern 'pre.string.suf'
+    tf <- NA
+  }
+  
+  if(is.na(tf)) {
+    warning(paste("Could not load DESeq file #", file.count, "(skipped).
+                  No TF name could be found, cannot assign column in interaction matrix. 
+                  Add a column (header is important) to the DESeq file with the pattern 
+                  pre.TFNAME.suf (e.g. th17.batf.wt)."))
+    return(NA)
+  }
+  
   # only use target TFs
   if(!tf %in% GLOBAL[["CORE_TFS"]]) {
     warning(paste("Could not load DESeq file for:", tf, "(skipped)"))
@@ -47,9 +67,14 @@ get.skel.mat <- function() {
     
     all.tfs <- c(all.tfs, tf)
     
-    # Collect all genes from this file
-    file.genes <- as.character(cst$id)
+    # Collect all genes from current DESeq file; regex wants to capture anything like: id, *gene.id, *gene_id
+    # Tested on regex101.com =; perl = TRUE option lets grep use pcre regex library
+    gene.id.cols <- grep(c("\\b(.*gene[_|\\.])?id($|\n)"), colnames(cst), ignore.case = TRUE, perl = TRUE, value = TRUE)
+    gene.ids <- cst[, gene.id.cols[[1]][1]] # first element if multiple matches
+    file.genes <- as.character(gene.ids)
     all.genes <- append(all.genes, file.genes)
+    
+    file.count <- file.count + 1
   }
   
   println("Generating zero-filled KO-matrix skeleton.")

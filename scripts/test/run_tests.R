@@ -15,7 +15,7 @@ print("Beginning tests. Some tests may take a while because they load and parse 
 source(paste0(getwd(), "/../setGlobalVars.R"))
 GLOBAL[["DEBUG"]] <- FALSE # turn off for testing if it is enabled in setGlobalVars.R
 GLOBAL[["TEST"]] <- quiet # if TRUE, no output from functions will be printed in addition to testthat output
-source(paste0(getwd(), "/../util.R")) # for write.mat() & println()
+source(paste0(getwd(), "/../utility.R")) # if needed before source'd in master.R (write.mat etc.)
 test_dir(getwd(), reporter="summary")
 
 print("Done testing.")
