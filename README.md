@@ -53,7 +53,7 @@ If the run completes without errors, you can proceed to the next step. If errors
 
 Otherwise, please screenshot or copy the error output and post it in the Issues subsection.
 
-## Creating a network
+## Creating a Network
 When setup is complete and all NCBI GEO data has been downloaded, change to the `/scripts/` directory to run the master script.
 
 `./master.R`
