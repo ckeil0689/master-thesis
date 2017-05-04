@@ -25,14 +25,11 @@ write.mat <- function(mat, outpath, prefix, suffix = "") {
 load.zscores <- function(zscores.path) {
   if(file.exists(zscores.path)) {
     zscore.table <- read.table(zscores.path, sep=",", header=TRUE)
-    print("COL NAMES >>>>>>>>>>>>>>>>>>")
-    print(colnames(zscore.table))
     zscore_col <- "Th17.Th0.zscores"
     # Th17_vs_Th0_Zscores matches name used in Cytoscape Style for example KC.cys
     zscores.all <- as.matrix(zscore.table[, zscore_col])
     rownames(zscores.all) <- zscore.table[, "Gene_id"]
     colnames(zscores.all) <- "Th17_vs_Th0_Zscores"
-    print(zscores.all)
     return(zscores.all)
   }
   println(paste("Z-score table not found at: ", zscores.path))
