@@ -7,34 +7,32 @@ dataDir="$supplDir/data"
 mkdir -p $dataDir
 mkdir -p $dataDir/{chipseq,deseq,inferelator,rnaseq}
 
-# Download mmc4 table (experiment library reference). 
-echo "Checking experiment library reference table (mmc4.xlsx/.csv) from Cell."
-if [ ! -f $supplDir/mmc4.csv ]; then
-   if [ ! -f $supplDir/mmc4.xlsx ]; then
-      echo "Downloading mmc4.xls..."   
-      curl -o "$supplDir/mmc4.xlsx" "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc4.xlsx"
-      if [ $? -ne 0 ]; then
-         echo "Problem when attempting to download experiment library reference table (mmc4.xlsx). Stopping."
-         exit 1
-      else
-	 echo "Successfully loaded mmc4.xlsx."
+load_from_cell () {
+   descr="experiment library"
+   if [ $1 -eq "mmc5.xls" ]; then descr="z-score" fi
+   fullname=$(basename $1)
+   filename="${fullname##*.}"
+   if [ ! -f $supplDir/$filename.csv ]; then
+      if [ ! -f $supplDir/$1 ]; then
+         echo "Downloading $1..."   
+         curl -o "$supplDir/$1" "http://www.cell.com/cms/attachment/2007961119/2030652145/$1"
+         if [ $? -ne 0 ]; then
+            echo "Problem when attempting to download $descr reference table ($1). Stopping."
+            exit 1
+         else
+	    echo "Successfully loaded $1."
+         fi
       fi
    fi
-fi
+}
+
+# Download mmc4 table (experiment library reference).
+echo "Checking experiment library reference table (mmc4.xlsx/.csv) from Cell."
+load_from_cell "mmc4.xlsx"
 
 # Download mmc5 table (z-score reference). TODO remove mmc5 and create code to extract it from DESeq files
 echo "Checking z-score reference table (mmc5.xls) from Cell."
-if [ ! -f $supplDir/mmc5.csv ]; then
-   if [ ! -f $supplDir/mmc5.xls ]; then
-      curl -o "$supplDir/mmc5.xls" "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc5.xls"
-      if [ $? -ne 0 ]; then
-         echo "Problem when attempting to download z-score reference table (mmc5.xls). Stopping."
-         exit 1
-      else
-	 echo "Successfully loaded mmc5.xls."
-      fi
-   fi   
-fi
+load_from_cell "mmc5.xls"
 
 # Convert mmc4 and mmc5 to CSV using LibreOffice if available
 echo "Attempting to automatically convert mmc4.xlsx and mmc5.xls to CSV-files using LibreOffice."
