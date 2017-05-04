@@ -41,6 +41,18 @@ From the directory master-thesis/ run the setup script.
 
 Follow instructions on screen. It is important to **convert mmc4.xlsx and mmc5.xls to CSV-format** to get comma separated tables. If LibreOffice is installed and functional on the command-line, the script will take care of it. Otherwise both files have to be manually converted.
 
+## Testing Setup
+In order to test whether setup was completed as expected, run the main test script. From /scripts/ change to the /test/ directory and run 
+
+`./run-tests.R`
+
+If the run completes without errors, you can proceed to the next step. If errors occur make sure you
+
+1) Have an internet connection so all required libraries can be loaded from cran. 
+2) Converted mmc4.xlsx and mmc5.xls to comma-separated CSV files.
+
+Otherwise, please screenshot or copy the error output and post it in the Issues subsection.
+
 ## Creating a network
 When setup is complete and all NCBI GEO data has been downloaded, change to the /scripts/ directory to run the master script.
 
