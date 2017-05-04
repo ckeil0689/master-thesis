@@ -35,14 +35,14 @@ Clone the git repository into your preferred directory by running the following 
 
 `git clone https://github.com/ckeil0689/master-thesis.git`
 
-From the directory master-thesis/ run the setup script.
+From the directory `/master-thesis/` run the setup script.
 
 `./setup.sh`
 
 Follow instructions on screen. It is important to **convert mmc4.xlsx and mmc5.xls to CSV-format** to get comma separated tables. If LibreOffice is installed and functional on the command-line, the script will take care of it. Otherwise both files have to be manually converted.
 
 ## Testing Setup
-In order to test whether setup was completed as expected, run the main test script. From /scripts/ change to the /test/ directory and run 
+In order to test whether setup was completed as expected, run the main test script. From `/scripts/` change to the `/test/` directory and run 
 
 `./run-tests.R`
 
@@ -54,20 +54,20 @@ If the run completes without errors, you can proceed to the next step. If errors
 Otherwise, please screenshot or copy the error output and post it in the Issues subsection.
 
 ## Creating a network
-When setup is complete and all NCBI GEO data has been downloaded, change to the /scripts/ directory to run the master script.
+When setup is complete and all NCBI GEO data has been downloaded, change to the `/scripts/` directory to run the master script.
 
 `./master.R`
 
-You should now have a file with network interactions (e.g. `kc_single_1.65_cs-cut_<date>.csv`). The columns are `nodeA | interaction | nodeB | confidence_score`
+You should now have a file with network interactions located at `/suppl/data/analysis/cyt/` (e.g. `kc_single_1.65_cs-cut_<date>.csv`). The columns are `nodeA | interaction | nodeB | confidence_score`
 
-If you o not want to load ChIP-seq and KO-files again and reuse existing matrices (after at least one run), you can use the `noload` flag.
+If you do not want to load ChIP-seq and KO-files again and reuse existing matrices (after at least one run), you can use the `noload` flag.
 
 `./master.R noload`
 
 ## Visualizing the network
-Open Cytoscape. You can load the network file (e.g. `kc_single_1.65_cs-cut_<date>.csv`) as a network table. Z-scores for genes have been extracted from NCBI GEO GSE40918 and are loaded into a separate file `zscores.txt`. Load this as node table to achieve node coloring by differential expression. Import the XML-style file from /scripts/cyt_styles to achieve the same style as used in [1]. 
+Open Cytoscape. You can load the network file (e.g. `kc_single_1.65_cs-cut_<date>.csv`) as a network table. Z-scores for genes have been extracted from NCBI GEO GSE40918 and are loaded into a separate file `zscores.txt` (also located at `/suppl/data/analysis/cyt/`). Load this as node table to achieve node coloring by differential expression. Import the XML-style file from /scripts/cyt_styles to achieve the same style as used in [1]. 
 
 Install and run the AllegroLayout plugin in Cytoscape. For example, use the Fruchterman-Reingold algorithm with randomized starting positions.
 
 
-[1] Ciofani, Maria, Aviv Madar, Carolina Galan, MacLean Sellars, Kieran Mace, Florencia Pauli, Ashish Agarwal et al. "A validated regulatory network for Th17 cell specification." Cell 151, no. 2 (2012): 289-303.
+*[1] Ciofani, Maria, Aviv Madar, Carolina Galan, MacLean Sellars, Kieran Mace, Florencia Pauli, Ashish Agarwal et al. "A validated regulatory network for Th17 cell specification." Cell 151, no. 2 (2012): 289-303.*
