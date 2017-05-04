@@ -25,8 +25,8 @@ scriptdir <- getwd()
 # immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
 
 # Check if the file for z-scores exists, since they are not calculated at the moment, but taken from a reference (mmc5.xls)
-zscores_filepath <- paste0(getwd(), "/../suppl/mmc5.csv")
-if(!file.exists(zscores_filepath)) stop(paste("Z-score table file does not exist, cannot load z-scores:", zscores_filepath))
+zscores.path <- paste0(getwd(), "/../suppl/mmc5.csv")
+if(!file.exists(zscores.path)) stop(paste("Z-score table file does not exist, cannot load z-scores:", zscores.path))
 
 # All output goes into /analysis/
 analysis.dir <- paste0(getwd(), "/../suppl/data/analysis/")
@@ -168,7 +168,7 @@ if(shouldRegenerateKCData) {
 
 # Load z-scores from SAM stored in mmc5 table of original authors (available on the Cell page, link on top of this script). 
 # Z-scores provide a color scheme for nodes in Cytoscape which shows differential expression Th17 vs Th0 after 48h.
-zscores.all <- load.zscores(zscores_filepath)
+zscores.all <- load.zscores(zscores.path)
 if(is.null(zscores.all)) {
   println("Genes were not filtered because z-score table was not available.")
   genes.final <- sort(unique(c(rownames(chip.scores.activator), rownames(chip.scores.repressor), rownames(ko.scores))))

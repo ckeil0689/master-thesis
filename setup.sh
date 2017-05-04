@@ -37,7 +37,7 @@ echo "Checking z-score reference table (mmc5.xls) from Cell."
 load_from_cell "mmc5.xls"
 
 # Convert mmc4 and mmc5 to CSV using LibreOffice if available
-echo "Attempting to automatically convert mmc4.xlsx and mmc5.xls to CSV-files using LibreOffice."
+echo "Attempting to automatically convert mmc4.xlsx and mmc5.xls to CSV-files using LibreOffice (both are required!)."
 if [ type -P soffice 2>/dev/null ]; then
    # if soffice command is set up on OSX with LibreOffice
    soffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
@@ -47,12 +47,12 @@ elif [ type -P libreoffice 2>/dev/null ]; then
    libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
    libreoffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
 else 
-   echo "No LibreOffice command found for conversion of XLSX-files to CSV format."
+   echo "No functional LibreOffice command found for conversion of XLSX-files to CSV format."
 fi   
 
-if [ ! -f $supplDir/mmc4.csv ]; then
-   echo "Failed to automatically convert mmc4.xlsx to mmc4.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
-   echo "When converted, run the setup script again. Stopping because mmc4 is required in CSV format. File is located at: $supplDir/mmc4.xlsx"
+if [ ! -f $supplDir/mmc4.csv ]; then 
+   echo "Failed to automatically convert mmc4.xlsx to mmc4.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As')"
+   echo "When converted, run the setup script again. Stopping because mmc4 and mmc5 are required in CSV format. File is located at: $supplDir/mmc4.xlsx"
    exit 1
 else
    echo "Successfully converted mmc4.xlsx to mmc4.csv"
@@ -60,7 +60,7 @@ fi
 
 if [ ! -f $supplDir/mmc5.csv ]; then
    echo "Failed to automatically convert mmc5.xls to mmc5.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
-   echo "Stopping because the z-score table in mmc5 is required to display differential expression based on RNA-seq data (Th17 vs Th0 at 48h). File is located at: $supplDir/mmc5.xls"
+   echo "Stopping because mmc5 is required to display differential expression based on RNA-seq data (Th17 vs Th0 at 48h). File is located at: $supplDir/mmc5.xls"
    exit 1
 else
    echo "Successfully converted mmc5.xls to mmc5.csv"
