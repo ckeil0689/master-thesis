@@ -9,7 +9,9 @@ mkdir -p $dataDir/{chipseq,deseq,inferelator,rnaseq}
 
 load_from_cell () {
    descr="experiment library"
-   if [ $1 -eq "mmc5.xls" ]; then descr="z-score" fi
+   if [ "$1" = "mmc5.xls" ]; then 
+      descr="z-score"
+   fi
    fullname=$(basename $1)
    filename="${fullname##*.}"
    if [ ! -f $supplDir/$filename.csv ]; then
