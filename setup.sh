@@ -17,16 +17,6 @@ if [ ! -f $supplDir/mmc4.csv ]; then
          exit 1
       fi
    fi
-   echo "Attempting to convert mmc4.xlsx to CSV-file using LibreOffice."
-   if [ type -P soffice 2>/dev/null ]; then
-      # if soffice command is set up on OSX with LibreOffice
-      soffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
-   elif [ type -P libreoffice 2>/dev/null ]; then
-      # linux with libreoffice install works here     
-      libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
-   else 
-      echo "No LibreOffice command found for conversion of XLSX-files to CSV format."
-   fi   
 fi
 
 # Download mmc5 table (z-score reference). TODO remove mmc5 and create code to extract it from DESeq files
@@ -38,16 +28,6 @@ if [ ! -f $supplDir/mmc5.csv ]; then
          echo "Problem when attempting to download z-score reference table (mmc5.xls). Stopping."
          exit 1
       fi
-   fi
-   echo "Attempting to convert mmc5.xls to CSV-file using LibreOffice."
-   if [ type -P soffice 2>/dev/null ]; then
-      # if soffice command is set up on OSX with LibreOffice
-      soffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
-   elif [ type -P libreoffice 2>/dev/null ]; then
-      # linux with libreoffice install works here     
-      libreoffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
-   else 
-      echo "No LibreOffice command found for conversion of XLSX-files to CSV format."
    fi   
 fi
 
