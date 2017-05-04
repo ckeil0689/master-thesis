@@ -12,6 +12,7 @@ The pipeline follows the 'Computational Methods' described in Ciofani et al. [1]
 [Project Trello board](https://trello.com/b/E6WcAF7I/th17-regulatory-networks)
 
 ## Requirements
+- GNU/Linux or macOS
 - Git
 - R
 - Bash (for setup.sh)
@@ -20,7 +21,7 @@ The pipeline follows the 'Computational Methods' described in Ciofani et al. [1]
 - Recommended: LibreOffice available on command-line so xlsx/xls-files can be automatically converted to CSV.
 
 ## Getting ready
-Clone the git repository into your preferred file directory by running the following command.
+Clone the git repository into your preferred directory by running the following command.
 
 `git clone https://github.com/ckeil0689/master-thesis.git`
 
