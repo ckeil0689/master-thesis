@@ -29,7 +29,7 @@ From the directory master-thesis/ run the setup script.
 
 `./setup.sh`
 
-Follow instructions on screen. It is important to convert mmc4.xlsx and mmc5.xls to CSV-format to get comma separated tables. If LibreOffice is installed and functional on the command-line, the script will take care of it. Otherwise both files have to be manually converted.
+Follow instructions on screen. It is important to **convert mmc4.xlsx and mmc5.xls to CSV-format** to get comma separated tables. If LibreOffice is installed and functional on the command-line, the script will take care of it. Otherwise both files have to be manually converted.
 
 ## Creating a network
 When setup is complete and all NCBI GEO data has been downloaded, change to the /scripts/ directory to run the master script.
