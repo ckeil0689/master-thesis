@@ -11,10 +11,13 @@ mkdir -p $dataDir/{chipseq,deseq,inferelator,rnaseq}
 echo "Checking experiment library reference table (mmc4.xlsx/.csv) from Cell."
 if [ ! -f $supplDir/mmc4.csv ]; then
    if [ ! -f $supplDir/mmc4.xlsx ]; then
+      echo "Downloading mmc4.xls..."   
       curl -o "$supplDir/mmc4.xlsx" "http://www.cell.com/cms/attachment/2007961119/2030652145/mmc4.xlsx"
       if [ $? -ne 0 ]; then
          echo "Problem when attempting to download experiment library reference table (mmc4.xlsx). Stopping."
          exit 1
+      else
+	 echo "Successfully loaded mmc4.xlsx."
       fi
    fi
 fi
@@ -27,6 +30,8 @@ if [ ! -f $supplDir/mmc5.csv ]; then
       if [ $? -ne 0 ]; then
          echo "Problem when attempting to download z-score reference table (mmc5.xls). Stopping."
          exit 1
+      else
+	 echo "Successfully loaded mmc5.xls."
       fi
    fi   
 fi
