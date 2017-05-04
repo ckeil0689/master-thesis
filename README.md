@@ -64,7 +64,7 @@ If you do not want to load ChIP-seq and KO-files again and reuse existing matric
 
 `./master.R noload`
 
-## Visualizing the network
+## Visualizing the Network
 Open Cytoscape. You can load the network file (e.g. `kc_single_1.65_cs-cut_<date>.csv`) as a network table. Z-scores for genes have been extracted from NCBI GEO GSE40918 and are loaded into a separate file `zscores.txt` (also located at `/suppl/data/analysis/cyt/`). Load this as node table to achieve node coloring by differential expression. Import the XML-style file from /scripts/cyt_styles to achieve the same style as used in [1]. 
 
 Install and run the AllegroLayout plugin in Cytoscape. For example, use the Fruchterman-Reingold algorithm with randomized starting positions.
