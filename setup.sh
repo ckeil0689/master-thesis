@@ -18,22 +18,15 @@ if [ ! -f $supplDir/mmc4.csv ]; then
       fi
    fi
    echo "Attempting to convert mmc4.xlsx to CSV-file using LibreOffice."
-   if [ hash soffice 2>/dev/null ]; then
+   if [ type -P soffice 2>/dev/null ]; then
       # if soffice command is set up on OSX with LibreOffice
       soffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
-   elif [ hash libreoffice 2>/dev/null ]; then
+   elif [ type -P libreoffice 2>/dev/null ]; then
       # linux with libreoffice install works here     
       libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
    else 
       echo "No LibreOffice command found for conversion of XLSX-files to CSV format."
    fi   
-   if [ ! -f $supplDir/mmc4.csv ]; then
-      echo "Failed to convert mmc4.xlsx to mmc4.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
-      echo "When converted, run the setup script again. Stopping because mmc4 is required in CSV format. File is located at: $supplDir/mmc4.xlsx"
-      exit 1
-   else
-      echo "Successfully converted mmc4.xlsx to mmc4.csv"
-   fi 
 fi
 
 # Download mmc5 table (z-score reference). TODO remove mmc5 and create code to extract it from DESeq files
@@ -47,25 +40,48 @@ if [ ! -f $supplDir/mmc5.csv ]; then
       fi
    fi
    echo "Attempting to convert mmc5.xls to CSV-file using LibreOffice."
-   if [ hash soffice 2>/dev/null ]; then
+   if [ type -P soffice 2>/dev/null ]; then
       # if soffice command is set up on OSX with LibreOffice
       soffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
-   elif [ hash libreoffice 2>/dev/null ]; then
+   elif [ type -P libreoffice 2>/dev/null ]; then
       # linux with libreoffice install works here     
       libreoffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
    else 
       echo "No LibreOffice command found for conversion of XLSX-files to CSV format."
    fi   
-   if [ ! -f $supplDir/mmc5.csv ]; then
-      echo "Failed to convert mmc5.xls to mmc5.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
-      echo "Stopping because the z-score table in mmc5 is required to display differential expression based on RNA-seq data (Th17 vs Th0 at 48h). File is located at: $supplDir/mmc5.xls"
-      exit 1
-   else
-      echo "Successfully converted mmc5.xls to mmc5.csv"
-   fi 
 fi
 
+# Convert mmc4 and mmc5 to CSV using LibreOffice if available
+echo "Attempting to automatically convert mmc4.xlsx and mmc5.xls to CSV-files using LibreOffice."
+if [ type -P soffice 2>/dev/null ]; then
+   # if soffice command is set up on OSX with LibreOffice
+   soffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
+   soffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
+elif [ type -P libreoffice 2>/dev/null ]; then
+   # linux with libreoffice install works here     
+   libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
+   libreoffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
+else 
+   echo "No LibreOffice command found for conversion of XLSX-files to CSV format."
+fi   
 
+if [ ! -f $supplDir/mmc4.csv ]; then
+   echo "Failed to automatically convert mmc4.xlsx to mmc4.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
+   echo "When converted, run the setup script again. Stopping because mmc4 is required in CSV format. File is located at: $supplDir/mmc4.xlsx"
+   exit 1
+else
+   echo "Successfully converted mmc4.xlsx to mmc4.csv"
+fi 
+
+if [ ! -f $supplDir/mmc5.csv ]; then
+   echo "Failed to automatically convert mmc5.xls to mmc5.csv. Please convert the file manually (e.g. using spreadsheet software, such as Excel or LibreOffice --> 'Save As'"
+   echo "Stopping because the z-score table in mmc5 is required to display differential expression based on RNA-seq data (Th17 vs Th0 at 48h). File is located at: $supplDir/mmc5.xls"
+   exit 1
+else
+   echo "Successfully converted mmc5.xls to mmc5.csv"
+fi 
+
+# Download and ensure presence of NCBI GEO GSE40918 raw data
 echo "Checking the presence of GEO GSE40918 data."
 if [ -z "$(ls -A $dataDir/chipseq)" ] && [ -z "$(ls -A $dataDir/deseq)" ]; then
   read -p "No ChIP-seq or DESeq data from GEO found. Would you like to download it (~133MB)? [y/n] " -n 1 -r
