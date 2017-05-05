@@ -8,9 +8,9 @@
 #
 # Input: 
 #       C = customized MACS output (ChIP-seq - provided on GEO) 
-#       K = DEseq files for core TFs (RNA-seq KO - provided on GEO but should be exchangeable) 
-#       R = Inferelator matrix (RNA-seq compendium - provided on GEO)
-#       I = Inferelator matrix (2011 Immgen microarray data - provided on GEO)
+#       K = DEseq files for core TFs (e.g.RNA-seq KO - provided on GEO but should be exchangeable) 
+#       (R) = Inferelator matrix (RNA-seq compendium - provided on GEO)
+#       (I) = Inferelator matrix (2011 Immgen microarray data - provided on GEO)
 
 # Add required libraries
 source("addLibraries.R")
@@ -25,6 +25,7 @@ scriptdir <- getwd()
 # immgenfile <- paste0(getwd(), "/../suppl/data/inferelator/GSE40918_Inferelator_Immgen.txt")
 
 # Check if the file for z-scores exists, since they are not calculated at the moment, but taken from a reference (mmc5.xls)
+# To get custom Z-scores a script should be inserted here which calculates them from raw RNA-seq cufflinks output 
 zscores.path <- paste0(getwd(), "/../suppl/mmc5.csv")
 if(!file.exists(zscores.path)) stop(paste("Z-score table file does not exist, cannot load z-scores:", zscores.path))
 
@@ -48,7 +49,7 @@ if(!dir.exists(outpath.cyt)) {
 
 # Get command line arguments
 # Possible options:
-# noload - skip generating new ChIP-seq and DEseq (knockout) confidence score matrices and attempt to load existing files
+# noload - skip generating new ChIP-seq and DEseq (e.g. knockout) confidence score matrices and attempt to load existing files
 args = commandArgs(trailingOnly=TRUE)
 if(length(args) > 1) {
   stop("Only one argument allowed. Stopping.")
@@ -62,12 +63,12 @@ shouldRegenerateKCData <- TRUE
 if(length(args) == 1) {
   if(args[[1]] == "noload") {
     shouldRegenerateKCData <- FALSE
-    println("Attemtpting to use existing data for knockout and ChIP data.")
+    println("Attemtpting to use existing data for DESeq and ChIP data.")
   } else {
     stop("Option not recognized. Available options: noload")
   }
 } else {
-  println("Newly generating the KC data.")
+  println("Newly generating the DESeq-ChIP data.")
 }
 
 # START OF PROCEDURE
@@ -80,7 +81,7 @@ println("--------------------------------------------------------------------")
 
 chip.scores.activator <- NULL
 chip.scores.repressor <- NULL
-ko.scores <- NULL
+deseq.scores <- NULL
 # rna.scores <- NULL
 # immgen.scores <- NULL
 
@@ -88,32 +89,32 @@ ko.scores <- NULL
 # r_sign_mat <- NULL
 # i_sign_mat <- NULL
 
-# Load RNA-seq knockout scores
-loadKOData <- function() {
+# Load DESeq scores
+load.deseq.data <- function() {
   setwd(scriptdir)
   source(paste0(getwd(), "/" , "deseqExtract-fun.R"))
-  println("Generating knockout scores.")
+  println("Generating DESeq scores.")
   scores <- load.deseq()
   if(GLOBAL[["DEBUG"]]) write.mat(scores, outpath.debug, "K", "smat")
   return(scores)
 }
 
 if(shouldRegenerateKCData) {
-  ko.scores <- loadKOData()
+  deseq.scores <- load.deseq.data()
 } else {
-  println("Looking for existing knockout data matrix.")
-  ko.file <- paste0(outpath.debug, "K_smat.txt")
-  if(file.exists(ko.file)) {
-    println("Found knockout matrix file.")
-    ko.scores <- as.matrix(read.table(ko.file, sep="\t", header=TRUE, row.names = 1))
+  println("Looking for existing DESeq data matrix.")
+  deseq.file <- paste0(outpath.debug, "K_smat.txt")
+  if(file.exists(deseq.file)) {
+    println(paste("Found DESeq matrix file:", deseq.file))
+    deseq.scores <- as.matrix(read.table(deseq.file, sep="\t", header=TRUE, row.names = 1))
   } else {
-    println("Could not find knockout data matrix. Generating new matrix.")
-    ko.scores <- loadKOData()
+    println("Could not find the DESeq data matrix in file system. Generating new matrix.")
+    deseq.scores <- load.deseq.data()
   }
 }
  
 # Load ChIP-seq scores  
-loadChIPData <- function(type) {
+load.chip.data <- function(type) {
   setwd(scriptdir)
   source(paste0(getwd(), "/" , "chipExtract-fun.R"))
   println("Loading ChIP scores.")
@@ -130,29 +131,29 @@ loadChIPData <- function(type) {
 }
 
 if(shouldRegenerateKCData) {
-  chip.scores.activator <- loadChIPData("activator")
-  chip.scores.repressor <- loadChIPData("repressor")
+  chip.scores.activator <- load.chip.data("activator")
+  chip.scores.repressor <- load.chip.data("repressor")
 } else {
   # Activator
   println("Looking for existing ChIP activator data matrix.")
   chip.activator.file <- paste0(outpath.debug, "C_activator_smat.txt")
   if(file.exists(chip.activator.file)) {
-    println("Found ChIP activator matrix file.")
+    println(paste("Found ChIP activator matrix file.", chip.activator.file))
     chip.scores.activator <- as.matrix(read.table(chip.activator.file, sep="\t", header=TRUE, row.names = 1))
   } else {
     println("Could not find ChIP activator data matrix. Generating new matrix.")
-    chip.scores.activator <- loadChIPData("activator")
+    chip.scores.activator <- load.chip.data("activator")
   }
   
   # Repressor
   println("Looking for existing ChIP repressor data matrix.")
   chip.repressor.file <- paste0(outpath.debug, "C_repressor_smat.txt")
   if(file.exists(chip.repressor.file)) {
-    println("Found ChIP repressor matrix file.")
+    println(paste("Found ChIP repressor matrix file.", chip.repressor.file))
     chip.scores.repressor <- as.matrix(read.table(chip.repressor.file, sep="\t", header=TRUE, row.names = 1))
   } else {
     println("Could not find ChIP repressor data matrix. Generating new matrix.")
-    chip.scores.repressor <- loadChIPData("repressor")
+    chip.scores.repressor <- load.chip.data("repressor")
   }
 }
 
@@ -171,7 +172,7 @@ if(shouldRegenerateKCData) {
 zscores.all <- load.zscores(zscores.path)
 if(is.null(zscores.all)) {
   println("Genes were not filtered because z-score table was not available.")
-  genes.final <- sort(unique(c(rownames(chip.scores.activator), rownames(chip.scores.repressor), rownames(ko.scores))))
+  genes.final <- sort(unique(c(rownames(chip.scores.activator), rownames(chip.scores.repressor), rownames(deseq.scores))))
 } else {
   # Z-scores may also be used for filtering of included genes
   genes.final <- filter.genes.by.zscore(zscores.all, GLOBAL[["z.abs.cut"]])
@@ -203,11 +204,11 @@ if(GLOBAL[["use.nyu.rank"]]) {
   source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
   
   # KO scores
-  println("Ranking knockout scores.")
-  ko_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(ko.scores))
-  ko_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*ko.scores))
-  write.mat(ko_qmat.activator, outpath.debug, "K", "activator_nyu_qmat")
-  write.mat(ko_qmat.repressor, outpath.debug, "K", "repressor_nyu_qmat")
+  println("Ranking DESeq scores.")
+  deseq_qmat.activator <- abs(convert.scores.to.relative.ranks.pos(deseq.scores))
+  deseq_qmat.repressor <- abs(convert.scores.to.relative.ranks.pos(-1*deseq.scores))
+  write.mat(deseq_qmat.activator, outpath.debug, "K", "activator_nyu_qmat")
+  write.mat(deseq_qmat.repressor, outpath.debug, "K", "repressor_nyu_qmat")
   
   # ChIP scores
   println("Ranking ChIP scores.")
@@ -233,9 +234,9 @@ if(GLOBAL[["use.nyu.rank"]]) {
 } else {
   source(paste0(getwd(), "/" , "quantileRank-fun.R"))
   println("Creating quantile rank matrices (Q).")
-  println("Ranking knockout scores.")
-  ko_qmat.activator <- do.quantile.rank(ko.scores, positiveOnly = TRUE, "K_activator") # positive only!
-  ko_qmat.repressor <-do.quantile.rank(-1*ko.scores, positiveOnly = TRUE, "K_repressor") # positive only!
+  println("Ranking DESeq scores.")
+  deseq_qmat.activator <- do.quantile.rank(deseq.scores, positiveOnly = TRUE, "K_activator") # positive only!
+  deseq_qmat.repressor <-do.quantile.rank(-1*deseq.scores, positiveOnly = TRUE, "K_repressor") # positive only!
   
   println("Ranking ChIP scores.")
   chip_qmat.activator <- do.quantile.rank(chip.scores.activator, positiveOnly = FALSE, "C_activator")
@@ -262,16 +263,16 @@ source(paste0(getwd(), "/" , "createCombinedMat-fun.R"))
 source(paste0(getwd(), "/" , "combineQmats-fun.R"))
 
 # KC
-kc.activator <- createCombinedMat(combo = "kc", type = "activator", ko.qmat = ko_qmat.activator, chip.qmat = chip_qmat.activator, 
-                                  rna.qmat = NULL, immgen.qmat = NULL, genes.final, ko.scores)
-kc.repressor <- createCombinedMat(combo = "kc", type = "repressor", ko.qmat = ko_qmat.repressor, chip.qmat = chip_qmat.repressor, 
-                                  rna.qmat = NULL, immgen.qmat = NULL, genes.final, ko.scores)
+kc.activator <- createCombinedMat(combo = "kc", type = "activator", deseq.qmat = deseq_qmat.activator, chip.qmat = chip_qmat.activator, 
+                                  rna.qmat = NULL, immgen.qmat = NULL, genes.final, deseq.scores)
+kc.repressor <- createCombinedMat(combo = "kc", type = "repressor", deseq.qmat = deseq_qmat.repressor, chip.qmat = chip_qmat.repressor, 
+                                  rna.qmat = NULL, immgen.qmat = NULL, genes.final, deseq.scores)
 
 # # KCRI
-# kcri.activator <- createCombinedMat(combo = "kcri", type = "activator", ko.qmat = ko_qmat.activator, chip.qmat = chip_qmat.activator,
-#                                     rna.qmat = rna_qmat.activator, immgen.qmat = immgen_qmat.activator, genes.final, ko.scores)
-# kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", ko.qmat = ko_qmat.repressor, chip.qmat = chip_qmat.repressor,
-#                                     rna.qmat = rna_qmat.repressor, immgen.qmat = immgen_qmat.repressor, genes.final, ko.scores)
+# kcri.activator <- createCombinedMat(combo = "kcri", type = "activator", deseq.qmat = deseq_qmat.activator, chip.qmat = chip_qmat.activator,
+#                                     rna.qmat = rna_qmat.activator, immgen.qmat = immgen_qmat.activator, genes.final, deseq.scores)
+# kcri.repressor <- createCombinedMat(combo = "kcri", type = "repressor", deseq.qmat = deseq_qmat.repressor, chip.qmat = chip_qmat.repressor,
+#                                     rna.qmat = rna_qmat.repressor, immgen.qmat = immgen_qmat.repressor, genes.final, deseq.scores)
 
 # --------------
 # 4) Write a copy of mmc5 Th17 vs. Th0 (both at 48h) z-scores to a table, which should be loaded in Cytoscape as 'Node table' 

@@ -1,6 +1,3 @@
-# ----------------
-# Constants
-# ----------------
 # DEseq file directory relative to /scripts/
 deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
 # Ensure we are in correct directory
@@ -55,7 +52,7 @@ get.skel.mat <- function() {
   setwd(deseqdir)
   println(paste("Reading", length(deseqfiles),"DESeq files to create complete list of genes."))
   
-  # Vectors for row and column names of final KO-matrix
+  # Vectors for row and column names of final DESeq-matrix
   all.genes <- c()
   all.tfs <- c()
   
@@ -77,19 +74,20 @@ get.skel.mat <- function() {
     file.count <- file.count + 1
   }
   
-  println("Generating zero-filled KO-matrix skeleton.")
+  println("Generating zero-filled DESeq-matrix skeleton.")
   all.genes.unique <- toupper(sort(unique(all.genes)))
   all.tfs.unique <- toupper(sort(unique(all.tfs)))
   
   # 0-initialized matrix  
-  scores.empty <- matrix(0, nrow = length(all.genes.unique), ncol = length(all.tfs.unique), dimnames = list(all.genes.unique, all.tfs.unique))
+  scores.empty <- matrix(0, nrow = length(all.genes.unique), ncol = length(all.tfs.unique), 
+                         dimnames = list(all.genes.unique, all.tfs.unique))
   return(scores.empty)
 }
 
 # Extract p-values and log2(foldchange) values from DESeq results files and 
 # fill pre-allocated confidence score matrix according to formula in Computational Methods:
 # score = pval * sign(log2(foldchange))
-populate.ko.scores <- function(ko.scores) {
+populate.deseq.scores <- function(deseq.scores) {
   println("Extract DESeq non-adjusted p-values and log2(foldchange) from files.")
   for(i in deseqfiles) {
     # read in the data and extract the library name
@@ -100,29 +98,29 @@ populate.ko.scores <- function(ko.scores) {
     # get the DESeq p-values by iterating and accessing matrix via id and TF-name (genes are not ordered by name in DESeq files!)
     idx <- 1
     for(j in cst$id) {
-      ko.scores[j, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])
+      deseq.scores[j, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])
       idx <- idx + 1
     }
   }
   
   # replace NA and Inf values in matrix with 0s (for later ranking procedure)
-  ko.scores[ko.scores == Inf] <- 0
-  ko.scores[is.na(ko.scores)] <- 0
+  deseq.scores[deseq.scores == Inf] <- 0
+  deseq.scores[is.na(deseq.scores)] <- 0
   
   # drop 0-only-rows
-  # println(dim(ko.scores))
-  # ko.scores <- ko.scores[rowSums(abs(ko.scores[, -1]))>(1e-10),]
+  # println(dim(deseq.scores))
+  # deseq.scores <- deseq.scores[rowSums(abs(deseq.scores[, -1]))>(1e-10),]
   # println("DROPPED---------------------------------------")
-  # println(dim(ko.scores))
+  # println(dim(deseq.scores))
   
-  return(ko.scores)
+  return(deseq.scores)
 }
 
 # ----------------
-# Main function: load & process DEseq data and return the confidence score matrix S(KO)
+# Main function: load & process DEseq data and return the confidence score matrix S(DESeq)
 # ----------------
 load.deseq <- function() {
   empty.score.mat <- get.skel.mat()
-  ko.scores <- populate.ko.scores(empty.score.mat)
-  return(ko.scores)
+  deseq.scores <- populate.deseq.scores(empty.score.mat)
+  return(deseq.scores)
 }

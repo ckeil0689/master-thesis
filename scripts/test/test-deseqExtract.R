@@ -1,10 +1,9 @@
 #!/usr/bin/env Rscript
 
-# Testing knockout score matrix generation
+# Testing DESeq score matrix generation
 source(paste0(getwd(), "/../" , "deseqExtract-fun.R"), chdir = TRUE)
 
-context("Testing TF extraction")
-
+context("TF extraction from DESeq files")
 test_that("TF name is correctly extracted from DESeq file", {
   
   # Column name 2 and 3 as expected
@@ -50,9 +49,8 @@ test_that("TF name is correctly extracted from DESeq file", {
   expect_that(is.na(tf), is_true())
 })
 
-context("Testing setup of skeleton matrix")
-
-test_that("DESeq files are correctly parsed and KO skeleton matrix is setup as expected", {
+context("Setup of skeleton matrix for DESeq scores")
+test_that("DESeq files are correctly parsed and skeleton matrix is setup as expected", {
   
   expect_that(skel.mat <- get.skel.mat(), gives_warning()) # skips TF ikzf3 (not in CORE)
   expect_that(skel.mat, is_a("matrix"))
@@ -66,32 +64,31 @@ test_that("DESeq files are correctly parsed and KO skeleton matrix is setup as e
   expect_that(all(tolower(colnames(skel.mat)) %in% GLOBAL[["CORE_TFS"]]), is_true())
 })
 
-context("Testing data population of empty KO-matrix from DESeq files")
-
-test_that("KO-skeleton matrix is populated with p-val*log2 data for every TF-gene pair as expected.", {
+context("Data population of empty matrix from DESeq files")
+test_that("DESeq-skeleton matrix is populated with p-val*log2 data for every TF-gene pair as expected.", {
   
   expect_that(score.skel.mat <- get.skel.mat(), gives_warning())
-  expect_that(ko.scores <- populate.ko.scores(score.skel.mat), gives_warning()) # skips ikzf3 DESeq file (not CORE)
+  expect_that(deseq.scores <- populate.deseq.scores(score.skel.mat), gives_warning()) # skips ikzf3 DESeq file (not CORE)
   
   # Check basic attributes
-  expect_that(ko.scores, is_a("matrix"))
-  expect_that(length(ko.scores[is.infinite(ko.scores)]) == 0, is_true())
-  expect_that(length(ko.scores[is.na(ko.scores)]) == 0, is_true())
-  expect_that(length(rownames(ko.scores)) > 0, is_true())
-  expect_that(length(colnames(ko.scores)) > 0, is_true())
+  expect_that(deseq.scores, is_a("matrix"))
+  expect_that(length(deseq.scores[is.infinite(deseq.scores)]) == 0, is_true())
+  expect_that(length(deseq.scores[is.na(deseq.scores)]) == 0, is_true())
+  expect_that(length(rownames(deseq.scores)) > 0, is_true())
+  expect_that(length(colnames(deseq.scores)) > 0, is_true())
   # Column names should all be part of CORE_TFS
-  expect_that(all(tolower(colnames(ko.scores)) %in% GLOBAL[["CORE_TFS"]]), is_true())
+  expect_that(all(tolower(colnames(deseq.scores)) %in% GLOBAL[["CORE_TFS"]]), is_true())
   
   # Compare samples to some hand-calculated results --> -log10(pval) * sign(log2foldchange)
-  expect_that(ko.scores["IKZF3", "BATF"], equals(0.1430428, tolerance = 1e-7))
-  expect_that(ko.scores["CROCC", "BATF"], equals(0.1019569, tolerance = 1e-7))
-  expect_that(ko.scores["ARL11", "BATF"], equals(0, tolerance = 1e-7))
+  expect_that(deseq.scores["IKZF3", "BATF"], equals(0.1430428, tolerance = 1e-7))
+  expect_that(deseq.scores["CROCC", "BATF"], equals(0.1019569, tolerance = 1e-7))
+  expect_that(deseq.scores["ARL11", "BATF"], equals(0, tolerance = 1e-7))
   
-  expect_that(ko.scores["ELMO1", "MAF"], equals(0.3227558, tolerance = 1e-7))
-  expect_that(ko.scores["INA", "MAF"], equals(0, tolerance = 1e-7))
-  expect_that(ko.scores["INPP4B", "MAF"], equals(-4.989882, tolerance = 1e-7))
+  expect_that(deseq.scores["ELMO1", "MAF"], equals(0.3227558, tolerance = 1e-7))
+  expect_that(deseq.scores["INA", "MAF"], equals(0, tolerance = 1e-7))
+  expect_that(deseq.scores["INPP4B", "MAF"], equals(-4.989882, tolerance = 1e-7))
   
-  expect_that(ko.scores["DUSP6", "RORC"], equals(-3.361983, tolerance = 1e-7))
-  expect_that(ko.scores["GM5124", "RORC"], equals(0.02793168, tolerance = 1e-7))
-  expect_that(ko.scores["NOL6", "RORC"], equals(0.4853783, tolerance = 1e-7))
+  expect_that(deseq.scores["DUSP6", "RORC"], equals(-3.361983, tolerance = 1e-7))
+  expect_that(deseq.scores["GM5124", "RORC"], equals(0.02793168, tolerance = 1e-7))
+  expect_that(deseq.scores["NOL6", "RORC"], equals(0.4853783, tolerance = 1e-7))
 })
