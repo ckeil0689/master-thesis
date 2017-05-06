@@ -23,7 +23,7 @@ The pipeline follows the 'Computational Methods' described in Ciofani et al. [1]
 ## Requirements
 - GNU/Linux or macOS
 - Git
-- R
+- R (+ libraries)
 - Bash (for setup.sh)
 - Disk space for downloaded GEO data (~ 150MB)
 - [Cytoscape](https://www.cytoscape.org) (+ [AllegroLayout](http://allegroviva.com/allegrolayout2/) plugin)
@@ -48,7 +48,8 @@ In order to test whether setup was completed as expected, run the main test scri
 If the run completes without errors, you can proceed to the next step. If errors occur make sure you
 
 1) Have an internet connection so all required libraries can be loaded from cran. 
-2) Converted mmc4.xlsx and mmc5.xls to comma-separated CSV files.
+2) Have permission to write to R's library folder (otherwise run as admin/sudo or receive permission)
+3) Converted mmc4.xlsx and mmc5.xls to comma-separated CSV files during the setup process.
 
 Otherwise, please screenshot or copy the error output and post it in the Issues subsection.
 
