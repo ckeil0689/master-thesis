@@ -7,7 +7,12 @@ new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"
 # install if missing
 if(length(new.packages)) {
   print("Installing data.table package...")
-  install.packages(new.packages, repos="http://cran.rstudio.com/")
+  tryCatch({
+    install.packages(new.packages, repos="http://cran.rstudio.com/")
+  }, error = function(err) {
+    print(paste("ERROR:", err))
+    stop("Try running the script as administrator (sudo).")
+  })
 }
 
 library(data.table)
