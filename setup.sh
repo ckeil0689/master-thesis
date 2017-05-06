@@ -38,11 +38,13 @@ load_from_cell "mmc5.xls"
 
 # Convert mmc4 and mmc5 to CSV using LibreOffice if available
 echo "Attempting to automatically convert mmc4.xlsx and mmc5.xls to CSV-files using LibreOffice (both are required!)."
-if [ type -P soffice 2>/dev/null ]; then
+soffice_loc=$(type -P soffice 2> /dev/null)
+libreoffice_loc=$(type -P libreoffice 2> /dev/null)
+if [ $soffice_loc ]; then
    # if soffice command is set up on OSX with LibreOffice
    soffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
    soffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
-elif [ type -P libreoffice 2>/dev/null ]; then
+elif [ $libreoffice_loc ]; then
    # linux with libreoffice install works here     
    libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
    libreoffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
