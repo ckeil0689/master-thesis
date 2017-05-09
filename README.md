@@ -2,6 +2,8 @@
 # Reproducible methods for network analysis of high-throughput genomic data
 #### A reimplementation of a Regulatory Network for Th17 Cell Specification ([Source for reference method on Cell](http://www.cell.com/cell/abstract/S0092-8674(12)01123-3))
 
+![Network](https://cloud.githubusercontent.com/assets/8302022/25841548/d1d662fa-34a0-11e7-982b-38ebc0e92349.png)
+
 This project is part of my master thesis at the Center for Bionformatics, University of Hamburg, and the University Medical Center (UKE) in Hamburg.
 
 Given the information provided on the Cell page as well as [available data on NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE40918), I am building a similar version which adapts methods of the described pipeline.
@@ -67,9 +69,22 @@ If you do not want to load ChIP-seq and KO-files again and reuse existing matric
 `./master.R noload`
 
 ## Visualizing the Network
-Open Cytoscape. You can load the network file (e.g. `kc_single_1.65_cs-cut_<date>.csv`) as a network table. Z-scores for genes have been extracted from NCBI GEO GSE40918 and are loaded into a separate file `zscores.txt` (also located at `/suppl/data/analysis/cyt/`). Load this as node table to achieve node coloring by differential expression. Import the XML-style file from /scripts/cyt_styles to achieve the same style as used in [1]. 
+Open Cytoscape. You can load the network file (e.g. `kc_single_1.65_cs-cut_<date>.csv`) as a network table (Fig. 1).
 
-Install and run the AllegroLayout plugin in Cytoscape. For example, use the Fruchterman-Reingold algorithm with randomized starting positions.
+![Figure 1](https://cloud.githubusercontent.com/assets/8302022/25841549/d1d87bf8-34a0-11e7-841c-e76380dc58c2.png) 
+
+Z-scores for genes have been extracted from NCBI GEO GSE40918 and are loaded into a separate file `zscores.txt` (also located at `/suppl/data/analysis/cyt/`). Load this as node table to achieve node coloring by differential expression (Fig. 2).
+
+![Figure 2](https://cloud.githubusercontent.com/assets/8302022/25841551/d1e33ee4-34a0-11e7-9a60-5eb357c04871.png)
+
+
+Import the XML-style file via `File > Import > Styles...` from `/scripts/cyt_styles/` to achieve the same style as used in the original paper [1]. Apply it via the Styles tab (Fig. 3).
+
+![Figure 3](https://cloud.githubusercontent.com/assets/8302022/25841547/d1d1cb5a-34a0-11e7-97c4-acdb271c2937.png)
+
+Install and run the AllegroLayout plugin in Cytoscape. For example, use the Fruchterman-Reingold algorithm with randomized starting positions (Fig. 4).
+
+![Figure 4](https://cloud.githubusercontent.com/assets/8302022/25841544/d1c6e640-34a0-11e7-8e19-e8dfcceb9947.png)
 
 
 *[1] Ciofani, Maria, Aviv Madar, Carolina Galan, MacLean Sellars, Kieran Mace, Florencia Pauli, Ashish Agarwal et al. "A validated regulatory network for Th17 cell specification." Cell 151, no. 2 (2012): 289-303.*
