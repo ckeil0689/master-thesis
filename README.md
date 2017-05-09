@@ -51,6 +51,8 @@ If the run completes without errors, you can proceed to the next step. If errors
 2) Have permission to write to R's library folder (otherwise run as admin/sudo or receive permission)
 3) Converted mmc4.xlsx and mmc5.xls to comma-separated CSV files during the setup process.
 
+Currently, warnings may occur if the `/deseq/` folder contains DESeq files for transcription factors, which are not recognized as "core transcription factors (batf, rorc, maf, stat3, irfv4, fosl2, hif1a).
+
 Otherwise, please screenshot or copy the error output and post it in the Issues subsection.
 
 ## Creating a Network
