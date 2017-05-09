@@ -4,7 +4,7 @@
 
 ![Network](https://cloud.githubusercontent.com/assets/8302022/25841548/d1d662fa-34a0-11e7-982b-38ebc0e92349.png)
 
-This project is part of my master thesis at the Center for Bionformatics, University of Hamburg, and the University Medical Center (UKE) in Hamburg.
+This project is part of my master thesis at the Center for Bioinformatics, University of Hamburg, and the University Medical Center (UKE) in Hamburg.
 
 Given the information provided on the Cell page as well as [available data on NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE40918), I am building a similar version which adapts methods of the described pipeline.
 
