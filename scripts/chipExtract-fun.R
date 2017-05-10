@@ -9,7 +9,7 @@ chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
 reflibfile <- paste0(getwd(), "/../suppl/mmc4.csv")
 if(!file.exists(reflibfile)) stop(paste("Reference file does not exist, cannot load ChIP-files:", reflibfile))
 ref.table <- read.csv(reflibfile)
-if(!"Library_id" %in% colnames(ref.table)) stop("mmc4.csv could not be properly read. 
+if(!"Library_ID" %in% colnames(ref.table)) stop("mmc4.csv could not be properly read. 
                                                 Make sure the file is really comma-separated. Stopping.")
 
 # Selection of ChIP-seq results files from GEO (assumes local copy in chipdir)
