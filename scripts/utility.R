@@ -27,7 +27,7 @@ load.zscores <- function(zscores.path) {
     zscore.table <- read.csv(zscores.path)
     if(!"Gene_id" %in% colnames(zscore.table)) stop("mmc5.csv could not be properly read. 
                                              Make sure the file is really comma-separated. Stopping.")
-    zscore.col.idx <- grep("th17.th0.zscores$", ignore.case = TRUE, perl = TRUE)
+    zscore.col.idx <- grep("th17.th0.zscores$", colnames(zscore.table), ignore.case = TRUE, perl = TRUE)
     zscore_col <- colnames(zscore.table)[zscore.col.idx]
     # Th17_vs_Th0_Zscores matches name used in Cytoscape Style for example KC.cys
     zscores.all <- as.matrix(zscore.table[, zscore_col])
