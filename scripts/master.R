@@ -28,8 +28,6 @@ scriptdir <- getwd()
 # To get custom Z-scores a script should be inserted here which calculates them from raw RNA-seq cufflinks output 
 zscores.path <- paste0(getwd(), "/../suppl/mmc5.csv")
 if(!file.exists(zscores.path)) stop(paste("Z-score table file does not exist, cannot load z-scores:", zscores.path))
-if(!"Gene_id" %in% colnames(ref.table)) stop("mmc5.csv could not be properly read. 
-                                             Make sure the file is really comma-separated. Stopping.")
 
 # All output goes into /analysis/
 analysis.dir <- paste0(getwd(), "/../suppl/data/analysis/")

@@ -25,6 +25,8 @@ write.mat <- function(mat, outpath, prefix, suffix = "") {
 load.zscores <- function(zscores.path) {
   if(file.exists(zscores.path)) {
     zscore.table <- read.table(zscores.path, sep=",", header=TRUE)
+    if(!"Gene_id" %in% colnames(zscore.table)) stop("mmc5.csv could not be properly read. 
+                                             Make sure the file is really comma-separated. Stopping.")
     zscore_col <- "Th17.Th0.zscores"
     # Th17_vs_Th0_Zscores matches name used in Cytoscape Style for example KC.cys
     zscores.all <- as.matrix(zscore.table[, zscore_col])
