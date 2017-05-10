@@ -39,9 +39,12 @@ extract.tf <- function(deseq.cols) {
   
   # only use target TFs
   if(!tf %in% GLOBAL[["CORE_TFS"]]) {
-    warning(paste("Could not load DESeq file for:", tf, "(skipped)"))
+    warning(paste("Could not load DESeq file for:", tf, "(skipped).
+                  The transcription factor is not in the allowed list of core transcription factors.
+                  Edit the global variable CORE_TFS to allow the transcription factor to be loaded."))
     return(NA)
   }
+  
   return(toupper(tf))
 }
 
