@@ -8,16 +8,18 @@ mkdir -p $dataDir
 mkdir -p $dataDir/{chipseq,deseq,inferelator,rnaseq}
 
 load_from_cell () {
+   urlSuffix="2030652145/$1"
    descr="experiment library"
    if [ "$1" = "mmc5.xls" ]; then 
       descr="z-score"
+      urlSuffix="2030652146/$1"
    fi
    fullname=$(basename $1)
    filename="${fullname##*.}"
    if [ ! -f $supplDir/$filename.csv ]; then
       if [ ! -f $supplDir/$1 ]; then
          echo "Downloading $1..."   
-         curl -o "$supplDir/$1" "http://www.cell.com/cms/attachment/2007961119/2030652145/$1"
+         curl -o "$supplDir/$1" "http://www.cell.com/cms/attachment/2007961119/$urlSuffix"
          if [ $? -ne 0 ]; then
             echo "Problem when attempting to download $descr reference table ($1). Stopping."
             exit 1
