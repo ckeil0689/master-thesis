@@ -17,6 +17,8 @@ The pipeline follows the 'Computational Methods' described in Ciofani et al. [1]
 - Existing data made available by the authors of [1] is used to create a interaction network between transcription factors and target genes.
 - Currently, ChIP-seq and DESeq data is used to calculate the interaction network (2 data types).
 
+![Status](https://cloud.githubusercontent.com/assets/8302022/25953252/17ff0cb4-3663-11e7-8027-f5dd812975a0.png)
+
 ### Working On
 - Use your own custom DESeq data to create an interaction network.
 - Use your own custom RNA-seq results to display differential expression as node colors (calculate z-scores instead of importing them from mmc5.xls)
