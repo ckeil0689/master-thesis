@@ -1,21 +1,16 @@
 # DEseq file directory relative to /scripts/
 deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
 # Ensure we are in correct directory
-if(!dir.exists(deseqdir)) stop("Cannot load ChIP-files because the directory does not exist.")
+if(!dir.exists(deseqdir)) stop("Cannot load DESeq-files because the directory does not exist.")
 setwd(deseqdir)
 
 # We consider all DESeq result files (as opposed to selective ChIP-seq loading)
 deseqfiles <- list.files(getwd())
 if(length(deseqfiles) == 0) stop(paste("No DESeq files found in: ", deseqdir, "Stopping."))
 
-# If no column name can be extracted from DESeq files, a generic name is used (DESeq1, DESeq2...)
-# Temporary solution to prevent failure with typical DESeq files. The files provided by NCBI GEO GSE40918
-# have been customized by scripts and contain columns which yield the target transcription factor name.
-file.count <- 1
-
 # Extracts the TF target from a DESeq file according to their format
 # Assumes convention column name (e.g. Th17.batf.wt -> batf)
-extract.tf <- function(deseq.cols) {
+extract.tf <- function(deseq.cols, i) {
   # regex looks for a sring of the pattern 'pre.string.suf' where string will be the extracted tf 
   # this will extract the name from the specific DESeq files in GSE40918 (e.g. th17.batf.wt) and allow anyone
   # to add custom names
@@ -30,7 +25,7 @@ extract.tf <- function(deseq.cols) {
   }
   
   if(is.na(tf)) {
-    warning(paste("Could not load DESeq file #", file.count, "(skipped).
+    warning(paste("Could not load DESeq file:", i, "(skipped).
                   No TF name could be found, cannot assign column in interaction matrix. 
                   Add a column (header is important) to the DESeq file with the pattern 
                   pre.TFNAME.suf (e.g. th17.batf.wt)."))
@@ -62,7 +57,7 @@ get.skel.mat <- function() {
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
-    tf <- extract.tf(colnames(cst))
+    tf <- extract.tf(colnames(cst), i)
     if(is.na(tf)) next
     
     all.tfs <- c(all.tfs, tf)
@@ -73,8 +68,6 @@ get.skel.mat <- function() {
     gene.ids <- cst[, gene.id.cols[[1]][1]] # first element if multiple matches
     file.genes <- as.character(gene.ids)
     all.genes <- append(all.genes, file.genes)
-    
-    file.count <- file.count + 1
   }
   
   println("Generating zero-filled DESeq-matrix skeleton.")
@@ -95,13 +88,16 @@ populate.deseq.scores <- function(deseq.scores) {
   for(i in deseqfiles) {
     # read in the data and extract the library name
     cst <- read.table(i, sep="\t", header=TRUE)
-    tf <- extract.tf(colnames(cst))
-    if(is.na(tf)) next
+    tf <- extract.tf(colnames(cst), i)
+    if(is.na(tf) || nchar(tf) == 0) next
     
     # get the DESeq p-values by iterating and accessing matrix via id and TF-name (genes are not ordered by name in DESeq files!)
+    gene.id.cols <- grep(c("\\b(.*gene[_|\\.])?id($|\n)"), colnames(cst), ignore.case = TRUE, perl = TRUE, value = TRUE)
+    gene.ids <- toupper(cst[, gene.id.cols[[1]][1]]) # first element if multiple matches
     idx <- 1
-    for(j in cst$id) {
-      deseq.scores[j, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])
+    for(gn in gene.ids) {
+      if(nchar(gn) == 0) next
+      deseq.scores[gn, tf] <- -log10(cst$pval[idx]) * sign(cst$log2FoldChange[idx])
       idx <- idx + 1
     }
   }
