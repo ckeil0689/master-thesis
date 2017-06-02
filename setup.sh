@@ -49,11 +49,11 @@ libreoffice_loc=$(type -P libreoffice 2> /dev/null)
 if [ $soffice_loc ]; then
    # if soffice command is set up on OSX with LibreOffice
    soffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
-   soffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
+   soffice --headless --convert-to csv $supplDir/mmc5.txt --outdir $supplDir
 elif [ $libreoffice_loc ]; then
    # linux with libreoffice install works here     
    libreoffice --headless --convert-to csv $supplDir/mmc4.xlsx --outdir $supplDir
-   libreoffice --headless --convert-to csv $supplDir/mmc5.xls --outdir $supplDir
+   libreoffice --headless --convert-to csv $supplDir/mmc5.txt --outdir $supplDir
 else 
    echo "No functional LibreOffice command found for conversion of XLSX-files to CSV format."
 fi   
