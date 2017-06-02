@@ -20,7 +20,11 @@ load_from_cell () {
       if [ ! -f $supplDir/$1 ]; then
          echo "Downloading $1..."   
          curl -o "$supplDir/$1" "http://www.cell.com/cms/attachment/2007961119/$urlSuffix"
-         if [ $? -ne 0 ]; then
+         if [ "$1" = "mmc5.xls" ]; then
+	    # rename due to occasional LibreOffice conversion issue with xls-extension 
+            mv $supplDir/mmc5.xls $supplDir/mmc5.txt
+         fi
+	 if [ $? -ne 0 ]; then
             echo "Problem when attempting to download $descr reference table ($1). Stopping."
             exit 1
          else
