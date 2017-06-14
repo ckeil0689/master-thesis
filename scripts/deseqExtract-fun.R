@@ -56,7 +56,7 @@ get.skel.mat <- function() {
   
   for(i in deseqfiles) {
     # read in the data and extract the library name
-    cst <- read.table(i, sep="\t", header=TRUE)
+    cst <- read.table(i, sep="\t", header=TRUE, stringsAsFactors = FALSE)
     tf <- extract.tf(colnames(cst), i)
     if(is.na(tf)) next
     
@@ -87,7 +87,9 @@ populate.deseq.scores <- function(deseq.scores) {
   println("Extract DESeq non-adjusted p-values and log2(foldchange) from files.")
   for(i in deseqfiles) {
     # read in the data and extract the library name
-    cst <- read.table(i, sep="\t", header=TRUE)
+    # DESeq p-values have too many numbers and are makes it a factor. stringsAsFactors option prevents that
+    # but then we have a 'character' p-value column which still needs conversion to 'numeric' class
+    cst <- read.table(i, sep="\t", header=TRUE, stringsAsFactors = FALSE)
     tf <- extract.tf(colnames(cst), i)
     if(is.na(tf) || nchar(tf) == 0) next
     

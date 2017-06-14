@@ -5,7 +5,7 @@ apply.zscore.filter <- function(combo.mat, genes.final, combo, type) {
   filtered.genes <- rownames(combo.mat)[filtered.genes.idx]
   combo.mat.filtered <- combo.mat[filtered.genes.idx,]
   rownames(combo.mat.filtered) <- filtered.genes
-  if(GLOBAL[["DEBUG"]]) write.mat(combo.mat.filtered, outpath.debug, combo, paste0("mat_", type))
+  if(GLOBAL[["DEBUG"]]) write.mat(combo.mat.filtered, outpath.debug, combo, paste0("nosign_", type))
   return(combo.mat.filtered)
 }
 
