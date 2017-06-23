@@ -25,7 +25,7 @@ test_that("Edges are selected as expected", {
             -1.998, -1.034, 0.934, 1.856, 0.995,  # MAF
             1.650, 1.651, 0.762, 0.000, 0.000)  # RORC
   cs.mat <- matrix(vals, nrow=length(genes), ncol=length(tfs), dimnames = list(genes, tfs))
-  used.cut <- GLOBAL[["cs.abs.cut"]]
+  used.cut <- 1.65 #GLOBAL[["cs.abs.cut"]] expected.table cannot adapt to this... TODO: change test
   total.edge.num <- length(cs.mat[abs(cs.mat) > used.cut])
   empty.table <- create.empty.table(total.edge.num)
   
@@ -71,7 +71,7 @@ test_that("Writing of the interaction list works as expected", {
   cyt.table[, "nodeB"] <- c("A", "D", "A", "D", "B")
   cyt.table[, "confidence_score"] <- c(1.845, -1.762, -1.998, 1.856, 1.651)
   
-  used.cut <- GLOBAL[["cs.abs.cut"]]
+  used.cut <- 1.65 # GLOBAL[["cs.abs.cut"]] table cannot adapt to this... TODO: change test
   expected.filename <- paste0("kc_activator_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
   
   # make sure we are not verifying the creation of a file that already exists
@@ -124,21 +124,22 @@ test_that("Integrated generation of interactions list works as expected (main me
             -1.998, -1.034, 0.934, 1.856, 0.995,  # MAF
             1.650, 1.651, 0.762, 0.000, 0.000)  # RORC
   cs.mat <- matrix(vals, nrow=length(genes), ncol=length(tfs), dimnames = list(genes, tfs))
+  used.cut <- GLOBAL[["cs.abs.cut"]]
   
   # activator run
-  expected.filename <- paste0("kc_activator_", GLOBAL[["cs.abs.cut"]], "_cs-cut_", Sys.Date(), ".csv")
+  expected.filename <- paste0("kc_activator_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
   expect_that(file.exists(expected.filename), is_false())
   create.interactions(cs.mat, outpath, "kc", "activator", pos.edge = "positive_KC", neg.edge = "negative_KC", append = FALSE)
   expect_that(file.exists(expected.filename), is_true())
   
   # repressor run (data remains the same in this example, but edge types are swapped)
-  expected.filename.r <- paste0("kc_repressor_", GLOBAL[["cs.abs.cut"]], "_cs-cut_", Sys.Date(), ".csv")
+  expected.filename.r <- paste0("kc_repressor_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
   expect_that(file.exists(expected.filename.r), is_false())
   create.interactions(cs.mat, outpath, "kc", "repressor", pos.edge = "negative_KC", neg.edge = "positive_KC", append = FALSE)
   expect_that(file.exists(expected.filename.r), is_true())
   
   # append repressor run (full file)
-  expected.filename.full <- paste0("kc_single_", GLOBAL[["cs.abs.cut"]], "_cs-cut_", Sys.Date(), ".csv")
+  expected.filename.full <- paste0("kc_single_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
   expect_that(file.exists(expected.filename.full), is_false())
   # create (for example activator -- data same in this case, but edge types swapped)
   create.interactions(cs.mat, outpath, "kc", "single", pos.edge = "positive_KC", neg.edge = "negative_KC", append = FALSE)
@@ -148,7 +149,7 @@ test_that("Integrated generation of interactions list works as expected (main me
   
   # Load written interaction table and check some attributes like dimension to confirm that the table is as expected (CSV file!)
   reloaded.table <- as.data.table(read.table(expected.filename.full, header = TRUE, sep = ",", stringsAsFactors = FALSE))
-  interactions.num.full <- length(which(abs(vals) > GLOBAL[["cs.abs.cut"]])) * 2 # doubled because cs.mat is used for activator and repressor
+  interactions.num.full <- length(which(abs(vals) > used.cut)) * 2 # doubled because cs.mat is used for activator and repressor
   expect_that(dim(reloaded.table), equals(c(interactions.num.full, 4))) # 4 columns are fixed by definition (nodeA, interaction, nodeB, cs)
   expect_that(all(is.na(reloaded.table[,"nodeA"])), is_false())
   expect_that(all(is.na(reloaded.table[,"nodeB"])), is_false())

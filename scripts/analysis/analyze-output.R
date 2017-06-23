@@ -12,6 +12,12 @@ if(!dir.exists(outpath.cyt) || !dir.exists(outpath.debug)) {
   stop("Stopping because no files available for analysis.")
 }
 
+# Results output directory
+outpath.results <- paste0(scriptdir, "results/")
+if(!dir.exists(outpath.results)) {
+  dir.create(outpath.results)
+}
+
 print("Beginning analysis of latest files.")
 # Order all output by date
 details = file.info(list.files(path = outpath.cyt, pattern = "*.csv", full.names=TRUE))
@@ -23,3 +29,11 @@ print("Analyzed files:")
 print(latest.files)
 
 # Analysis loop (one run per file)
+for(i in latest.files) {
+  data <- read.csv(i)
+  type <- gsub(paste0(outpath.cyt, "/kc_(activator|repressor|single)_.*csv"),'\\1', i)
+  scores.hist <- hist(data[,"confidence_score"], main = paste("Interaction confidence scores for", type), freq = FALSE)
+  png(paste0(outpath.results, type, "-scores-hist.png"))
+  plot(scores.hist)
+  dev.off()
+}
