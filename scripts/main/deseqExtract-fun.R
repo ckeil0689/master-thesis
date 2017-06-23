@@ -1,5 +1,5 @@
 # DEseq file directory relative to /scripts/
-deseqdir <- paste0(getwd(), "/../suppl/data/deseq/")
+deseqdir <- paste0(getwd(), "/../../suppl/data/deseq/")
 # Ensure we are in correct directory
 if(!dir.exists(deseqdir)) stop("Cannot load DESeq-files because the directory does not exist.")
 setwd(deseqdir)

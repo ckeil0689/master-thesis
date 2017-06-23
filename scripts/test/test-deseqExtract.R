@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # Testing DESeq score matrix generation
-source(paste0(getwd(), "/../" , "deseqExtract-fun.R"), chdir = TRUE)
+source(paste0(getwd(), "/../main/" , "deseqExtract-fun.R"), chdir = TRUE)
 
 # DEseq file directory relative to /scripts/
 deseqdir.test <- paste0(getwd(), "/../../suppl/data/deseq/")

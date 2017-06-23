@@ -5,7 +5,7 @@ context("Running master script")
 test_that("Master script completes a full run without errors", {
   # For master.R the source() call is wrapped in a test function because it will immediately run when sourcing
   # A main function would change that but it would have to be called every time in the command line
-  source(paste0(getwd(), "/../" , "master.R"), chdir = TRUE)
+  source(paste0(getwd(), "/../main/" , "master.R"), chdir = TRUE)
 })
 
 context("Results from master script")

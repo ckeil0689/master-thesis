@@ -1,7 +1,7 @@
 # !/usr/bin/env Rscript
 
 # Testing the application of the z-score filter and the sign-matrix from DESeq differential expression data
-source(paste0(getwd(), "/../" , "createCombinedMat-fun.R"), chdir = TRUE)
+source(paste0(getwd(), "/../main/" , "createCombinedMat-fun.R"), chdir = TRUE)
 
 context("Generation of combined matrix")
 

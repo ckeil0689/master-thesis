@@ -1,7 +1,7 @@
 # !/usr/bin/env Rscript
 
 # Testing combination of Q-matrices
-source(paste0(getwd(), "/../" , "combineQmats-fun.R"), chdir = TRUE)
+source(paste0(getwd(), "/../main/" , "combineQmats-fun.R"), chdir = TRUE)
 
 context("Combination of Q-matrices")
 

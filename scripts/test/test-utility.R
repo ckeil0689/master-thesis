@@ -2,7 +2,7 @@
 
 # Testing utility functions in util.R
 # util.R should be located in dir above /test/
-source(paste0(getwd(), "/../" , "utility.R"), chdir = TRUE)
+source(paste0(getwd(), "/../main/" , "utility.R"), chdir = TRUE)
 
 context("Utility functions")
 # write.mat function

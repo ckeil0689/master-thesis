@@ -1,7 +1,7 @@
 # !/usr/bin/env Rscript
 
 # Testing creation of rank matrix
-source(paste0(getwd(), "/../" , "quantileRank-fun.R"), chdir = TRUE)
+source(paste0(getwd(), "/../main/" , "quantileRank-fun.R"), chdir = TRUE)
 
 context("Calculating quantile rank matrix")
 

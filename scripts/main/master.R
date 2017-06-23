@@ -26,23 +26,23 @@ scriptdir <- getwd()
 
 # Check if the file for z-scores exists, since they are not calculated at the moment, but taken from a reference (mmc5.xls)
 # To get custom Z-scores a script should be inserted here which calculates them from raw RNA-seq cufflinks output 
-zscores.path <- paste0(getwd(), "/../suppl/mmc5.csv")
+zscores.path <- paste0(getwd(), "/../../suppl/mmc5.csv")
 if(!file.exists(zscores.path)) stop(paste("Z-score table file does not exist, cannot load z-scores:", zscores.path))
 
 # All output goes into /analysis/
-analysis.dir <- paste0(getwd(), "/../suppl/data/analysis/")
+analysis.dir <- paste0(getwd(), "/../../suppl/data/analysis/")
 if(!dir.exists(analysis.dir)) {
   dir.create(analysis.dir)
 }
 
 # Debug output directory
-outpath.debug <- paste0(getwd(), "/../suppl/data/analysis/debug/")
+outpath.debug <- paste0(analysis.dir, "debug/")
 if(!dir.exists(outpath.debug)) {
   dir.create(outpath.debug)
 }
 
 # Cytoscape output directory
-outpath.cyt <- paste0(getwd(), "/../suppl/data/analysis/cyt/")
+outpath.cyt <- paste0(analysis.dir, "cyt/")
 if(!dir.exists(outpath.cyt)) {
   dir.create(outpath.cyt)
 }

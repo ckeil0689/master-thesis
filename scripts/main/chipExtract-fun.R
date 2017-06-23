@@ -3,10 +3,10 @@
 # Constants
 # ----------------
 # ChIP-seq file directory relative to /scripts/
-chipdir <- paste0(getwd(), "/../suppl/data/chipseq/")
+chipdir <- paste0(getwd(), "/../../suppl/data/chipseq/")
 
 # Experiment-library reference table; relative to /scripts/ directory
-reflibfile <- paste0(getwd(), "/../suppl/mmc4.csv")
+reflibfile <- paste0(getwd(), "/../../suppl/mmc4.csv")
 if(!file.exists(reflibfile)) stop(paste("Reference file does not exist, cannot load ChIP-files:", reflibfile))
 ref.table <- read.csv(reflibfile)
 if(!"Library_ID" %in% colnames(ref.table)) stop("mmc4.csv could not be properly read. 

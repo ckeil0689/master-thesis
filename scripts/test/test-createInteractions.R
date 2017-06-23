@@ -1,7 +1,7 @@
 # !/usr/bin/env Rscript
 
 # Testing the creation of an interaction list from the combined confidence score matrix.
-source(paste0(getwd(), "/../" , "createInteractions-fun.R"), chdir = TRUE)
+source(paste0(getwd(), "/../main/" , "createInteractions-fun.R"), chdir = TRUE)
 
 context("Generation of interaction list (edge list)")
 

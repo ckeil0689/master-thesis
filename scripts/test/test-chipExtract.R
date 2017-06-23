@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # Testing ChIP score matrix generation
-source(paste0(getwd(), "/../" , "chipExtract-fun.R"), chdir = TRUE)
+source(paste0(getwd(), "/../main/" , "chipExtract-fun.R"), chdir = TRUE)
 
 context("Fixing TF names")
 
