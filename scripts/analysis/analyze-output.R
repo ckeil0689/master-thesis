@@ -13,7 +13,7 @@ if(!dir.exists(outpath.cyt) || !dir.exists(outpath.debug)) {
 }
 
 # Results output directory
-outpath.results <- paste0(scriptdir, "results/")
+outpath.results <- paste0(scriptdir, "/results/")
 if(!dir.exists(outpath.results)) {
   dir.create(outpath.results)
 }

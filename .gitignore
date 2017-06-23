@@ -3,7 +3,9 @@
 /papers/
 /scripts/external/
 /scripts/test/results/
+/scripts/analysis/results/
 *.Rhistory
+*.Rproj
 GSE40918_README_supplementary_files.txt
 ~*
 .*#
@@ -17,5 +19,4 @@ GSE40918_README_supplementary_files.txt
 *expr.txt
 .Rproj.user
 .DS_Store
-*.Rproj
 *.docx
