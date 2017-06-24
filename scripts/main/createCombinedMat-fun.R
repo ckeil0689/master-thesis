@@ -25,13 +25,13 @@ apply.sign.mat <- function(combo.mat.filtered, deseq.scores, combo, type) {
     stop("Sign matrix does not have the same dimension as combined matrix, things will break. Stopping.")
   }
   
-  factor <- 1
-  if(type == "repressor") {
-    factor <- -1
-  }
+  # factor <- 1
+  # if(type == "repressor") {
+  #   factor <- -1
+  # }
   
   # Element-wise multiplication with sign matrix
-  combo.mat.signed <- combo.mat.filtered * as.vector(mat.sign * factor)
+  combo.mat.signed <- combo.mat.filtered * as.vector(mat.sign)#* factor)
   if(GLOBAL[["DEBUG"]])  write.mat(combo.mat.signed, outpath.debug, combo, paste0("signed_", type))
   return(combo.mat.signed)
 }

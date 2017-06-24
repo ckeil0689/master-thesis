@@ -31,9 +31,9 @@ select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
       val <- combo.mat[gene, i]
       
       if(val > used.cut) {
-        edge.type <- pos.edge
+        edge.type <- "positive_KC" #pos.edge
       } else if(val < used.cut) {
-        edge.type <- neg.edge
+        edge.type <- "negative_KC" #neg.edge
       } else {
         next # do not set any edge (list size limited to 'tot')
       }

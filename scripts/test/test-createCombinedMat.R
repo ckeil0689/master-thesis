@@ -64,23 +64,20 @@ test_that("Sign matrix is applied as expected", {
   ko.scores <- matrix(ko.vals, nrow=length(ko.genes), ncol=length(ko.tfs), dimnames=list(ko.genes, ko.tfs))
   
   # Normal data
-  # activator
   expected.vals <- c(0.000, 0.949, -0.984, 
                      0.566, -0.254, 0.000)
   expected.result <- matrix(expected.vals, nrow=length(combo.genes), ncol=length(combo.tfs), dimnames=list(combo.genes, combo.tfs))
   
+  # activator
   sign.mat <- apply.sign.mat(combo.mat, ko.scores, "test", "activator")
-  
   expect_that(sign.mat, is_a("matrix"))
   expect_that(sign.mat, is_identical_to(expected.result))
   
   # repressor
-  expected.vals.r <- c(0.000, -0.949, 0.984, 
-                       -0.566, 0.254, 0.000)
+  expected.vals.r <- expected.vals
   expected.result.r <- matrix(expected.vals.r, nrow=length(combo.genes), ncol=length(combo.tfs), dimnames=list(combo.genes, combo.tfs))
   
   sign.mat.r <- apply.sign.mat(combo.mat, ko.scores, "test", "repressor")
-  
   expect_that(sign.mat.r, is_a("matrix"))
   expect_that(sign.mat.r, is_identical_to(expected.result.r))
   
@@ -132,7 +129,7 @@ test_that("Complete system of combining Q-matrices works as expected", {
   expect_that(combo.mat, is_identical_to(expected.result))
   
   # repressor
-  expected.vals.r <- -1*expected.vals
+  expected.vals.r <- expected.vals
   expected.result.r <- matrix(expected.vals.r, nrow=length(genes.final), ncol=length(combo.tfs), dimnames=list(genes.final, combo.tfs))
   combo.mat.r <- createCombinedMat("kc", "repressor", ko.qmat, chip.qmat, NULL, NULL, genes.final, ko.scores)
   
@@ -173,7 +170,7 @@ test_that("Complete system of combining Q-matrices works as expected", {
   expect_that(combo.mat, equals(expected.result, tolerance = 0.00001)) # floating point calc --> not using is_identical_to()
   
   # repressor
-  expected.vals.r <- -1*expected.vals
+  expected.vals.r <- expected.vals
   expected.result.r <- matrix(expected.vals.r, nrow=length(genes.final), ncol=length(combo.tfs), dimnames=list(genes.final, combo.tfs))
   
   combo.mat <- createCombinedMat("kcri", "repressor", ko.qmat, chip.qmat, rna.qmat, immgen.qmat, genes.final, ko.scores)

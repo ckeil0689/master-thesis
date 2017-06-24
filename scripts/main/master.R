@@ -201,7 +201,7 @@ do.quantile.rank <- function(mat, positiveOnly = FALSE, prefix) {
 if(GLOBAL[["use.nyu.rank"]]) {
   println(">>>>>>>>>>>>>>>>> DEBUG: Calculating Aviv Madar's rank-score algorithm (in place of own ranking) <<<<<<<<<<<<<<<<<<<<<<")
   # Utilizing ranking methods from AM for testing purposes
-  source(paste0(getwd(), "/external/rscripts/rscripts/" , "util.R"))
+  source(paste0(getwd(), "/../external/rscripts/" , "util.R"))
   
   # KO scores
   println("Ranking DESeq scores.")

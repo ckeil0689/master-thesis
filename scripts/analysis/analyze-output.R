@@ -34,8 +34,8 @@ for(i in latest.files) {
   type <- gsub(paste0(outpath.cyt, "/kc_(activator|repressor|single)_.*csv"),'\\1', i)
   scores <- data[,"confidence_score"]
   # Histogram
-  scores.hist <- hist(scores, main = paste("Score density distribution for", type), 
-                      freq = FALSE, col = "blue", xlab = "Confidence score", ylim = range(c(0:3)))
+  scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
+                      freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
   png(paste0(outpath.results, type, "-scores-hist.png"))
   plot(scores.hist)
   dev.off()
@@ -46,8 +46,15 @@ cio.filename <- paste0(scriptdir, "/kc-edges-formatted.csv")
 if(file.exists(cio.filename)) {
   print("Analyzing Ciofani et al. example KC-network for comparison.")
   cio.kc.net <- read.csv(cio.filename)
-  print(cio.kc.net)
-  # print(cio.kc.net[, "confidence_score"])
+  
+  type <- "single (Ciofani et al.)"
+  scores <- cio.kc.net[,"confidence_score"]
+  # Histogram
+  scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
+                      freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
+  png(paste0(outpath.results, "ciofani-scores-hist.png"))
+  plot(scores.hist)
+  dev.off()
 } else {
   print("Could not detect example edge table file for Ciofani et al. KC network. Skipping analysis.")
 }
