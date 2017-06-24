@@ -32,8 +32,28 @@ print(latest.files)
 for(i in latest.files) {
   data <- read.csv(i)
   type <- gsub(paste0(outpath.cyt, "/kc_(activator|repressor|single)_.*csv"),'\\1', i)
-  scores.hist <- hist(data[,"confidence_score"], main = paste("Interaction confidence scores for", type), freq = FALSE)
+  scores <- data[,"confidence_score"]
+  # Histogram
+  scores.hist <- hist(scores, main = paste("Score density distribution for", type), 
+                      freq = FALSE, col = "blue", xlab = "Confidence score", ylim = range(c(0:3)))
   png(paste0(outpath.results, type, "-scores-hist.png"))
   plot(scores.hist)
   dev.off()
 }
+
+# Ciofani Network Example (KC)
+cio.filename <- paste0(scriptdir, "/kc-edges-formatted.csv")
+if(file.exists(cio.filename)) {
+  print("Analyzing Ciofani et al. example KC-network for comparison.")
+  cio.kc.net <- read.csv(cio.filename)
+  print(cio.kc.net)
+  # print(cio.kc.net[, "confidence_score"])
+} else {
+  print("Could not detect example edge table file for Ciofani et al. KC network. Skipping analysis.")
+}
+
+# Matrix analysis
+print("Analyzing intermediate matrix files stored in debug folder.")
+debug.files <- list.files(path = outpath.debug, pattern = "*.csv", full.names=TRUE)
+print("Analyzed files:")
+print(debug.files)

@@ -13,6 +13,7 @@ GSE40918_README_supplementary_files.txt
 *.ods
 *.xls*
 *.csv
+!kc-edges-formatted.csv
 *.pdf
 *.txt.gz
 *genes.txt
