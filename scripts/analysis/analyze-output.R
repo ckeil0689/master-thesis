@@ -2,7 +2,6 @@
 library(ggplot2)
 library(reshape2)
 library(plyr)
-
 # Analysis of Network Generation Output
 scriptdir <- getwd()
 analysis.dir <- paste0(getwd(), "/../../suppl/data/analysis/")
@@ -58,8 +57,13 @@ for(tf in tfs) {
   ggsave(paste0(tf, "-interaction-barplot-GN.png"))
 }
 
-count.interactions <- count(gen.kc.net, vars=c("nodeA","interaction"))
-print(count.interactions)
+# Single barplot for TF interactions
+count.ia <- count(gen.kc.net, vars=c("nodeA","interaction"))
+print(count.ia)
+ggplot(count.ia, aes(x = nodeA, y = freq, fill = interaction)) +   
+  geom_bar(position = "dodge", stat="identity") + 
+  scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + coord_cartesian(ylim=c(0,1400))
+ggsave("all-interaction-barplot-GN.png")
 
 # Ciofani Network Example (KC)
 cio.filename <- paste0(scriptdir, "/kc-edges-formatted.csv")
