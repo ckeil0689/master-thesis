@@ -2,7 +2,7 @@
 
 # Checks for and if needed installs required R-packages
 # Perform some intial setups
-list.of.packages <- c("data.table", "reshape2", "testthat", "ggplot2", "plyr", "igraph") #, "xlsx")
+list.of.packages <- c("data.table", "reshape2", "testthat", "ggplot2", "plyr", "igraph", "gplots") #, "xlsx")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # install if missing
 if(length(new.packages)) {
@@ -14,6 +14,9 @@ if(length(new.packages)) {
     stop("Try running the script as administrator (sudo).")
   })
 }
+
+source("https://bioconductor.org/biocLite.R")
+biocLite("ComplexHeatmap")
 
 library(data.table)
 library(reshape2)

@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 library(ggplot2)
+library(gplots)
 library(plyr)
 library(igraph)
 
@@ -64,8 +65,10 @@ for(i in debug.matrices) {
   data <- read.csv(i, sep = "\t", row.names = 1, header = TRUE, stringsAsFactors = FALSE)
   data.m <- data.matrix(data, rownames.force = TRUE)
   type <- gsub(paste0(outpath.debug, "/kc_signed_(activator|repressor).txt"),'\\1', i)
-  png(paste0(outpath.results, "/", type, "-heatmap-GN.png"))
-  hmap <- heatmap(data.m, Rowv = NA, Colv = NA, labRow = NA, xlab = paste("Heatmap of confidence scores for", type))
+  pdf(paste0(outpath.results, "/", type, "-heatmap-GN.pdf"))
+  heatmap.2(data.m, Rowv = TRUE, Colv = FALSE, dendrogram = "none", 
+            main = paste("Heatmap of confidence scores for", type),
+            labRow = FALSE, margins = c(2, 2))
   dev.off()
 }
 
