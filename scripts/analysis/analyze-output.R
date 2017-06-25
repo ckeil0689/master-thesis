@@ -59,14 +59,14 @@ for(tf in tfs) {
 
 # Single barplot for TF interactions
 count.ia <- count(gen.kc.net, vars=c("nodeA","interaction"))
-print(count.ia)
 ggplot(count.ia, aes(x = nodeA, y = freq, fill = interaction)) +   
   geom_bar(position = "dodge", stat="identity") + 
   scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + coord_cartesian(ylim=c(0,1400))
-ggsave("all-interaction-barplot-GN.png")
+ggsave("all-interaction-barplot-GN.pdf")
 
 # Ciofani Network Example (KC)
 cio.filename <- paste0(scriptdir, "/kc-edges-formatted.csv")
+cio.kc.net <- NULL
 if(file.exists(cio.filename)) {
   print("Analyzing Ciofani et al. example KC-network for comparison.")
   cio.kc.net <- read.csv(cio.filename)
@@ -82,6 +82,13 @@ if(file.exists(cio.filename)) {
 } else {
   print("Could not detect example edge table file for Ciofani et al. KC network. Skipping analysis.")
 }
+
+# Single barplot for TF interactions
+count.ia <- count(cio.kc.net, vars=c("tf","interaction"))
+ggplot(count.ia, aes(x = tf, y = freq, fill = interaction)) +
+  geom_bar(position = "dodge", stat="identity") +
+  scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + coord_cartesian(ylim=c(0,1400))
+ggsave("all-interaction-barplot-ciofani.pdf")
 
 # Matrix analysis
 print("Analyzing intermediate matrix files stored in debug folder.")
