@@ -9,6 +9,7 @@ scriptdir <- getwd()
 analysis.dir <- paste0(getwd(), "/../../suppl/data/analysis/")
 outpath.debug <- paste0(analysis.dir, "debug")
 outpath.cyt <- paste0(analysis.dir, "cyt")
+outpath.results <- paste0(scriptdir, "/", "results/")
 
 if(!dir.exists(outpath.cyt) || !dir.exists(outpath.debug)) {
   print("No analysis or debug output folders found.")
@@ -61,17 +62,31 @@ ggsave("all-interaction-barplot-GN.pdf", width = 16, height = 9)
 # Adjacency heatmaps (latest final matrices from debug directory)
 print("Making interaction heatmaps. This uses the last debug output (enable DEBUG when running master.R).")
 debug.matrices <- list.files(path = outpath.debug, pattern = "kc_signed_(activator|repressor).txt", full.names=TRUE)
+col_breaks = c(seq(-2,1.50,length=400),  # for red
+               seq(1.51,2,length=100))
 for(i in debug.matrices) {
   data <- read.csv(i, sep = "\t", row.names = 1, header = TRUE, stringsAsFactors = FALSE)
   data.m <- data.matrix(data, rownames.force = TRUE)
   type <- gsub(paste0(outpath.debug, "/kc_signed_(activator|repressor).txt"),'\\1', i)
+  print(paste("Drawing heatmap for", type, "..."))
   pdf(paste0(outpath.results, "/", type, "-heatmap-GN.pdf"))
   heatmap.2(data.m, Rowv = TRUE, Colv = FALSE, dendrogram = "none", 
-            main = paste("Heatmap of confidence scores for", type),
-            labRow = FALSE, margins = c(2, 2))
+            main = paste("Score Heatmap for", type),
+            labRow = FALSE, margins = c(8, 2), trace = "none", breaks = col_breaks)
   dev.off()
+  
+  print(paste("Calculating sum scores for", type, "..."))
+  # Ranked sum score list
+  sumscores <- rowSums(abs(data.m))
+  sums.genes <- data.frame(sumscores, row.names = rownames(data.m))
+  sums.genes.rankidx <- order(sums.genes[,"sumscores"], decreasing = TRUE)
+  ranked.genes <- sums.genes[sums.genes.rankidx,, drop = FALSE]
+  colnames(ranked.genes) <- NULL
+  rownames(ranked.genes) <- toupper(rownames(ranked.genes))
+  write.table(ranked.genes, paste0(outpath.results, type, "-sum-genes-GN.rnk"), quote = FALSE, sep="\t", row.names = TRUE)
 }
 
+print("Doing analysis for Ciofani net.")
 # --------------------------------------
 # Ciofani Network Example (KC) ---------
 # --------------------------------------
