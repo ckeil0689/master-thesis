@@ -23,6 +23,21 @@ if(!dir.exists(outpath.results)) {
   dir.create(outpath.results)
 }
 
+# --------------------------------------
+# Confidence score density histograms --
+# --------------------------------------
+draw.score.distr.hist <- function(el, net.name, type) {
+  scores <- el[,"confidence_score"]
+  scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
+                      freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
+  png(paste0(outpath.results, type, "-scores-hist-", net.name, ".png"))
+  plot(scores.hist)
+  dev.off()
+}
+
+# --------------------------------------
+# Top scoring targets per TF -----------
+# --------------------------------------
 find.top5.targets.list <- function(ia.list, net.name, type) {
   ia.list <- ia.list[, c("nodeA", "nodeB", "confidence_score")]
   print(paste("Getting top scores for each TF for", type, net.name, "."))
@@ -41,9 +56,22 @@ find.top5.targets.list <- function(ia.list, net.name, type) {
     top5.targets.by.tf[idx:(idx+top.num-1),"confidence_score"] <- top5.scores
     idx <- idx + top.num 
   }
-  print(top5.targets.by.tf)
   write.table(top5.targets.by.tf, paste0(outpath.results, type, "-top5-targets-by-tf-", net.name,".csv"), 
               quote = FALSE, sep=",", row.names = FALSE)
+}
+
+# --------------------------------------
+# Barplots for TF interactions ---------
+# --------------------------------------
+draw.all.tf.ia.barplot <- function(el, net.name) {
+  print(paste("Creating barplots for TF interaction types for", net.name))
+  count.ia <- count(el, vars=c("nodeA","interaction"))
+  ggplot(count.ia, aes(x = nodeA, y = freq, fill = interaction)) +   
+    geom_bar(position = "dodge", stat="identity") + 
+    scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + 
+    coord_cartesian(ylim=c(0,1400)) + geom_text(aes(label=freq), position=position_dodge(width=0.9), vjust=-0.25) +
+    theme(text = element_text(size=30))
+  ggsave(paste0(outpath.results, "tf-ia-barplots-", net.name, ".pdf"), width = 16, height = 9)
 }
 
 print("Beginning analysis of latest files.")
@@ -67,32 +95,20 @@ for(i in latest.files) {
   if(type == "single") {
     gen.kc.net <- kc.el
   }
-  scores <- kc.el[,"confidence_score"]
-  scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
-                      freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
-  png(paste0(outpath.results, type, "-scores-hist-GN.png"))
-  plot(scores.hist)
-  dev.off()
+  draw.score.distr.hist(kc.el, "GN", type)
+  # scores <- kc.el[,"confidence_score"]
+  # scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
+  #                     freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
+  # png(paste0(outpath.results, type, "-scores-hist-GN.png"))
+  # plot(scores.hist)
+  # dev.off()
   
-  # --------------------------------------
-  # Top scoring targets per TF ---------
-  # --------------------------------------
   if(type == "activator" || type == "repressor") {
     find.top5.targets.list(kc.el, "GN", type)
   }
 }
 
-# --------------------------------------
-# Barplots for TF interactions ---------
-# --------------------------------------
-print("Creating barplots for TF interaction types...")
-count.ia <- count(gen.kc.net, vars=c("nodeA","interaction"))
-ggplot(count.ia, aes(x = nodeA, y = freq, fill = interaction)) +   
-  geom_bar(position = "dodge", stat="identity") + 
-  scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + 
-  coord_cartesian(ylim=c(0,1400)) + geom_text(aes(label=freq), position=position_dodge(width=0.9), vjust=-0.25) +
-  theme(text = element_text(size=30))
-ggsave(paste0(outpath.results, "tf-interaction-barplots-GN.pdf"), width = 16, height = 9)
+draw.all.tf.ia.barplot(gen.kc.net, "GN")
 
 file.pattern = "kc_signed_(activator|repressor).txt"
 debug.matrices <- list.files(path = outpath.debug, pattern = file.pattern, full.names=TRUE)
@@ -134,32 +150,24 @@ cio.kc.el <- NULL
 if(file.exists(cio.filename)) {
   print("Analyzing Ciofani et al. example KC-network for comparison.")
   cio.kc.el <- read.csv(cio.filename, stringsAsFactors = FALSE)
+  colnames(cio.kc.el) <- c("suid", "nodeA", "interaction", "nodeB", "confidence_score") # to make code reuse easier
   type <- "single (Ciofani et al.)"
-  scores <- cio.kc.el[,"confidence_score"]
-  # Histogram
-  scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
-                      freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
-  png(paste0(outpath.results, "-scores-hist-Ciofani.png"))
-  plot(scores.hist)
-  dev.off()
+  draw.score.distr.hist(cio.kc.el, "Ciofani", type)
+  # scores <- cio.kc.el[,"confidence_score"]
+  # # Histogram
+  # scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
+  #                     freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
+  # png(paste0(outpath.results, "-scores-hist-Ciofani.png"))
+  # plot(scores.hist)
+  # dev.off()
 } else {
   print("Could not detect example edge table file for Ciofani et al. KC network. Skipping analysis.")
 }
 
-# Single barplot for TF interactions
-count.ia <- count(cio.kc.el, vars=c("tf", "interaction"))
-ggplot(count.ia, aes(x = tf, y = freq, fill = interaction)) +
-  geom_bar(position = "dodge", stat="identity") +
-  scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + 
-  coord_cartesian(ylim=c(0,1400)) + geom_text(aes(label=freq), position=position_dodge(width=0.9), vjust=-0.25) +
-  theme(text = element_text(size=30))
-ggsave(paste0(outpath.results, "tf-interaction-barplot-Ciofani.pdf"), width = 16, height = 9)
-
 # Top TF targets
-print("Ciofani Top Targets")
-colnames(cio.kc.el) <- c("suid", "nodeA", "interaction", "nodeB", "confidence_score") # to make code reuse easier
-print(cio.kc.el[1:5,])
 cio.act <- cio.kc.el[cio.kc.el[,"interaction"] == "positive_KC",]
 cio.rep <- cio.kc.el[cio.kc.el[,"interaction"] == "negative_KC",]
 find.top5.targets.list(cio.act, "Ciofani", "activator")
 find.top5.targets.list(cio.rep, "Ciofani", "repressor")
+
+draw.all.tf.ia.barplot(cio.kc.el, "Ciofani")
