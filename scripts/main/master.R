@@ -236,7 +236,7 @@ if(GLOBAL[["use.nyu.rank"]]) {
   println("Creating quantile rank matrices (Q).")
   println("Ranking DESeq scores.")
   deseq_qmat.activator <- do.quantile.rank(deseq.scores, positiveOnly = TRUE, "K_activator") # positive only!
-  deseq_qmat.repressor <-do.quantile.rank(-1*deseq.scores, positiveOnly = TRUE, "K_repressor") # positive only!
+  deseq_qmat.repressor <- do.quantile.rank(-1*deseq.scores, positiveOnly = TRUE, "K_repressor") # positive only!
   
   println("Ranking ChIP scores.")
   chip_qmat.activator <- do.quantile.rank(chip.scores.activator, positiveOnly = FALSE, "C_activator")
