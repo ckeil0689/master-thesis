@@ -24,7 +24,7 @@ if(!dir.exists(outpath.results)) {
 }
 
 find.top5.targets.list <- function(ia.list, net.name, type) {
-  ia.list <- ia.list[,c("nodeA", "nodeB", "confidence_score")]
+  ia.list <- ia.list[, c("nodeA", "nodeB", "confidence_score")]
   print(paste("Getting top scores for each TF for", type, net.name, "."))
   tfs <- unique(ia.list[,"nodeA"])
   top.num <- 5
@@ -36,15 +36,14 @@ find.top5.targets.list <- function(ia.list, net.name, type) {
     top5.idx <- head(order(abs(tf.rows[,"confidence_score"]), decreasing = T), n = 5)
     top5.targets <- tf.rows[top5.idx, "nodeB"]
     top5.scores <- tf.rows[top5.idx, "confidence_score"]
-    print(paste("Top 5 Targets for", tf, ":", top5.targets))
     top5.targets.by.tf[idx:(idx+top.num-1),"tf"] <- rep(tf, each = top.num)
     top5.targets.by.tf[idx:(idx+top.num-1),"target"] <- top5.targets
     top5.targets.by.tf[idx:(idx+top.num-1),"confidence_score"] <- top5.scores
     idx <- idx + top.num 
   }
   print(top5.targets.by.tf)
-  write.table(top5.targets.by.tf, paste0(outpath.results, type, "LIST-top5-targets-by-tf-GN.txt"), 
-              quote = FALSE, sep="\t", row.names = FALSE)
+  write.table(top5.targets.by.tf, paste0(outpath.results, type, "-top5-targets-by-tf-", net.name,".csv"), 
+              quote = FALSE, sep=",", row.names = FALSE)
 }
 
 print("Beginning analysis of latest files.")
@@ -93,12 +92,10 @@ ggplot(count.ia, aes(x = nodeA, y = freq, fill = interaction)) +
   scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + 
   coord_cartesian(ylim=c(0,1400)) + geom_text(aes(label=freq), position=position_dodge(width=0.9), vjust=-0.25) +
   theme(text = element_text(size=30))
-ggsave("tf-interaction-barplots-GN.pdf", width = 16, height = 9)
+ggsave(paste0(outpath.results, "tf-interaction-barplots-GN.pdf"), width = 16, height = 9)
 
 file.pattern = "kc_signed_(activator|repressor).txt"
 debug.matrices <- list.files(path = outpath.debug, pattern = file.pattern, full.names=TRUE)
-col_breaks = c(seq(-2,1.50,length=400),  # for red
-               seq(1.51,2,length=100))
 for(i in debug.matrices) {
   # --------------------------------------
   # Confidence score heatmaps ------------
@@ -111,7 +108,7 @@ for(i in debug.matrices) {
   pdf(paste0(outpath.results, "/", type, "-heatmap-GN.pdf"))
   heatmap.2(kc.mat.num, Rowv = TRUE, Colv = FALSE, dendrogram = "none", 
             main = paste("Score Heatmap for", type),
-            labRow = FALSE, margins = c(8, 2), trace = "none", breaks = col_breaks)
+            labRow = FALSE, margins = c(8, 2), trace = "none")#, breaks = col_breaks)
   dev.off()
   
   # --------------------------------------
@@ -126,30 +123,6 @@ for(i in debug.matrices) {
   colnames(ranked.genes) <- NULL
   rownames(ranked.genes) <- toupper(rownames(ranked.genes))
   write.table(ranked.genes, paste0(outpath.results, type, "-sum-genes-GN.rnk"), quote = FALSE, sep="\t", row.names = TRUE)
-  
-  # --------------------------------------
-  # Top scoring targets per TF ---------
-  # --------------------------------------
-  print(paste("Getting top scores for each TF for", type, "."))
-  tfs <- colnames(kc.mat)
-  top.num <- 5
-  top5.targets.by.tf <- data.frame(matrix(ncol=3, nrow = top.num * length(tfs), 
-                                          dimnames = list(NULL, c("tf", "target", "confidence_score"))))
-  idx <- 1
-  for(tf in tfs) {
-    tf.col <- kc.mat[,tf]
-    top5.idx <- head(order(abs(tf.col), decreasing = T), n = 5)
-    top5.targets <- rownames(kc.mat)[top5.idx]
-    top5.scores <- tf.col[top5.idx]
-    print(paste("Top 5 Targets for", tf, ":", top5.targets))
-    top5.targets.by.tf[idx:(idx+top.num-1),"tf"] <- rep(tf, each = top.num)
-    top5.targets.by.tf[idx:(idx+top.num-1),"target"] <- top5.targets
-    top5.targets.by.tf[idx:(idx+top.num-1),"confidence_score"] <- top5.scores
-    idx <- idx + top.num 
-  }
-  print(top5.targets.by.tf)
-  write.table(top5.targets.by.tf, paste0(outpath.results, type, "-top5-targets-by-tf-GN.txt"), 
-              quote = FALSE, sep="\t", row.names = FALSE)
 }
 
 print("Doing analysis for Ciofani net.")
@@ -174,14 +147,19 @@ if(file.exists(cio.filename)) {
 }
 
 # Single barplot for TF interactions
-count.ia <- count(cio.kc.el, vars=c("tf","interaction"))
+count.ia <- count(cio.kc.el, vars=c("tf", "interaction"))
 ggplot(count.ia, aes(x = tf, y = freq, fill = interaction)) +
   geom_bar(position = "dodge", stat="identity") +
   scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + 
   coord_cartesian(ylim=c(0,1400)) + geom_text(aes(label=freq), position=position_dodge(width=0.9), vjust=-0.25) +
   theme(text = element_text(size=30))
-ggsave("all-interaction-barplot-Ciofani.pdf", width = 16, height = 9)
+ggsave(paste0(outpath.results, "tf-interaction-barplot-Ciofani.pdf"), width = 16, height = 9)
 
 # Top TF targets
+print("Ciofani Top Targets")
+colnames(cio.kc.el) <- c("suid", "nodeA", "interaction", "nodeB", "confidence_score") # to make code reuse easier
+print(cio.kc.el[1:5,])
 cio.act <- cio.kc.el[cio.kc.el[,"interaction"] == "positive_KC",]
 cio.rep <- cio.kc.el[cio.kc.el[,"interaction"] == "negative_KC",]
+find.top5.targets.list(cio.act, "Ciofani", "activator")
+find.top5.targets.list(cio.rep, "Ciofani", "repressor")
