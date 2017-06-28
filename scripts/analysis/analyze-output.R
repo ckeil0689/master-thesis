@@ -3,6 +3,7 @@ library(ggplot2)
 library(gplots)
 library(plyr)
 library(igraph)
+library(RColorBrewer)
 
 # Analysis of Network Generation Output
 scriptdir <- getwd()
@@ -96,12 +97,6 @@ for(i in latest.files) {
     gen.kc.net <- kc.el
   }
   draw.score.distr.hist(kc.el, "GN", type)
-  # scores <- kc.el[,"confidence_score"]
-  # scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
-  #                     freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
-  # png(paste0(outpath.results, type, "-scores-hist-GN.png"))
-  # plot(scores.hist)
-  # dev.off()
   
   if(type == "activator" || type == "repressor") {
     find.top5.targets.list(kc.el, "GN", type)
@@ -110,7 +105,9 @@ for(i in latest.files) {
 
 draw.all.tf.ia.barplot(gen.kc.net, "GN")
 
+th17.vip.targets <- c("IL21", "IL10", "IL17A", "IL23R", "IL17F", "FOXP3", "GATA3", "IFNG", "TGFB1", "IL2", "TNFA")
 file.pattern = "kc_signed_(activator|repressor).txt"
+colors.heat <- brewer.pal(9,"YlOrRd")
 debug.matrices <- list.files(path = outpath.debug, pattern = file.pattern, full.names=TRUE)
 for(i in debug.matrices) {
   # --------------------------------------
@@ -120,11 +117,21 @@ for(i in debug.matrices) {
               ". This uses the last debug output (enable DEBUG when running master.R)."))
   kc.mat <- read.csv(i, sep = "\t", row.names = 1, header = TRUE, stringsAsFactors = FALSE)
   kc.mat.num <- data.matrix(kc.mat, rownames.force = TRUE)
+  th17.vip.targets.idx <- which(rownames(kc.mat.num) %in% th17.vip.targets, arr.ind = T)
+  kc.mat.num.vip <- kc.mat.num[th17.vip.targets.idx,]
   type <- gsub(paste0(outpath.debug, "/", file.pattern),'\\1', i)
-  pdf(paste0(outpath.results, "/", type, "-heatmap-GN.pdf"))
-  heatmap.2(kc.mat.num, Rowv = TRUE, Colv = FALSE, dendrogram = "none", 
-            main = paste("Score Heatmap for", type),
-            labRow = FALSE, margins = c(8, 2), trace = "none")#, breaks = col_breaks)
+  if(type=="repressor") {
+    colors.heat <- rev(colors.heat)
+  }
+  pdf(paste0(outpath.results, "/", type, "-heatmap-VIP-GN.pdf"))
+  heatmap.2(kc.mat.num.vip, Rowv = TRUE, Colv = FALSE, dendrogram = "row", 
+            trace = "none", symkey=FALSE, symbreaks=FALSE, keysize=1,
+            col = colors.heat,
+            #( "bottom.margin", "left.margin", "top.margin", "left.margin" )
+            key.par=list(mar=c(3.5,0,3,0))
+            # lmat -- added 2 lattice sections (5 and 6) for padding
+            #, lmat=rbind(c(2, 4), c(1, 3))
+            )
   dev.off()
   
   # --------------------------------------
@@ -153,13 +160,6 @@ if(file.exists(cio.filename)) {
   colnames(cio.kc.el) <- c("suid", "nodeA", "interaction", "nodeB", "confidence_score") # to make code reuse easier
   type <- "single (Ciofani et al.)"
   draw.score.distr.hist(cio.kc.el, "Ciofani", type)
-  # scores <- cio.kc.el[,"confidence_score"]
-  # # Histogram
-  # scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
-  #                     freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
-  # png(paste0(outpath.results, "-scores-hist-Ciofani.png"))
-  # plot(scores.hist)
-  # dev.off()
 } else {
   print("Could not detect example edge table file for Ciofani et al. KC network. Skipping analysis.")
 }
@@ -171,3 +171,7 @@ find.top5.targets.list(cio.act, "Ciofani", "activator")
 find.top5.targets.list(cio.rep, "Ciofani", "repressor")
 
 draw.all.tf.ia.barplot(cio.kc.el, "Ciofani")
+
+# Dimensions (full) 
+print(paste("Ciofani size:", dim(cio.kc.el)))
+print(paste("GN size:", dim(gen.kc.net)))
