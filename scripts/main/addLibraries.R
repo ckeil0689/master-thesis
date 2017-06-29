@@ -2,7 +2,8 @@
 
 # Checks for and if needed installs required R-packages
 # Perform some intial setups
-list.of.packages <- c("data.table", "reshape2", "testthat", "ggplot2", "plyr", "igraph", "gplots")
+list.of.packages <- c("data.table", "reshape2", "testthat", "ggplot2", "plyr", 
+                      "igraph", "gplots", "RColorBrewer")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # install if missing
 if(length(new.packages)) {

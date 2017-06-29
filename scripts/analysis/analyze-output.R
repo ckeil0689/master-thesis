@@ -71,10 +71,13 @@ draw.all.tf.ia.barplot <- function(el, net.name) {
     geom_bar(position = "dodge", stat="identity") + 
     scale_fill_manual(breaks=levels("interaction"), values=c('green', 'red')) + 
     coord_cartesian(ylim=c(0,1400)) + geom_text(aes(label=freq), position=position_dodge(width=0.9), vjust=-0.25) +
-    theme(text = element_text(size=30))
+    theme(text = element_text(size=30)) + theme_bw()
   ggsave(paste0(outpath.results, "tf-ia-barplots-", net.name, ".pdf"), width = 16, height = 9)
 }
 
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+# Run analysis <<<<<<<<<<<<<<<<<<<<<<<<<
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 print("Beginning analysis of latest files.")
 # Retrieve latest output files (by POSIX modification time)
 details = file.info(list.files(path = outpath.cyt, pattern = "*.csv", full.names=TRUE))
@@ -82,15 +85,11 @@ details = details[with(details, order(as.POSIXct(mtime))), ]
 files = rownames(details)
 latest.files <- tail(files, 3) # 3 because activator, repressor, single
 
-print("Analyzed files:")
-print(basename(latest.files))
+print(paste("Analyzed:", basename(latest.files)))
 
 gen.kc.net <- NULL
 print("Generating confidence score density histograms...")
 for(i in latest.files) {
-  # --------------------------------------
-  # Confidence score density histograms --
-  # --------------------------------------
   kc.el <- read.csv(i, stringsAsFactors = FALSE)
   type <- gsub(paste0(outpath.cyt, "/kc_(activator|repressor|single)_.*csv"),'\\1', i)
   if(type == "single") {
@@ -107,30 +106,29 @@ draw.all.tf.ia.barplot(gen.kc.net, "GN")
 
 th17.vip.targets <- c("IL21", "IL10", "IL17A", "IL23R", "IL17F", "FOXP3", "GATA3", "IFNG", "TGFB1", "IL2", "TNFA")
 file.pattern = "kc_signed_(activator|repressor).txt"
-colors.heat <- brewer.pal(9,"YlOrRd")
+colors.heat <- brewer.pal(9,"RdYlBu")
 debug.matrices <- list.files(path = outpath.debug, pattern = file.pattern, full.names=TRUE)
 for(i in debug.matrices) {
-  # --------------------------------------
-  # Confidence score heatmaps ------------
-  # --------------------------------------
-  print(paste("Making interaction heatmap for", type,
+  print(paste0("Making selected TF -> target gene interaction heatmap for ", type,
               ". This uses the last debug output (enable DEBUG when running master.R)."))
   kc.mat <- read.csv(i, sep = "\t", row.names = 1, header = TRUE, stringsAsFactors = FALSE)
   kc.mat.num <- data.matrix(kc.mat, rownames.force = TRUE)
   th17.vip.targets.idx <- which(rownames(kc.mat.num) %in% th17.vip.targets, arr.ind = T)
   kc.mat.num.vip <- kc.mat.num[th17.vip.targets.idx,]
   type <- gsub(paste0(outpath.debug, "/", file.pattern),'\\1', i)
-  if(type=="repressor") {
-    colors.heat <- rev(colors.heat)
-  }
+  # if(type=="repressor") {
+  #   colors.heat <- rev(colors.heat)
+  # }
   pdf(paste0(outpath.results, "/", type, "-heatmap-VIP-GN.pdf"))
-  heatmap.2(kc.mat.num.vip, Rowv = TRUE, Colv = FALSE, dendrogram = "row", 
+  heatmap.2(abs(kc.mat.num.vip), Rowv = TRUE, Colv = FALSE, dendrogram = "row", 
             trace = "none", symkey=FALSE, symbreaks=FALSE, keysize=1,
             col = colors.heat,
             #( "bottom.margin", "left.margin", "top.margin", "left.margin" )
-            key.par=list(mar=c(3.5,0,3,0))
+            key.par=list(mar=c(3.5,0,3,0)), key.title = paste("Score", toupper(type)),
+            cexRow = 1.7, cexCol = 1.7
             # lmat -- added 2 lattice sections (5 and 6) for padding
-            #, lmat=rbind(c(2, 4), c(1, 3))
+            # 1. Heatmap, 2. Row Dend, 3. Col Dend, 4. Key
+            , lmat=rbind(c(5, 4, 3), c(2, 1, 6)), lwid = c(1, 5, 1)
             )
   dev.off()
   
