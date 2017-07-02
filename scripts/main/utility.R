@@ -17,7 +17,7 @@ write.mat <- function(mat, outpath, prefix, suffix = "") {
   if(prefix != "" && suffix != "") {suffix <- paste0("_", suffix)}
   filename = paste0(outpath, prefix, suffix, ".txt")
   print(paste("Writing matrix to file:", filename)) # do not use println() here --> test will fail, output is wanted
-  write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA)
+  write.table(mat, file = filename, sep = "\t", row.names = TRUE, col.names = NA, quote = FALSE)
 }
 
 # Load z-scores located at the given path

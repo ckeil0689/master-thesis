@@ -183,7 +183,7 @@ if(is.null(zscores.all)) {
 # 2) Perform ranking on each confidence score matrix S
 # --------------
 println("--------------------------------------------------------------------")
-println(">>>>>>>>>>>>> 2) Perform quantile ranking on each data set <<<<<<<<<<<<<<<<<<")
+println(">>>>>>>>> 2) Perform quantile ranking on each data set <<<<<<<<<<<<<")
 println("--------------------------------------------------------------------")
 # Reset because previous functions may globally change working directory and source() breaks
 setwd(scriptdir)
