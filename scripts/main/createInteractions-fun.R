@@ -3,7 +3,7 @@ write.interactions <- function(mat, outpath, combo, type, used.cut, append = FAL
   filename = paste0(outpath, combo, "_", type, "_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
   println(paste("Writing matrix to file:", filename))
   # no column names when appending (otherwise it will be treated as random data entry by Cytoscape)
-  write.table(mat, file = filename, append = append, sep = ",", row.names = FALSE, col.names = !append)
+  write.table(mat, file = filename, append = append, sep = ",", row.names = FALSE, col.names = !append, quote = FALSE)
 }
 
 # Pre-allocates data table since final dimensions are known - performance is much better than dynamic resize during edge selection
