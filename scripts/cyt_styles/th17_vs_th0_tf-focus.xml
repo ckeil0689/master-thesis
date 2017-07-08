@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<vizmap documentVersion="3.0" id="VizMap-2017_07_03-12_29">
+<vizmap documentVersion="3.0" id="VizMap-2017_07_03-12_57">
     <visualStyle name="from_nyu_0">
         <network>
             <visualProperty name="NETWORK_CENTER_Z_LOCATION" default="0.0"/>
@@ -50,12 +50,12 @@
             <visualProperty name="NODE_CUSTOMPAINT_9" default="DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_9, name=Node Custom Paint 9)"/>
             <visualProperty name="NODE_SIZE" default="100.0">
                 <discreteMapping attributeType="string" attributeName="name">
-                    <discreteMappingEntry value="400.0" attributeValue="MAF"/>
-                    <discreteMappingEntry value="400.0" attributeValue="IRF4"/>
-                    <discreteMappingEntry value="400.0" attributeValue="STAT3"/>
-                    <discreteMappingEntry value="400.0" attributeValue="RORC"/>
-                    <discreteMappingEntry value="400.0" attributeValue="BATF"/>
-                    <discreteMappingEntry value="400.0" attributeValue="FOSL2"/>
+                    <discreteMappingEntry value="50.0" attributeValue="MAF"/>
+                    <discreteMappingEntry value="50.0" attributeValue="IRF4"/>
+                    <discreteMappingEntry value="50.0" attributeValue="STAT3"/>
+                    <discreteMappingEntry value="50.0" attributeValue="RORC"/>
+                    <discreteMappingEntry value="50.0" attributeValue="BATF"/>
+                    <discreteMappingEntry value="50.0" attributeValue="FOSL2"/>
                 </discreteMapping>
             </visualProperty>
             <visualProperty name="NODE_CUSTOMGRAPHICS_POSITION_7" default="C,C,c,0.00,0.00"/>
@@ -81,12 +81,12 @@
             <visualProperty name="NODE_LABEL_WIDTH" default="100.0"/>
             <visualProperty name="NODE_LABEL_FONT_SIZE" default="28">
                 <discreteMapping attributeType="string" attributeName="name">
-                    <discreteMappingEntry value="130" attributeValue="STAT3"/>
-                    <discreteMappingEntry value="130" attributeValue="RORC"/>
-                    <discreteMappingEntry value="130" attributeValue="BATF"/>
-                    <discreteMappingEntry value="130" attributeValue="FOSL2"/>
-                    <discreteMappingEntry value="130" attributeValue="MAF"/>
-                    <discreteMappingEntry value="130" attributeValue="IRF4"/>
+                    <discreteMappingEntry value="12" attributeValue="STAT3"/>
+                    <discreteMappingEntry value="12" attributeValue="RORC"/>
+                    <discreteMappingEntry value="12" attributeValue="BATF"/>
+                    <discreteMappingEntry value="12" attributeValue="FOSL2"/>
+                    <discreteMappingEntry value="12" attributeValue="MAF"/>
+                    <discreteMappingEntry value="12" attributeValue="IRF4"/>
                 </discreteMapping>
             </visualProperty>
             <visualProperty name="NODE_BORDER_PAINT" default="#666666"/>
@@ -139,7 +139,11 @@
             <visualProperty name="EDGE_SOURCE_ARROW_SELECTED_PAINT" default="#FFFF00"/>
             <visualProperty name="EDGE_LABEL_FONT_FACE" default="Dialog,plain,10"/>
             <visualProperty name="EDGE_CURVED" default="true"/>
-            <visualProperty name="EDGE_TARGET_ARROW_SHAPE" default="ARROW"/>
+            <visualProperty name="EDGE_TARGET_ARROW_SHAPE" default="ARROW">
+                <discreteMapping attributeType="string" attributeName="interaction">
+                    <discreteMappingEntry value="T" attributeValue="negative_KC"/>
+                </discreteMapping>
+            </visualProperty>
             <visualProperty name="EDGE_BEND"/>
             <visualProperty name="EDGE_TARGET_ARROW_SELECTED_PAINT" default="#FFFF00"/>
             <visualProperty name="EDGE_VISIBLE" default="true"/>

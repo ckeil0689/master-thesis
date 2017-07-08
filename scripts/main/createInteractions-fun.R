@@ -38,6 +38,8 @@ select.edges <- function(combo.mat, cyt.table, used.cut, pos.edge, neg.edge) {
         next # do not set any edge (list size limited to 'tot')
       }
       
+      # using set() for speed efficiency reasons
+      # https://stackoverflow.com/questions/11486369/growing-a-data-frame-in-a-memory-efficient-manner
       set(cyt.table, as.integer(listrow), "nodeA", colnames(combo.mat)[i])
       set(cyt.table, as.integer(listrow), "interaction", edge.type)
       set(cyt.table, as.integer(listrow), "nodeB", rownames(combo.mat)[gene])
