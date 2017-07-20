@@ -29,7 +29,11 @@ if(!dir.exists(outpath.results)) {
 # --------------------------------------
 draw.score.distr.hist <- function(el, net.name, type) {
   scores <- el[,"confidence_score"]
-  scores.hist <- hist(abs(scores), main = paste("KC score density distribution for", type), 
+  title <- expression(paste("KC absolute score density distribution ", "C" ["net"]))
+  if(type == "single") {
+    title <- expression(paste("KC absolute score density distribution ", "P" ["net"]))
+  }
+  scores.hist <- hist(abs(scores), main = title, 
                       freq = FALSE, col = "blue", xlab = "abs(confidence_score)", ylim = range(c(0:3)))
   png(paste0(outpath.results, type, "-scores-hist-", net.name, ".png"))
   plot(scores.hist)
@@ -121,7 +125,7 @@ draw.heatmap <- function(vip.mat, filepath, type) {
             trace = "none", symkey=F, symbreaks=F, keysize=1,
             col = colors.heat,
             #( "bottom.margin", "left.margin", "top.margin", "left.margin" )
-            key.par=list(mar=c(3.5,0,3,0)), key.title = paste("Score", toupper(type)),
+            key.par=list(mar=c(3.5,0,3,0)), key.title = paste("Score", tools::toTitleCase(type)),
             cexRow = 1.7, cexCol = 1.7
             # lmat -- added 2 lattice sections (5 and 6) for padding
             # 1. Heatmap, 2. Row Dend, 3. Col Dend, 4. Key
@@ -150,6 +154,21 @@ rank.genes.by.tf.sumscores <- function(kc.mat.num, type) {
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 # Run analysis <<<<<<<<<<<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+print("Creating an example Poisson distribution image.")
+x <- runif(5, min=1, max=10)
+lambdas <- runif(5, min=100, max=500)
+# Vector of densities for ggplot
+dens <- c()
+for(l in lambdas) {
+   pois.dist <- ppois(x, l, lower.tail = FALSE)
+   dens <- c(dens, pois.dist)
+}
+lines <- rep(LETTERS[seq(1, 5)], each = 5)
+df <- data.frame(dens, lines)
+ggplot(df, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5) + theme_bw() + 
+  labs(x = "x", y = "Density") + ggtitle("Poisson Cumulative Density Functions")
+ggsave(paste0(outpath.results, "pois-dist-example.pdf"))
+       
 print("Beginning analysis of latest generated files.")
 # Retrieve latest output files (by POSIX modification time)
 details = file.info(list.files(path = outpath.cyt, pattern = "*.csv", full.names=TRUE))
