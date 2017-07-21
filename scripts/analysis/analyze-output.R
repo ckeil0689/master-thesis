@@ -240,23 +240,28 @@ draw.all.tf.ia.barplot(cio.kc.el, "Ciofani")
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 print("Recreating Cytoscape charts for improved visuals.")
 # 1) Cnet vs Pnet Average Clustering Coefficient
+print("ACC distribution...")
 acc.vals <- c(0.521, 0.528, 0.527, 0.528, 0.526, 0.524, 0.005, 0.004, 0.001, 0.002)
 neighbors.num <- c(2, 3, 4, 5, 6, 7, 360, 500, 683, 739)
-net <- rep("cnet", length(acc.vals))
-acc.df.cnet <- data.frame(c(acc.vals, neighbors.num, net))
+net.cnet <- rep("cnet", length(acc.vals))
+acc.df.cnet <- data.frame(acc.vals, neighbors.num, net.cnet)
 
 acc.vals <- c(0.6880, 0.6769, 0.6664, 0.6767, 0.6666, 0.0026, 0.0015, 0.0014, 0.0017, 0.0014, 9.5846e-4)
 neighbors.num <- c(2, 3, 4, 5, 6, 899, 1103, 1149, 1254, 1421, 1682)
-net <- rep("pnet", length(acc.vals))
-acc.df.pnet <- data.frame(c(acc.vals, neighbors.num, net))
+net.pnet <- rep("pnet", length(acc.vals))
+acc.df.pnet <- data.frame(acc.vals, neighbors.num, net.pnet)
 
-p <- ggplot(NULL, aes(y = acc.vals, x = neighbors.num, colour = net), log10 = "x")
-p + geom_point(data = acc.df.cnet) + geom_step(data = acc.df.pnet) + 
-  theme_bw() + theme(text = element_text(size=20), axis.title.x = "Number of neighbors", 
-                     axis.title.y = "Avg. clustering coefficient")
-ggsave(paste0(outpath.results, "avg-clus-coeff-pnet-vs-cnet.pdf"))
+net.names <- c(net.cnet, net.pnet)
+
+ggplot() + 
+  geom_point(data = acc.df.cnet, aes(x = neighbors.num, y = acc.vals, colour = "Cnet")) + 
+  geom_point(data = acc.df.pnet, aes(x = neighbors.num, y = acc.vals, colour = "Pnet")) + 
+  theme_bw() + coord_trans(x="log10") + labs(x="Number of neighbors", y="Avg. clustering coefficient", 
+                                             title="Avg. Clustering Coefficient Distribution", colour="Network")
+ggsave(paste0(outpath.results, "acc-pnet-vs-cnet.pdf"))
 
 # 2) Shortest path length distribution histogram for Cnet and Pnet
+print("SPL distribution...")
 obs = c(1, 2, 3, 4)
 freq = c(4237, 7354, 3371, 557)
 spld.cnet.df <- data.frame(fill="blue", obs, freq)
@@ -269,26 +274,30 @@ spld.df <- rbind(spld.cnet.df, spld.pnet.df)
 ggplot(spld.df, aes(x=obs, y=freq, fill=fill)) +
   geom_histogram(binwidth=1, colour="black", position="dodge") +
   scale_fill_identity()
-ggsave(paste0(outpath.results, "shortest-path-dist-pnet-vs-cnet.pdf"))
+ggsave(paste0(outpath.results, "spl-pnet-vs-cnet.pdf"))
 
 # 3) Cnet vs Pnet BCV
+print("BCV distribution...")
 bcv.vals <- c(1.4415e-4, 4.866e-4, 3.5041e-4, 8.0744e-4, 6.7927e-4, 3.0552e-4, 4.3588e-4)
 neighbors.num <- c(360, 500, 500, 683, 732, 735, 739)
-net <- rep("cnet", length(bcv.vals))
-bcv.df.cnet <- data.frame(c(bcv.vals, neighbors.num, net))
+net.cnet <- rep("cnet", length(bcv.vals))
+bcv.df.cnet <- data.frame(bcv.vals, neighbors.num, net.cnet)
 
 bcv.vals <- c(1.3175e-4, 5.5606e-4, 1.8849e-4, 1.0849e-4, 1.8057e-4, 2.2423e-4)
 neighbors.num <- c(899, 1682, 1103, 1149, 1254, 1421)
-net <- rep("pnet", length(bcv.vals))
-bcv.df.pnet <- data.frame(c(bcv.vals, neighbors.num, net))
+net.pnet <- rep("pnet", length(bcv.vals))
+bcv.df.pnet <- data.frame(bcv.vals, neighbors.num, net.pnet)
 
-p <- ggplot(NULL, aes(y = bcv.vals, x = neighbors.num, colour = net), log10 = "x")
-p + geom_point(data = bcv.df.cnet) + geom_step(data = bcv.df.pnet) + 
-  theme_bw() + theme(text = element_text(size=20), axis.title.x = "Number of neighbors", 
-                     axis.title.y = "Betweenness centrality")
+net.names <- c(net.cnet, net.pnet)
+
+ggplot(log10 = "x") + 
+  geom_point(data = bcv.df.cnet, aes(y = bcv.vals, x = neighbors.num, color = "blue")) + 
+  geom_point(data = bcv.df.pnet, aes(y = bcv.vals, x = neighbors.num, color = "green")) + 
+  theme_bw()
 ggsave(paste0(outpath.results, "bcv-pnet-vs-cnet.pdf"))
 
 # 4) In-degree distribution histogram for Cnet and Pnet
+print("In-degree distribution...")
 obs = c(1, 2, 3, 4, 5, 6, 7)
 freq = c(1202, 451, 281, 166, 86, 28, 4)
 indeg.cnet.df <- data.frame(fill="blue", obs, freq)
