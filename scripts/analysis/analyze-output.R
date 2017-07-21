@@ -272,7 +272,7 @@ spld.pnet.df <- data.frame(fill="green", obs, freq)
 
 spld.df <- rbind(spld.cnet.df, spld.pnet.df)
 ggplot(spld.df, aes(x=obs, y=freq, fill=fill)) +
-  geom_histogram(binwidth=1, colour="black", position="dodge") +
+  geom_histogram(binwidth=1, colour="black", position="dodge", stat = "identity") +
   scale_fill_identity()
 ggsave(paste0(outpath.results, "spl-pnet-vs-cnet.pdf"))
 
@@ -293,7 +293,8 @@ net.names <- c(net.cnet, net.pnet)
 ggplot(log10 = "x") + 
   geom_point(data = bcv.df.cnet, aes(y = bcv.vals, x = neighbors.num, color = "blue")) + 
   geom_point(data = bcv.df.pnet, aes(y = bcv.vals, x = neighbors.num, color = "green")) + 
-  theme_bw()
+  theme_bw() + labs(x="Number of neighbors", y="Betweenness Centrality", 
+                    title="Betweenness Centrality", colour="Network")
 ggsave(paste0(outpath.results, "bcv-pnet-vs-cnet.pdf"))
 
 # 4) In-degree distribution histogram for Cnet and Pnet
@@ -308,6 +309,6 @@ indeg.pnet.df <- data.frame(fill="green", obs, freq)
 
 indeg.df <- rbind(indeg.cnet.df, indeg.pnet.df)
 ggplot(indeg.df, aes(x=obs, y=freq, fill=fill)) +
-  geom_histogram(binwidth=1, colour="black", position="dodge") +
+  geom_histogram(binwidth=1, colour="black", position="dodge", position = 'identity') +
   scale_fill_identity()
 ggsave(paste0(outpath.results, "indeg-dist-pnet-vs-cnet.pdf"))
