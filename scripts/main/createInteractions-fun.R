@@ -1,6 +1,6 @@
 # Load confidence score matrices by option
 write.interactions <- function(mat, outpath, combo, type, used.cut, append = FALSE) {
-  filename = paste0(outpath, combo, "_", type, "_", used.cut, "_cs-cut_", Sys.Date(), ".csv")
+  filename = paste0(outpath, combo, "_", type, "_", used.cut, "_cs-cut_", GLOBAL[["z.abs.cut"]], "_zcut_", Sys.Date(), ".csv")
   println(paste("Writing matrix to file:", filename))
   # no column names when appending (otherwise it will be treated as random data entry by Cytoscape)
   write.table(mat, file = filename, append = append, sep = ",", row.names = FALSE, col.names = !append, quote = FALSE)
